@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, UserRound, Users, Dumbbell } from "lucide-react"
+import { Shield, UserRound, Users } from "lucide-react"
 import { motion } from "framer-motion"
 
 export default function LoginPage() {
