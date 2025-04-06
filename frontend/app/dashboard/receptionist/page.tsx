@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -11,33 +11,73 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DollarSign, Edit, Search, Trash, Users, PlusCircle, Clock, CreditCard } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { mockMembers, mockPayments } from "@/lib/mock-data"
 import { DatePicker } from "@/components/date-picker"
 import { AddMemberDialog } from "@/components/add-member-dialog"
 import { AddPaymentDialog } from "@/components/add-payment-dialog"
+import { EditMemberDialog } from "@/components/edit-member-dialog"
 import { motion } from "framer-motion"
+import { DeleteMemberDialog } from "@/components/delete-member-dialog"
+import dayjs from 'dayjs';
+import { DeletePaymentDialog } from "@/components/delete-payment-dialog"
 
 export default function ReceptionistDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [cashRegisterOpen, setCashRegisterOpen] = useState(false)
   const [initialAmount, setInitialAmount] = useState("0")
-  const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
   const [showAddMember, setShowAddMember] = useState(false)
   const [showAddPayment, setShowAddPayment] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("mañana")
+  const [members, setMembers] = useState([])
+  const [payments, setPayments] = useState([])
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [selectedMember, setSelectedMember] = useState(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [selectedMemberToDelete, setSelectedMemberToDelete] = useState(null)
+  const [showDeletePaymentDialog, setShowDeletePaymentDialog] = useState(false)
+  const [selectedPaymentToDelete, setSelectedPaymentToDelete] = useState(null)
 
-  const filteredMembers = mockMembers.filter(
+  useEffect(() => {
+    fetchMembers()
+  }, [])
+
+  const fetchMembers = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
+      const data = await res.json()
+      setMembers(data)
+    } catch (error) {
+      console.error("Error al cargar los alumnos", error)
+    }
+  }
+
+  const fetchPaymentsByDateAndShift = async () => {
+    try {
+
+      const dateStr = dayjs(selectedDate).format('DD-MM-YYYY');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos/fecha/${dateStr}/${selectedShift}`)
+      const data = await res.json()
+      setPayments(data)
+    } catch (error) {
+      console.error("Error al cargar pagos por turno", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchPaymentsByDateAndShift()
+  }, [selectedDate, selectedShift])
+
+  const filteredMembers = members.filter(
     (member) =>
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.dni.includes(searchTerm),
+      member.Nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.Email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.Profesor_asignado.toLowerCase().includes(searchTerm) ||
+      member.DNI.includes(searchTerm) ||
+  
+      member.Plan.includes(searchTerm)
   )
 
-  const currentShiftPayments = mockPayments.filter((payment) => {
-    const paymentDate = new Date(payment.date)
-    return paymentDate.toDateString() === selectedDate.toDateString() && payment.shift === selectedShift
-  })
+  const currentShiftPayments = payments
 
   const handleOpenCashRegister = () => {
     setCashRegisterOpen(true)
@@ -48,12 +88,17 @@ export default function ReceptionistDashboard() {
     setInitialAmount("0")
   }
 
-  const handleEditMember = (id: string) => {
-    setEditingMemberId(id)
+  const handleEditMember = (member) => {
+    setSelectedMember(member)
+    setShowEditDialog(true)
   }
 
-  const handleSaveMember = () => {
-    setEditingMemberId(null)
+  const handleSaveMember = (updated) => {
+    const updatedList = members.map((member) =>
+      member.DNI === updated.DNI ? updated : member
+    )
+    setMembers(updatedList)
+    setShowEditDialog(false)
   }
 
   const formatDate = (date: Date) => {
@@ -130,18 +175,10 @@ export default function ReceptionistDashboard() {
         )}
 
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 md:w-auto">
+          <TabsList className="grid w-full grid-cols-2 md:w-auto">
             <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               <Users className="mr-2 h-4 w-4" />
               Miembros
-            </TabsTrigger>
-            <TabsTrigger value="register" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Registrar Miembro
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              <CreditCard className="mr-2 h-4 w-4" />
-              Registrar Pago
             </TabsTrigger>
             <TabsTrigger
               value="shift-payments"
@@ -174,19 +211,26 @@ export default function ReceptionistDashboard() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-
                 <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
                   <div className="min-w-[800px]">
-                    <Table>
+                    <Table className="table-fixed w-full">
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Nombre</TableHead>
-                          <TableHead>DNI</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Teléfono</TableHead>
-                          <TableHead>Plan</TableHead>
-                          <TableHead>Estado</TableHead>
-                          <TableHead>Acciones</TableHead>
+                          <TableHead className="w-[7.7%]">Nombre</TableHead>
+                          <TableHead className="w-[7.7%]">DNI</TableHead>
+                          <TableHead className="w-[7.7%]">Email</TableHead>
+                          <TableHead className="w-[7.7%]">Teléfono</TableHead>
+
+                          <TableHead className="w-[7.7%]">C.Pagadas</TableHead>
+                          <TableHead className="w-[7.7%]">C.Realizadas</TableHead>
+                          <TableHead className="w-[7.7%]">Inicio</TableHead>
+                          <TableHead className="w-[7.7%]">Vencimiento</TableHead>
+
+                          <TableHead className="w-[7.7%]">Nacimiento</TableHead>
+                          <TableHead className="w-[7.7%]">Plan</TableHead>
+                          <TableHead className="w-[7.7%]">Profesor</TableHead>
+                          <TableHead className="w-[7.7%]">Estado</TableHead>
+                          <TableHead className="w-[7.7%]">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -198,214 +242,91 @@ export default function ReceptionistDashboard() {
                             transition={{ duration: 0.2, delay: index * 0.05 }}
                             className="hover:bg-accent"
                           >
-                            <TableCell>
-                              {editingMemberId === member.id ? (
-                                <Input defaultValue={member.name} className="max-w-[150px]" />
-                              ) : (
-                                <span className="font-medium">{member.name}</span>
-                              )}
+                            <TableCell className="w-[7.7%]">
+
+                              <span className="font-medium">{member.Nombre}</span>
+
                             </TableCell>
-                            <TableCell>
-                              {editingMemberId === member.id ? (
-                                <Input defaultValue={member.dni} className="max-w-[100px]" />
-                              ) : (
-                                member.dni
-                              )}
+                            <TableCell className="w-[7.7%]">
+                              {member.DNI}
                             </TableCell>
-                            <TableCell>
-                              {editingMemberId === member.id ? (
-                                <Input defaultValue={member.email} className="max-w-[180px]" />
-                              ) : (
-                                member.email
-                              )}
+                            <TableCell className="w-[7.7%] whitespace-nowrap overflow-hidden text-ellipsis">
+                              {member.Email}
                             </TableCell>
-                            <TableCell>
-                              {editingMemberId === member.id ? (
-                                <Input defaultValue={member.phone} className="max-w-[120px]" />
-                              ) : (
-                                member.phone
-                              )}
+                            <TableCell className="w-[7.7%]">
+
+                              {member.Telefono}
+
                             </TableCell>
-                            <TableCell>
-                              {editingMemberId === member.id ? (
-                                <Select defaultValue={member.plan}>
-                                  <SelectTrigger className="max-w-[130px]">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Básico">Básico</SelectItem>
-                                    <SelectItem value="Estándar">Estándar</SelectItem>
-                                    <SelectItem value="Premium">Premium</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                member.plan
-                              )}
+                            <TableCell className="w-[7.7%]">
+                              {
+                                member.Clases_pagadas
+                              }
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="w-[7.7%]">
+                              {
+                                member.Clases_realizadas
+                              }
+                            </TableCell>
+                            <TableCell className="w-[7.7%]">
+                              {
+                                member.Fecha_inicio
+                              }
+                            </TableCell>
+                            <TableCell className="w-[7.7%]">
+                              {
+                                member.Fecha_vencimiento
+                              }
+                            </TableCell>
+                            <TableCell className="w-[7.7%]">
+                              {
+                                member.Fecha_nacimiento
+                              }
+                            </TableCell>
+                            <TableCell className="w-[7.7%]">
+                              {
+                                member.Plan
+                              }
+                            </TableCell>
+                            <TableCell className="w-[7.7%]">
+                              {member.Profesor_asignado}
+                            </TableCell>
+                            <TableCell className="w-[7.7%]">
                               <Badge
-                                variant={new Date(member.endDate) > new Date() ? "success" : "destructive"}
+                                variant={new Date(member.Fecha_vencimiento) > new Date() ? "success" : "destructive"}
                                 className="animate-pulse-scale"
                               >
-                                {new Date(member.endDate) > new Date() ? "Activo" : "Expirado"}
+                                {new Date(member.Fecha_vencimiento) > new Date() ? "Activo" : "Expirado"}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              {editingMemberId === member.id ? (
-                                <Button size="sm" onClick={handleSaveMember}>
-                                  Guardar
-                                </Button>
-                              ) : (
+                            <TableCell className="w-[7.7%]">
+                              {
                                 <div className="flex gap-2">
-                                  <Button size="icon" variant="ghost" onClick={() => handleEditMember(member.id)}>
+                                  <Button size="icon" variant="ghost" onClick={() => handleEditMember(member)}>
                                     <Edit className="h-4 w-4 text-primary" />
                                   </Button>
-                                  <Button size="icon" variant="ghost">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setSelectedMemberToDelete(member)
+                                      setShowDeleteDialog(true)
+                                    }}
+                                  >
                                     <Trash className="h-4 w-4 text-destructive" />
                                   </Button>
+
                                 </div>
-                              )}
+                              }
                             </TableCell>
                           </motion.tr>
                         ))}
                       </TableBody>
                     </Table>
                   </div>
+
                 </div>
               </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="register" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Registrar Nuevo Miembro</CardTitle>
-                <CardDescription>Añade un nuevo miembro al gimnasio.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="grid gap-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nombre Completo</Label>
-                      <Input id="name" placeholder="Juan Pérez" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="dni">DNI/Identificación</Label>
-                      <Input id="dni" placeholder="12345678" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Correo Electrónico</Label>
-                      <Input id="email" type="email" placeholder="juan@ejemplo.com" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono</Label>
-                      <Input id="phone" placeholder="+34 123 456 789" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="plan">Plan de Membresía</Label>
-                      <Select>
-                        <SelectTrigger id="plan">
-                          <SelectValue placeholder="Seleccionar plan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Básico">Básico (30€/mes)</SelectItem>
-                          <SelectItem value="Estándar">Estándar (50€/mes)</SelectItem>
-                          <SelectItem value="Premium">Premium (80€/mes)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Fecha de Inicio</Label>
-                      <DatePicker />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Fecha de Fin</Label>
-                      <DatePicker />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Notas Adicionales</Label>
-                    <Input id="notes" placeholder="Cualquier consideración especial o notas" />
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button variant="orange">Registrar Miembro</Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="payments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Registrar Pago</CardTitle>
-                <CardDescription>Registra un nuevo pago de un miembro.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="grid gap-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="member">Miembro</Label>
-                      <Select>
-                        <SelectTrigger id="member">
-                          <SelectValue placeholder="Seleccionar miembro" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockMembers.map((member) => (
-                            <SelectItem key={member.id} value={member.id}>
-                              {member.name} ({member.dni})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Monto</Label>
-                      <Input id="amount" type="number" min="0" placeholder="0.00" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="method">Método de Pago</Label>
-                      <Select>
-                        <SelectTrigger id="method">
-                          <SelectValue placeholder="Seleccionar método" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Efectivo">Efectivo</SelectItem>
-                          <SelectItem value="Tarjeta de Crédito">Tarjeta de Crédito</SelectItem>
-                          <SelectItem value="Tarjeta de Débito">Tarjeta de Débito</SelectItem>
-                          <SelectItem value="Transferencia Bancaria">Transferencia Bancaria</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Fecha de Inicio</Label>
-                      <DatePicker />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Fecha de Fin</Label>
-                      <DatePicker />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Notas de Pago</Label>
-                    <Input id="notes" placeholder="Cualquier nota sobre este pago" />
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button variant="orange">Registrar Pago</Button>
-              </CardFooter>
             </Card>
           </TabsContent>
 
@@ -436,7 +357,6 @@ export default function ReceptionistDashboard() {
                       <SelectContent>
                         <SelectItem value="mañana">Mañana</SelectItem>
                         <SelectItem value="tarde">Tarde</SelectItem>
-                        <SelectItem value="noche">Noche</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -451,7 +371,8 @@ export default function ReceptionistDashboard() {
                           <TableHead>Hora</TableHead>
                           <TableHead>Monto</TableHead>
                           <TableHead>Método</TableHead>
-                          <TableHead>Concepto</TableHead>
+                          <TableHead>Fecha de inicio</TableHead>
+                          <TableHead>Fecha de vencimiento</TableHead>
                           <TableHead>Registrado Por</TableHead>
                           <TableHead>Acciones</TableHead>
                         </TableRow>
@@ -466,20 +387,29 @@ export default function ReceptionistDashboard() {
                               transition={{ duration: 0.2, delay: index * 0.05 }}
                               className="hover:bg-accent"
                             >
-                              <TableCell className="font-medium">{payment.member}</TableCell>
-                              <TableCell>{payment.time || "10:30"}</TableCell>
-                              <TableCell className="text-green-600 font-medium">${payment.amount}</TableCell>
-                              <TableCell>{payment.method}</TableCell>
-                              <TableCell>{payment.concept || "Mensualidad"}</TableCell>
-                              <TableCell>{payment.recordedBy}</TableCell>
+                              <TableCell className="font-medium">{payment.Nombre}</TableCell>
+                              <TableCell>{payment.Hora || "No hay horario"}</TableCell>
+                              <TableCell className="text-green-600 font-medium">${payment.Monto}</TableCell>
+                              <TableCell>{payment.Metodo_de_Pago}</TableCell>
+                              <TableCell>{payment.Fecha_de_Pago}</TableCell>
+                              <TableCell>{payment.Fecha_de_Vencimiento}</TableCell>
+                              <TableCell>{payment.Responsable}</TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
                                   <Button size="icon" variant="ghost">
                                     <Edit className="h-4 w-4 text-primary" />
                                   </Button>
-                                  <Button size="icon" variant="ghost">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setSelectedPaymentToDelete(payment)
+                                      setShowDeletePaymentDialog(true)
+                                    }}
+                                  >
                                     <Trash className="h-4 w-4 text-destructive" />
                                   </Button>
+
                                 </div>
                               </TableCell>
                             </motion.tr>
@@ -504,17 +434,44 @@ export default function ReceptionistDashboard() {
                   <div className="text-lg font-bold">
                     Total:{" "}
                     <span className="text-green-600">
-                      ${currentShiftPayments.reduce((sum, payment) => sum + payment.amount, 0)}
+                      ${currentShiftPayments.reduce((sum, payment) => sum + parseFloat(payment.Monto || "0"), 0)}
                     </span>
                   </div>
                 </div>
+
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-      <AddMemberDialog open={showAddMember} onOpenChange={setShowAddMember} />
-      <AddPaymentDialog open={showAddPayment} onOpenChange={setShowAddPayment} />
+      <AddMemberDialog open={showAddMember} onOpenChange={setShowAddMember} onMemberAdded={fetchMembers} />
+      <AddPaymentDialog open={showAddPayment} onOpenChange={setShowAddPayment} onPaymentAdded={fetchPaymentsByDateAndShift} />
+      <EditMemberDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        member={selectedMember}
+        onSave={handleSaveMember}
+      />
+      {showDeleteDialog && selectedMemberToDelete && (
+        <DeleteMemberDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          member={selectedMemberToDelete}
+          onDelete={(deletedDNI) => {
+            setMembers((prev) => prev.filter((m) => m.DNI !== deletedDNI))
+          }}
+        />
+      )}
+      {showDeletePaymentDialog && selectedPaymentToDelete && (
+        <DeletePaymentDialog
+        open={showDeletePaymentDialog}
+        onOpenChange={setShowDeletePaymentDialog}
+        payment={selectedPaymentToDelete}
+        onDelete={() => {
+          fetchPaymentsByDateAndShift()
+        }}
+      />
+      )}
     </div>
   )
 }

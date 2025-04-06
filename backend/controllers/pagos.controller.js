@@ -5,6 +5,9 @@ import {
     deletePagoByID
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+
+dayjs.extend(customParseFormat);
 
 export const getPagosPorDNI = async (req, res) => {
     try {
@@ -129,6 +132,32 @@ export const getFacturacionPorMetodoYMes = async (req, res) => {
         res.status(500).json({ message: 'Error al calcular la facturación por método y mes' });
     }
 };
+
+export const getPagosPorFechaYTurno = async (req, res) => {
+    try {
+        // Extraer parámetros de la URL
+        const { dia, mes, anio, turno } = req.params;
+        console.log('Día:', dia, 'Mes:', mes, 'Año:', anio, 'Turno:', turno);
+        // Reconstruir fecha en formato "D/M/YYYY" (como está en tu Google Sheet)
+        const fechaBuscada = `${parseInt(dia)}/${parseInt(mes)}/${anio}`;
+        const turnoBuscado = turno.toLowerCase();
+
+        const pagos = await getPagosFromSheet();
+
+        const pagosFiltrados = pagos.filter(pago => {
+            const fechaPago = dayjs(pago['Fecha_de_Pago'], 'D/M/YYYY').format('D/M/YYYY');
+            
+            return fechaPago === fechaBuscada && 
+                   pago.Turno?.toLowerCase() === turnoBuscado;
+        });
+
+        res.json(pagosFiltrados);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Error al filtrar pagos' });
+    }
+};
+
 
 // POST
 

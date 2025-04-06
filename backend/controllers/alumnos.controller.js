@@ -18,8 +18,8 @@ export const getAlumnos = async (req, res) => {
 export const addAlumno = async (req, res) => {
     try {
         const alumno = req.body;
-
-        if (!alumno.DNI || !alumno['Nombre y Apellido'] || !alumno.Plan) {
+        console.log('Alumno recibido:', alumno);
+        if (!alumno.DNI || !alumno['Nombre'] || !alumno.Plan) {
             return res.status(400).json({ message: 'Faltan campos obligatorios' });
         }
 
@@ -27,7 +27,7 @@ export const addAlumno = async (req, res) => {
         res.status(201).json({ message: 'Alumno agregado correctamente' });
     } catch (error) {
         console.error('Error al agregar alumno:', error);
-        res.status(500).json({ message: 'Error al agregar el alumno' });
+        res.status(500).json({ message: error.message || 'Error al agregar el alumno' });
     }
 };
 

@@ -92,3 +92,25 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px; /* Ancho de la scrollbar */
+  height: 4px; /* Altura en scroll horizontal */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Color de la pista */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #a0aec0; /* Color del pulgar */
+  border-radius: 9999px; /* Redondear */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #718096; /* Color al pasar el mouse */
+}
+.custom-scrollbar {
+  scrollbar-width: thin; /* Opciones: auto, thin, none */
+  scrollbar-color: #a0aec0 #f1f1f1; /* primer color: pulgar; segundo: pista */
+}

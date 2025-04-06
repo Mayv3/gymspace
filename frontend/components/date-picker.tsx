@@ -33,7 +33,7 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
           className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-          {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
+          {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span>Seleccionar fecha</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

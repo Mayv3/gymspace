@@ -5,4 +5,5 @@ const router = Router();
 
 router.post('/', registrarAsistencia);
 router.get('/:dni', getAsistenciasPorDNI);
+
 export default router;

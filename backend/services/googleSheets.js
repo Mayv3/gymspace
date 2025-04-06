@@ -38,11 +38,23 @@ export async function getAlumnosFromSheet() {
     });
     return alumno;
   });
+  alumnos.sort((a, b) => a.Nombre.localeCompare(b.Nombre));
 
   return alumnos;
 }
 
 export async function appendAlumnoToSheet(alumno) {
+  const dniRes = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Alumnos!B2:B', 
+  });
+
+  const existingDNIs = dniRes.data.values?.flat() || [];
+
+  if (existingDNIs.includes(alumno.DNI)) {
+    throw new Error('El DNI ya está registrado');
+  }
+
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: 'Alumnos!A2:A',
@@ -54,17 +66,17 @@ export async function appendAlumnoToSheet(alumno) {
   const values = [[
     String(nuevoID),
     alumno.DNI || '',
-    alumno['Nombre y Apellido'] || '',
+    alumno['Nombre'] || '',
     alumno.Email || '',
-    alumno.Teléfono || '',
+    alumno.Telefono || '',
     alumno.Sexo || '',
-    alumno['Fecha Nacimiento'] || '',
+    alumno['Fecha_nacimiento'] || '',
     alumno.Plan || '',
-    alumno['Clases Pagadas'] || '',
-    alumno['Clases Realizadas'] || '',
-    alumno['Fecha Inicio'] || '',
-    alumno['Fecha Vencimiento'] || '',
-    alumno['Profesor Asignado'] || '',
+    alumno['Clases_pagadas'] || '',
+    alumno['Clases_realizadas'] || '0',
+    alumno['Fecha_inicio'] || '',
+    alumno['Fecha_vencimiento'] || '',
+    alumno['Profesor_asignado'] || '',
   ]];
 
   sheets.spreadsheets.values.append({
@@ -75,6 +87,7 @@ export async function appendAlumnoToSheet(alumno) {
     resource: { values },
   });
 }
+
 
 export async function updateAlumnoByDNI(dni, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
@@ -140,7 +153,7 @@ export async function deleteAlumnoByDNI(dni) {
 export async function getPagosFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A1:H',
+    range: 'Pagos!A1:J',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -159,10 +172,18 @@ export async function getPagosFromSheet() {
 export async function appendPagoToSheet(pago) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A2:A', // Para contar la cantidad de pagos
+    range: 'Pagos!A2:A', 
   });
 
   const nuevoID = (res.data.values?.length || 0) + 1;
+
+  const horaActual = new Date().toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  pago.Hora = horaActual;
 
   const values = [[
     String(nuevoID),
@@ -172,17 +193,20 @@ export async function appendPagoToSheet(pago) {
     pago['Método de Pago'] || '',
     pago['Fecha de Pago'] || '',
     pago['Fecha de Vencimiento'] || '',
-    pago.Responsable || ''
+    pago.Responsable || '',
+    pago.Turno || '',
+    pago.Hora || ''
   ]];
 
-  await sheets.spreadsheets.values.append({
+  sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A1:H1',
+    range: 'Pagos!A1:J1', 
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
   });
 }
+
 
 // Roles 
 

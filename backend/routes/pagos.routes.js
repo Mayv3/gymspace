@@ -9,6 +9,7 @@ import {
     getFacturacionPorMetodoYMes,
     updatePago,
     deletePago,
+    getPagosPorFechaYTurno,
 } from '../controllers/pagos.controller.js';
 
 const router = Router();
@@ -19,6 +20,7 @@ router.get('/:dni', getPagosPorDNI); //
 router.get('/facturacion/mes/:numeroMes', getFacturacionPorMes);
 router.get('/facturacion/metodo', getFacturacionPorMetodo);
 router.get('/facturacion/metodo/mes/:numeroMes', getFacturacionPorMetodoYMes);
+router.get('/fecha/:dia-:mes-:anio/:turno', getPagosPorFechaYTurno);
 
 router.post('/', addPago);
 router.put('/:id', updatePago);

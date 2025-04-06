@@ -20,13 +20,23 @@ import {
         return res.status(404).json({ message: 'Alumno no encontrado' });
       }
   
-      const hoy = dayjs().format('YYYY-MM-DD');
+      // Generamos la fecha de hoy en el formato deseado
+      const hoy = dayjs().format('DD-MM-YYYY');
+  
       const asistencias = await getAsistenciasFromSheet();
-      const yaAsistioHoy = asistencias.some(a => a.DNI === dni && a.Fecha === hoy);
+  
+      // Convertimos el formato de la fecha en cada asistencia para compararlo correctamente.
+      const asistenciasFormateadas = asistencias.map(a => {
+        // Asumimos que en la hoja la fecha puede venir como "6/4/2025" o "06/04/2025"
+        const fecha = dayjs(a.Fecha, ['D/M/YYYY', 'DD/MM/YYYY']);
+        return { ...a, Fecha: fecha.format('DD-MM-YYYY') };
+      });
+  
+      const yaAsistioHoy = asistenciasFormateadas.some(a => a.DNI === dni && a.Fecha === hoy);
   
       if (yaAsistioHoy) {
         return res.status(409).json({
-          message: `El alumno ${alumno.Nombre || alumno['Nombre y Apellido']} ya registró asistencia hoy`
+          message: `El alumno ${alumno.Nombre || alumno['Nombre']} ya registró asistencia hoy`
         });
       }
   
@@ -34,7 +44,7 @@ import {
         Fecha: hoy,
         Hora: dayjs().format('HH:mm'),
         DNI: alumno.DNI,
-        Nombre: alumno.Nombre || alumno['Nombre y Apellido'],
+        Nombre: alumno.Nombre || alumno['Nombre'],
         Plan: alumno.Plan,
         Responsable: ''
       };
@@ -48,18 +58,16 @@ import {
         return res.status(201).json({
           message: 'Asistencia registrada correctamente',
           plan,
-          fechaVencimiento: alumno['Fecha Vencimiento']
+          fechaVencimiento: alumno['Fecha_vencimiento']
         });
       }
   
-      // Si no es ilimitado, actualizar clases
-      const pagadas = parseInt(alumno['Clases Pagadas'] || '0', 10);
-      const realizadas = parseInt(alumno['Clases Realizadas'] || '0', 10) + 1;
-      const restantes = Math.max(pagadas - realizadas, 0);
+      // Si el plan no es ilimitado, actualizar el conteo de clases
+      const pagadas = parseInt(alumno['Clases_pagadas'] || '0', 10);
+      const realizadas = parseInt(alumno['Clases_realizadas'] || '0', 10) + 1;
   
       await updateAlumnoByDNI(dni, {
-        'Clases Realizadas': String(realizadas),
-        'Clases Restantes': String(restantes)
+        'Clases_realizadas': String(realizadas),
       });
   
       res.status(201).json({
@@ -68,14 +76,13 @@ import {
         clasesPagadas: pagadas,
         clasesRealizadas: realizadas,
         clasesRestantes: restantes,
-        fechaVencimiento: alumno['Fecha Vencimiento']
+        fechaVencimiento: alumno['Fecha_vencimiento']
       });
     } catch (error) {
       console.error('Error al registrar asistencia:', error);
       res.status(500).json({ message: 'Error al registrar la asistencia' });
     }
   };
-  
   
   export const getAsistenciasPorDNI = async (req, res) => {
     try {
