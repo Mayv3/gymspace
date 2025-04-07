@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -16,23 +17,45 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { motion } from "framer-motion"
 import { CreditCard, DollarSign } from "lucide-react"
+import { DatePicker } from "@/components/date-picker"
 
-interface AddPaymentDialogProps {
+interface EditPaymentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onPaymentAdded: () => void
+  payment: any 
+  onPaymentEdited: () => void
   onMemberUpdated: (dni: string, nuevaFecha: string, plan: string, numeroClases: number) => void
 }
 
-export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberUpdated }: AddPaymentDialogProps) {
-  const [formData, setFormData] = useState({
+interface FormDataType {
+  id: string
+  dni: string
+  name: string
+  amount: string
+  method: string
+  concept: string
+  paymentDate: Date | null
+  expirationDate: Date | null
+  responsable: string
+  turno: string
+}
+
+export function EditPaymentDialog({
+  open,
+  onOpenChange,
+  payment,
+  onPaymentEdited,
+  onMemberUpdated,
+}: EditPaymentDialogProps) {
+  const [formData, setFormData] = useState<FormDataType>({
+    id: "",
     dni: "",
     name: "",
     amount: "",
     method: "",
     concept: "",
-    paymentDate: "",
-    expirationDate: "",
+    paymentDate: null,
+    expirationDate: null,
     responsable: "",
     turno: ""
   })
@@ -42,6 +65,23 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
 
+  useEffect(() => {
+    if (payment) {
+      setFormData({
+        id: payment.ID || "",
+        dni: payment["Socio DNI"] || "",
+        name: payment.Nombre || "",
+        amount: payment.Monto || "",
+        method: payment.Metodo_de_Pago || "",
+        concept: payment.Concepto || "",
+        paymentDate: payment.Fecha_de_Pago ? new Date(payment.Fecha_de_Pago) : null,
+        expirationDate: payment.Fecha_de_Vencimiento ? new Date(payment.Fecha_de_Vencimiento) : null,
+        responsable: payment.Responsable || "",
+        turno: payment.Turno || ""
+      })
+    }
+  }, [payment])
+  
   useEffect(() => {
     const fetchPlanes = async () => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`)
@@ -74,8 +114,12 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     fetchMember()
   }, [formData.dni])
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof FormDataType, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleChangeDate = (field: "paymentDate" | "expirationDate", date: Date | null) => {
+    setFormData((prev) => ({ ...prev, [field]: date }))
   }
 
   const handleSelectPlan = (planID: string) => {
@@ -87,66 +131,66 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const fields = Object.values(formData)
-    if (fields.some(f => f.trim() === "")) {
+
+    if (
+      !formData.dni.trim() ||
+      !formData.name.trim() ||
+      !formData.amount.trim() ||
+      !formData.method.trim() ||
+      !formData.concept.trim() ||
+      !formData.responsable.trim() ||
+      !formData.turno.trim() ||
+      !formData.paymentDate ||
+      !formData.expirationDate
+    ) {
       alert("Todos los campos son obligatorios")
       return
     }
 
+    const fechaPagoFormateada = format(formData.paymentDate, "dd/MM/yyyy")
+    const fechaVencimientoFormateada = format(formData.expirationDate, "dd/MM/yyyy")
+
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos`, {
-        method: "POST",
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos/${formData.id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           "Socio DNI": formData.dni,
           "Nombre": formData.name,
           "Monto": formData.amount,
           "Método de Pago": formData.method,
-          "Fecha de Pago": formData.paymentDate,
-          "Fecha de Vencimiento": formData.expirationDate,
+          "Fecha de Pago": fechaPagoFormateada,
+          "Fecha de Vencimiento": fechaVencimientoFormateada,
           "Responsable": formData.responsable,
-          "Turno": formData.turno
+          "Turno": formData.turno,
+          "Concepto": formData.concept
         })
       })
 
+      if (!res.ok) throw new Error("Error al editar el pago")
+
       onMemberUpdated(
         formData.dni,
-        formData.expirationDate,
-        planSeleccionado?.["Plan o Producto"],
+        fechaVencimientoFormateada,
+        planSeleccionado?.["Plan o Producto"] || "",
         parseInt(planSeleccionado?.numero_Clases || "0")
       )
 
-      if (!res.ok) throw new Error("Error al registrar el pago")
-
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${payment["Socio DNI"]}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          Fecha_vencimiento: formData.expirationDate,
+          Fecha_vencimiento: fechaVencimientoFormateada,
           Plan: planSeleccionado?.["Plan o Producto"] || "",
           Clases_pagadas: parseInt(planSeleccionado?.numero_Clases || "0"),
           Clases_realizadas: "0"
         })
       })
 
-      setFormData({
-        dni: "",
-        name: "",
-        amount: "",
-        method: "",
-        concept: "",
-        paymentDate: "",
-        expirationDate: "",
-        responsable: "",
-        turno: ""
-      })
-      setTipoSeleccionado("")
-      setPlanSeleccionado(null)
-
-      onPaymentAdded()
+      onPaymentEdited()
       onOpenChange(false)
     } catch (error) {
-      console.error("Error al enviar el pago:", error)
+      console.error("Error al editar el pago:", error)
     }
   }
 
@@ -156,15 +200,22 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <CreditCard className="mr-2 h-5 w-5 text-primary" />
-            Registrar Nuevo Pago
+            Editar Pago
           </DialogTitle>
-          <DialogDescription>Completa el formulario para registrar un nuevo pago en el sistema.</DialogDescription>
+          <DialogDescription>Modifica los datos del pago seleccionado.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
+            {/* DNI: se muestra pero no es editable */}
             <div className="space-y-2">
               <Label htmlFor="dni">DNI del Miembro</Label>
-              <Input id="dni" placeholder="Ingrese el DNI del socio" value={formData.dni} onChange={(e) => handleChange("dni", e.target.value)} required />
+              <Input
+                id="dni"
+                placeholder="Ingrese el DNI del socio"
+                value={formData.dni}
+                onChange={(e) => handleChange("dni", e.target.value)}
+                disabled
+              />
               {dniError && <p className="text-sm text-red-600">{dniError}</p>}
             </div>
 
@@ -190,7 +241,9 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
                   </SelectTrigger>
                   <SelectContent>
                     {planesFiltrados.map((plan) => (
-                      <SelectItem key={plan.ID} value={plan.ID}>{plan["Plan o Producto"]} - {plan.numero_Clases} clases</SelectItem>
+                      <SelectItem key={plan.ID} value={plan.ID}>
+                        {plan["Plan o Producto"]} - {plan.numero_Clases} clases
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -201,9 +254,19 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
               <Label htmlFor="amount">Monto</Label>
               <div className="relative">
                 <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input id="amount" type="number" min="0" placeholder="0.00" className="pl-8" value={formData.amount} onChange={(e) => handleChange("amount", e.target.value)} required />
+                <Input
+                  id="amount"
+                  type="number"
+                  min="0"
+                  placeholder="0.00"
+                  className="pl-8"
+                  value={formData.amount}
+                  onChange={(e) => handleChange("amount", e.target.value)}
+                  required
+                />
               </div>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="method">Método de Pago</Label>
               <Select required value={formData.method} onValueChange={(value) => handleChange("method", value)}>
@@ -218,16 +281,18 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
                 </SelectContent>
               </Select>
             </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="paymentDate">Fecha de Pago</Label>
-                <Input type="date" id="paymentDate" value={formData.paymentDate} onChange={(e) => handleChange("paymentDate", e.target.value)} required />
+                <Label>Fecha de Pago</Label>
+                <DatePicker date={formData.paymentDate || undefined} setDate={(date) => handleChangeDate("paymentDate", date)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expirationDate">Fecha de Vencimiento</Label>
-                <Input type="date" id="expirationDate" value={formData.expirationDate} onChange={(e) => handleChange("expirationDate", e.target.value)} required />
+                <Label>Fecha de Vencimiento</Label>
+                <DatePicker date={formData.expirationDate || undefined} setDate={(date) => handleChangeDate("expirationDate", date)} />
               </div>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="turno">Turno</Label>
               <Select required value={formData.turno} onValueChange={(value) => handleChange("turno", value)}>
@@ -240,9 +305,16 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="responsable">Responsable</Label>
-              <Input id="responsable" placeholder="Nombre del recepcionista" value={formData.responsable} onChange={(e) => handleChange("responsable", e.target.value)} required />
+              <Input
+                id="responsable"
+                placeholder="Nombre del recepcionista"
+                value={formData.responsable}
+                onChange={(e) => handleChange("responsable", e.target.value)}
+                required
+              />
             </div>
           </div>
           <DialogFooter>
@@ -251,7 +323,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
             </Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button variant="orange" type="submit">
-                Registrar Pago
+                Editar Pago
               </Button>
             </motion.div>
           </DialogFooter>

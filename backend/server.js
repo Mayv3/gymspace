@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import http from 'http';
+import { Server } from 'socket.io';
+
 import alumnosRoutes from './routes/alumnos.routes.js';
 import pagosRoutes from './routes/pagos.routes.js';
 import rolesRoutes from './routes/roles.routes.js';
@@ -26,6 +29,26 @@ app.use('/api/planes', planes);
 app.use('/api/anotaciones', anotaciones);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*", 
+    methods: ["GET", "POST"],
+  },
+});
+
+app.set('socketio', io);
+
+io.on('connection', (socket) => {
+  console.log('Nuevo cliente conectado:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado:', socket.id);
+  });
+});
+
+// Iniciamos el servidor
+server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

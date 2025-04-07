@@ -540,7 +540,7 @@ export async function getCajasFromSheet() {
 export async function getPlanesFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A1:D',
+    range: 'PlanesYprecios!A1:E',
   });
 
   const [headers, ...rows] = res.data.values;
