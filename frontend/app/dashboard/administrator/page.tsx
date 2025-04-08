@@ -9,10 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BarChart, Calendar, DollarSign, Search, Users, PlusCircle, TrendingUp, Activity } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { IncomeChart } from "@/components/income-chart"
-import { DashboardHeader } from "@/components/dashboard-header"
+import { IncomeChart } from "@/components/charts/income-chart"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { mockMembers, mockPayments } from "@/lib/mock-data"
-import { AddMemberDialog } from "@/components/add-member-dialog"
+import { AddMemberDialog } from "@/components/dashboard/members/add-member-dialog"
 import { motion } from "framer-motion"
 
 export default function AdministratorDashboard() {
@@ -341,7 +341,13 @@ export default function AdministratorDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-      <AddMemberDialog open={showAddMember} onOpenChange={setShowAddMember} />
+      <AddMemberDialog 
+        open={showAddMember} 
+        onOpenChange={setShowAddMember} 
+        onMemberAdded={(newMember) => {
+          console.log("New member added:", newMember)
+        }} 
+      />
     </div>
   )
 }

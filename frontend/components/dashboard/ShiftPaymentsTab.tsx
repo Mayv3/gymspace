@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PlusCircle, Edit, Trash } from "lucide-react"
 import { Label } from "@/components/ui/label"
-import { DatePicker } from "@/components/date-picker"
+import { DatePicker } from "@/components/dashboard/date-picker"
 import { motion } from "framer-motion"
 
 interface ShiftPaymentsTabProps {

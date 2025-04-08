@@ -22,6 +22,7 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
   const router = useRouter()
 
   const handleLogout = () => {
+    localStorage.removeItem("cajaCerrada")
     router.push("/")
   }
 

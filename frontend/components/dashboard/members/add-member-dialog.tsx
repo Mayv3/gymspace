@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,11 +14,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DatePicker } from "@/components/date-picker"
+import { DatePicker } from "@/components/dashboard/date-picker"
 import { motion } from "framer-motion"
 import { UserPlus } from "lucide-react"
 import axios from "axios"
 import { format } from "date-fns"
+import { usePlanes } from "@/context/PlanesContext" 
 
 const formatDate = (date: Date) => format(date, "dd/MM/yyyy")
 
@@ -45,27 +46,21 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
   })
 
   const [errorMessage, setErrorMessage] = useState("")
-  const [planes, setPlanes] = useState<any[]>([])
+  const { planes } = usePlanes() 
+
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
-
-  useEffect(() => {
-    const fetchPlanes = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`)
-      const data = await res.json()
-      setPlanes(data)
-    }
-    fetchPlanes()
-  }, [])
 
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]
   const planesFiltrados = planes.filter(p => p.Tipo === tipoSeleccionado)
 
   const handleSelectPlan = (planID: string) => {
     const selected = planes.find(p => p.ID === planID)
-    setPlanSeleccionado(selected)
-    handleChange("plan", selected["Plan o Producto"])
-    handleChange("clasesPagadas", selected.numero_Clases)
+    if (selected) {
+      setPlanSeleccionado(selected)
+      handleChange("plan", selected["Plan o Producto"])
+      handleChange("clasesPagadas", String(selected.numero_Clases))
+    }
   }
 
   const handleChange = (field: string, value: string) => {
@@ -134,6 +129,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       }
     }
   }
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -220,11 +216,11 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Fecha de Inicio</Label>
-                <DatePicker date={new Date(formData.fechaInicio.split("/").reverse().join("-"))} setDate={(date) => handleChange("fechaInicio", formatDate(date))} format="dd/MM/yyyy">{formData.fechaInicio}</DatePicker>
+                <DatePicker date={new Date(formData.fechaInicio.split("/").reverse().join("-"))} setDate={(date) => handleChange("fechaInicio", formatDate(date))}/>
               </div>
               <div className="space-y-2">
                 <Label>Fecha de Fin</Label>
-                <DatePicker date={new Date(formData.fechaVencimiento.split("/").reverse().join("-"))} setDate={(date) => handleChange("fechaVencimiento", formatDate(date))} format="dd/MM/yyyy">{formData.fechaVencimiento}</DatePicker>
+                <DatePicker date={new Date(formData.fechaVencimiento.split("/").reverse().join("-"))} setDate={(date) => handleChange("fechaVencimiento", formatDate(date))} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fechaNacimiento">Fecha de Nacimiento</Label>

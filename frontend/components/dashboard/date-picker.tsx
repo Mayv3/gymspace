@@ -25,21 +25,32 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
     }
   }
 
+  const isValidDate = selectedDate instanceof Date && !isNaN(selectedDate.getTime())
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant={"outline"}
+          variant="outline"
           className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-          {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span>Seleccionar fecha</span>}
+          {isValidDate
+            ? format(selectedDate, "dd/MM/yyyy", { locale: es })
+            : <span>Seleccionar fecha</span>
+          }
         </Button>
       </PopoverTrigger>
+
       <PopoverContent className="w-auto p-0" align="start">
-        <Calendar mode="single" selected={selectedDate} onSelect={handleSelect} initialFocus locale={es} />
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={handleSelect}
+          initialFocus
+          locale={es}
+        />
       </PopoverContent>
     </Popover>
   )
 }
-

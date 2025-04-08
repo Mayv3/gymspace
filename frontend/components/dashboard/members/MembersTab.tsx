@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Edit, Trash, PlusCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -76,7 +75,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
               <TableBody>
                 {filteredMembers.map((member, index) => (
                   <motion.tr
-                    key={member.id}
+                    key={member.DNI}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.05 }}
@@ -88,8 +87,8 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                     <TableCell>{member.Telefono}</TableCell>
                     <TableCell>{member.Clases_pagadas}</TableCell>
                     <TableCell>{member.Clases_realizadas}</TableCell>
-                    <TableCell>{member.Fecha_inicio}</TableCell>
-                    <TableCell>{member.Fecha_vencimiento ? dayjs(member.Fecha_vencimiento).format("DD/MM/YYYY") : "Sin fecha"}</TableCell>
+                    <TableCell>{member.Fecha_inicio} </TableCell>
+                    <TableCell>{member.Fecha_vencimiento}</TableCell>
                     <TableCell>{member.Fecha_nacimiento}</TableCell>
                     <TableCell>{member.Plan}</TableCell>
                     <TableCell>{member.Profesor_asignado}</TableCell>

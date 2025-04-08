@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DatePicker } from "@/components/date-picker"
+import { DatePicker } from "@/components/dashboard/date-picker"
 import { format } from "date-fns"
 import axios from "axios"
 
@@ -22,6 +22,17 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const [planes, setPlanes] = useState<any[]>([])
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
+
+
+  const parseDate = (dateStr: string): Date | null => {
+    const parts = dateStr.split("/");
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return new Date(Number(year), Number(month) - 1, Number(day))
+    }
+    return null
+  }
+
 
   useEffect(() => {
     if (member) {
@@ -61,7 +72,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
     const payload = { ...editedMember }
     if (payload.Fecha_nacimiento?.includes("/")) {
       const [day, month, year] = payload.Fecha_nacimiento.split("/")
-      payload.Fecha_nacimiento = `${year}-${month}-${day}`
+      payload.Fecha_nacimiento = `${day}/${month}/${year}`
     }
 
     try {
@@ -134,11 +145,17 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Fecha de Inicio</Label>
-              <DatePicker date={editedMember.Fecha_inicio ? new Date(editedMember.Fecha_inicio) : new Date()} setDate={(newDate: Date) => handleChange("Fecha_inicio", format(newDate, "yyyy-MM-dd"))} />
+              <DatePicker
+                date={editedMember.Fecha_inicio ? parseDate(editedMember.Fecha_inicio) || new Date() : new Date()}
+                setDate={(newDate: Date) => handleChange("Fecha_inicio", format(newDate, "dd/MM/yyyy"))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Fecha de Vencimiento</Label>
-              <DatePicker date={editedMember.Fecha_vencimiento ? new Date(editedMember.Fecha_vencimiento) : new Date()} setDate={(newDate: Date) => handleChange("Fecha_vencimiento", format(newDate, "yyyy-MM-dd"))} />
+              <DatePicker
+                date={editedMember.Fecha_vencimiento ? parseDate(editedMember.Fecha_vencimiento) : new Date()}
+                setDate={(newDate: Date) => handleChange("Fecha_vencimiento", format(newDate, "dd/MM/yyyy"))}
+              />
             </div>
           </div>
 

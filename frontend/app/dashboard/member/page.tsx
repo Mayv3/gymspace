@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Award, Dumbbell, TrendingUp } from "lucide-react"
-import { DashboardHeader } from "@/components/dashboard-header"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { mockMemberProfile, mockMemberPayments } from "@/lib/mock-data"
 import { motion } from "framer-motion"
 
