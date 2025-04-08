@@ -454,13 +454,15 @@ export async function appendCajaToSheet(caja) {
     caja['Hora Cierre']
   ]];
 
-  await sheets.spreadsheets.values.append({
+  sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: 'Caja!A1:J1',
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
   });
+
+  return {id : values[0][0], message: 'Caja añadida correctamente'}; 
 }
 
 export async function updateCajaByID(id, nuevosDatos) {
