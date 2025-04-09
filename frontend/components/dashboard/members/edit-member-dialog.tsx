@@ -90,7 +90,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Editar Miembro</DialogTitle>
           <DialogDescription>Modifica la información del socio.</DialogDescription>
