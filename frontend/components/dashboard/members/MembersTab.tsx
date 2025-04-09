@@ -6,6 +6,8 @@ import { Search, Edit, Trash, PlusCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import dayjs from "dayjs"
+import customParseFormat from "dayjs/plugin/customParseFormat"
+dayjs.extend(customParseFormat)
 
 interface Member {
   id: string
@@ -94,9 +96,9 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                     <TableCell>{member.Profesor_asignado}</TableCell>
                     <TableCell>
                       {(() => {
-                        const hoy = new Date();
-                        const fechaVencimiento = member.Fecha_vencimiento ? new Date(member.Fecha_vencimiento) : null;
-                        if (fechaVencimiento && fechaVencimiento < hoy) {
+                        const hoy = dayjs();
+                        const fechaVencimiento = dayjs(member.Fecha_vencimiento, "DD/MM/YYYY");
+                        if (fechaVencimiento.isValid() && fechaVencimiento.isBefore(hoy, 'day')) {
                           return (
                             <Badge variant="destructive" className="animate-pulse-scale">
                               Expirado
