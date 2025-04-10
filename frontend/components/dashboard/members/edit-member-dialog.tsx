@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -16,13 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePicker } from "@/components/dashboard/date-picker"
 import { format } from "date-fns"
 import axios from "axios"
-
+import { usePlanes } from "@/context/PlanesContext"
 export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const [editedMember, setEditedMember] = useState(member || {})
-  const [planes, setPlanes] = useState<any[]>([])
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
-
+  const {planes} = usePlanes();
 
   const parseDate = (dateStr: string): Date | null => {
     const parts = dateStr.split("/");
@@ -32,7 +31,6 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
     }
     return null
   }
-
 
   useEffect(() => {
     if (member) {
@@ -44,15 +42,6 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
       setEditedMember(converted)
     }
   }, [member])
-
-  useEffect(() => {
-    const fetchPlanes = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`)
-      const data = await res.json()
-      setPlanes(data)
-    }
-    fetchPlanes()
-  }, [])
 
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]
   const planesFiltrados = planes.filter(p => p.Tipo === tipoSeleccionado)
