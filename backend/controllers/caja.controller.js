@@ -5,6 +5,20 @@ import {
   getCajasFromSheet
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
+
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+
+const ahoraAR = new Date().toLocaleTimeString('es-AR', {
+  timeZone: 'America/Argentina/Buenos_Aires',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
 
 export const crearCaja = async (req, res) => {
   try {
@@ -41,7 +55,7 @@ export const crearCaja = async (req, res) => {
     const nuevaCaja = {
       Fecha: hoy,
       Turno: turno,
-      'Hora Apertura': dayjs().format('HH:mm'),
+      'Hora Apertura': ahoraAR,
       'Saldo Inicial': saldoInicialFinal,
       'Total Efectivo': '',
       'Total Tarjeta': '',
