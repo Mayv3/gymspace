@@ -178,6 +178,7 @@ export async function appendPagoToSheet(pago) {
   const nuevoID = (res.data.values?.length || 0) + 1;
 
   const horaActual = new Date().toLocaleTimeString("es-AR", {
+    timeZone: 'America/Argentina/Buenos_Aires',
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -185,6 +186,7 @@ export async function appendPagoToSheet(pago) {
 
   pago.Hora = horaActual;
 
+  console.log(horaActual)
   const values = [[
     String(nuevoID),
     pago['Socio DNI'] || '',

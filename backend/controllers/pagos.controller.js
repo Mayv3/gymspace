@@ -135,10 +135,8 @@ export const getFacturacionPorMetodoYMes = async (req, res) => {
 
 export const getPagosPorFechaYTurno = async (req, res) => {
     try {
-        // Extraer parámetros de la URL
         const { dia, mes, anio, turno } = req.params;
         console.log('Día:', dia, 'Mes:', mes, 'Año:', anio, 'Turno:', turno);
-        // Reconstruir fecha en formato "D/M/YYYY" (como está en tu Google Sheet)
         const fechaBuscada = `${parseInt(dia)}/${parseInt(mes)}/${anio}`;
         const turnoBuscado = turno.toLowerCase();
 
