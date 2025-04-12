@@ -21,7 +21,7 @@ interface ShiftPaymentsTabProps {
   setSelectedPaymentToDelete: (payment: any) => void
   setShowDeletePaymentDialog: (show: boolean) => void
   onMemberUpdated: (dni: string, nuevaFecha: string, plan: string, numeroClases: number) => void
-  refreshPayments: () => void // Función para recargar la lista de pagos luego de editar
+  refreshPayments: () => void 
 }
 
 export function ShiftPaymentsTab({
@@ -37,15 +37,6 @@ export function ShiftPaymentsTab({
   onMemberUpdated,
   refreshPayments
 }: ShiftPaymentsTabProps) {
-  // Estados para controlar el diálogo de edición y el pago seleccionado
-  const [showEditPayment, setShowEditPayment] = useState(false)
-  const [selectedPaymentToEdit, setSelectedPaymentToEdit] = useState<any>(null)
-
-  // Función para abrir el diálogo de edición
-  const handleEditPayment = (payment: any) => {
-    setSelectedPaymentToEdit(payment)
-    setShowEditPayment(true)
-  }
 
   return (
     <>

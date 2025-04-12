@@ -130,7 +130,6 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
     }
   }
 
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[600px] overflow-y-auto max-h-[90vh]">

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, use } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -15,8 +15,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DatePicker } from "@/components/dashboard/date-picker"
 import { format } from "date-fns"
-import axios from "axios"
 import { usePlanes } from "@/context/PlanesContext"
+import axios from "axios"
+
 export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const [editedMember, setEditedMember] = useState(member || {})
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
@@ -53,8 +54,10 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const handleSelectPlan = (planID: string) => {
     const selected = planes.find(p => p.ID === planID)
     setPlanSeleccionado(selected)
-    handleChange("Plan", selected["Plan o Producto"])
-    handleChange("Clases_pagadas", selected.numero_Clases)
+    if (selected) {
+      handleChange("Plan", selected["Plan o Producto"])
+      handleChange("Clases_pagadas", String(selected.numero_Clases))
+    }
   }
 
   const handleSave = async () => {
@@ -63,9 +66,8 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
       const [day, month, year] = payload.Fecha_nacimiento.split("/")
       payload.Fecha_nacimiento = `${day}/${month}/${year}`
     }
-
     try {
-      const response = await axios.put(
+      await axios.put(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${payload.DNI}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
@@ -140,9 +142,8 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Fecha de Vencimiento</Label>
               <DatePicker
-                date={editedMember.Fecha_vencimiento ? parseDate(editedMember.Fecha_vencimiento) : new Date()}
+                date={editedMember.Fecha_vencimiento ? parseDate(editedMember.Fecha_vencimiento) || undefined : new Date()}
                 setDate={(newDate: Date) => handleChange("Fecha_vencimiento", format(newDate, "dd/MM/yyyy"))}
               />
             </div>

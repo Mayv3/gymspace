@@ -3,42 +3,37 @@ import { useEffect, useState } from "react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { formatDate } from "@/utils/dateUtils"
-
 import { AddMemberDialog } from "@/components/dashboard/members/add-member-dialog"
 import { AddPaymentDialog } from "@/components/dashboard/payments/add-payment-dialog"
 import { EditMemberDialog } from "@/components/dashboard/members/edit-member-dialog"
 import { DeleteMemberDialog } from "@/components/dashboard/members/delete-member-dialog"
 import { DeletePaymentDialog } from "@/components/dashboard/payments/delete-payment-dialog"
-
 import CashRegisterSection from "@/components/dashboard/cashRegister/CashRegisterSection"
 import MembersSection from "@/components/dashboard/members/MemberSection"
 import PaymentsSection from "@/components/dashboard/payments/PaymentSection"
 import { Member, Payment } from "@/models/dashboard"
-
 import io from "socket.io-client"
 import dayjs from "dayjs"
+import AssistsSection from "@/components/dashboard/assists/AssistsClases"
+import { TabsContent } from "@radix-ui/react-tabs"
 
 export default function ReceptionistDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
-
   const [cashRegisterOpen, setCashRegisterOpen] = useState(false)
   const [initialAmount, setInitialAmount] = useState("0")
   const [cashRegisterId, setCashRegisterId] = useState<string | null>(null)
   const [isCajaCerrada, setIsCajaCerrada] = useState(false)
-
   const [members, setMembers] = useState<Member[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedMemberToDelete, setSelectedMemberToDelete] = useState<Member | null>(null)
-
   const [payments, setPayments] = useState<Payment[]>([])
   const [showAddPayment, setShowAddPayment] = useState(false)
   const [showDeletePaymentDialog, setShowDeletePaymentDialog] = useState(false)
   const [selectedPaymentToDelete, setSelectedPaymentToDelete] = useState<Payment | null>(null)
   const currentShiftPayments = payments
-
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("mañana")
 
@@ -51,7 +46,6 @@ export default function ReceptionistDashboard() {
       console.error("Error al cargar los alumnos", error)
     }
   }
-
   const updateMemberAttendance = (dni: string, nuevasClases: number) => {
     setMembers(prev =>
       prev.map(member =>
@@ -59,7 +53,6 @@ export default function ReceptionistDashboard() {
       )
     )
   }
-
   const fetchPaymentsByDateAndShift = async () => {
     try {
       const dateStr = dayjs(selectedDate).format("DD-MM-YYYY")
@@ -70,7 +63,6 @@ export default function ReceptionistDashboard() {
       console.error("Error al cargar pagos por turno", error)
     }
   }
-
   const handleUpdateMemberExpiration = (
     dni: string,
     nuevaFecha: string,
@@ -85,7 +77,6 @@ export default function ReceptionistDashboard() {
       )
     )
   }
-
   const handleOpenCashRegister = async () => {
     try {
       const requestBody: any = { turno: selectedShift, responsable: "DANI" }
@@ -112,7 +103,6 @@ export default function ReceptionistDashboard() {
       console.error("Error al abrir caja:", error)
     }
   }
-
   const handleCloseCashRegister = async () => {
     try {
       if (!cashRegisterId) return
@@ -151,25 +141,20 @@ export default function ReceptionistDashboard() {
       console.error("Error al cerrar caja:", error)
     }
   }
-
   const handleEditMember = (member: Member) => {
     setSelectedMember(member)
     setShowEditDialog(true)
   }
-
   const handleSaveMember = (updated: Member) => {
     setMembers(prev => prev.map(m => (m.DNI === updated.DNI ? updated : m)))
     setShowEditDialog(false)
   }
-
   const handleShowAddPayment = () => {
     if (cashRegisterOpen) setShowAddPayment(true)
   }
-
   useEffect(() => {
     fetchPaymentsByDateAndShift();
   }, [selectedDate, selectedShift]);
-  
   useEffect(() => {
     fetchMembers();
     const closedFlag = localStorage.getItem("cajaCerrada") === "true";
@@ -179,7 +164,6 @@ export default function ReceptionistDashboard() {
       setIsCajaCerrada(true);
     }
   }, []);
-  
   useEffect(() => {
     const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001");
     socket.on("nuevo-pago", data => {
@@ -204,7 +188,6 @@ export default function ReceptionistDashboard() {
       socket.disconnect();
     };
   }, [cashRegisterOpen]);
-  
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -225,14 +208,18 @@ export default function ReceptionistDashboard() {
           </div>
         )}
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:w-auto">
+          <TabsList className="grid w-full grid-cols-3 md:w-auto">
             <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               Miembros
             </TabsTrigger>
             <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               Pagos por Turno
             </TabsTrigger>
+            <TabsTrigger value="assists" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
+              Asistencias
+            </TabsTrigger>
           </TabsList>
+
           <MembersSection
             members={members}
             searchTerm={searchTerm}
@@ -244,6 +231,7 @@ export default function ReceptionistDashboard() {
               setShowDeleteDialog(true)
             }}
           />
+
           <PaymentsSection
             currentShiftPayments={currentShiftPayments}
             selectedDate={selectedDate}
@@ -257,6 +245,10 @@ export default function ReceptionistDashboard() {
             onMemberUpdated={handleUpdateMemberExpiration}
             refreshPayments={fetchPaymentsByDateAndShift}
           />
+
+          <TabsContent value="assists" className="space-y-4">
+            <AssistsSection />
+          </TabsContent>
         </Tabs>
       </div>
       <AddMemberDialog open={showAddMember} onOpenChange={setShowAddMember} onMemberAdded={fetchMembers} />
