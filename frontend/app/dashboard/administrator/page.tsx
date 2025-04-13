@@ -185,7 +185,7 @@ export default function AdministratorDashboard() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3, delay: 0.1 * index }}
                           className="flex items-center"
-                          key={payment.id}
+                          key={index}
                         >
                           <Avatar className="h-9 w-9 border-2 border-primary">
                             <AvatarImage src={`/placeholder.svg?height=36&width=36`} alt="Avatar" />
@@ -307,7 +307,7 @@ export default function AdministratorDashboard() {
                       <TableBody>
                         {mockPayments.map((payment, index) => (
                           <motion.tr
-                            key={payment.id}
+                            key={index}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.2, delay: index * 0.05 }}

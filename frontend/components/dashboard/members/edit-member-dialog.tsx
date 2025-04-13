@@ -15,14 +15,14 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DatePicker } from "@/components/dashboard/date-picker"
 import { format } from "date-fns"
-import { usePlanes } from "@/context/PlanesContext"
+import { useAppData } from "@/context/AppDataContext" 
 import axios from "axios"
 
 export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const [editedMember, setEditedMember] = useState(member || {})
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
-  const {planes} = usePlanes();
+  const {planes} = useAppData();
 
   const parseDate = (dateStr: string): Date | null => {
     const parts = dateStr.split("/");

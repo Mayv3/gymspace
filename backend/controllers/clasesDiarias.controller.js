@@ -62,20 +62,28 @@ export const eliminarClaseDiaria = async (req, res) => {
 };
 
 export const filtrarClasesDiarias = async (req, res) => {
-    try {
-      const { mes, tipo } = req.query;
-      const clases = await getClasesDiariasFromSheet();
-  
-      const filtradas = clases.filter(clase => {
-        const fecha = dayjs(clase.Fecha, 'YYYY-MM-DD');
-        const coincideMes = mes ? fecha.month() + 1 === parseInt(mes) : true;
-        const coincideTipo = tipo ? clase['Tipo de Clase'].toLowerCase() === tipo.toLowerCase() : true;
-        return coincideMes && coincideTipo;
-      });
-  
-      res.json(filtradas);
-    } catch (error) {
-      console.error('Error al filtrar clases diarias:', error);
-      res.status(500).json({ message: 'Error al filtrar clases diarias' });
-    }
-  };
+  try {
+    const { fecha, tipo } = req.query;
+    const clases = await getClasesDiariasFromSheet();
+
+    const filtradas = clases.filter(clase => {
+      const claseFecha = dayjs(clase.Fecha, 'D/M/YYYY');
+
+      const coincideFecha = fecha
+        ? claseFecha.isSame(dayjs(fecha, 'YYYY-MM-DD'), 'day')
+        : true;
+
+      const coincideTipo = tipo
+        ? clase['Tipo de Clase'].toLowerCase() === tipo.toLowerCase()
+        : true;
+
+      return coincideFecha && coincideTipo;
+    });
+
+    res.json(filtradas);
+  } catch (error) {
+    console.error('Error al filtrar clases diarias:', error);
+    res.status(500).json({ message: 'Error al filtrar clases diarias' });
+  }
+};
+

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { PlanesProvider } from '@/context/PlanesContext'
+import { AppDataProvider } from '@/context/AppDataContext'
 
 export const metadata: Metadata = {
   title: 'GYMSPACE',
@@ -19,9 +19,9 @@ export default function RootLayout({
         <link rel="icon" href="/Gymspace-logo-png.png" type="image/png" />
       </head>
       <body>
-        <PlanesProvider>
+        <AppDataProvider>
           {children}
-        </PlanesProvider>
+        </AppDataProvider>
       </body>
     </html>
   )

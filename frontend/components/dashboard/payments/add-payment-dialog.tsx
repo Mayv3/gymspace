@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { usePlanes } from "@/context/PlanesContext"
+import { useAppData } from "@/context/AppDataContext" 
 import { parse, format } from "date-fns"
 
 import {
@@ -43,7 +43,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   const [dniError, setDniError] = useState("")
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
-  const { planes } = usePlanes() 
+  const { planes } = useAppData() 
   
 
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]

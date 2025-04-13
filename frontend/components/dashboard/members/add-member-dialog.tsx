@@ -19,7 +19,7 @@ import { motion } from "framer-motion"
 import { UserPlus } from "lucide-react"
 import axios from "axios"
 import { format } from "date-fns"
-import { usePlanes } from "@/context/PlanesContext" 
+import { useAppData  } from "@/context/AppDataContext" 
 
 const formatDate = (date: Date) => format(date, "dd/MM/yyyy")
 
@@ -46,7 +46,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
   })
 
   const [errorMessage, setErrorMessage] = useState("")
-  const { planes } = usePlanes() 
+  const { planes } = useAppData()
 
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)

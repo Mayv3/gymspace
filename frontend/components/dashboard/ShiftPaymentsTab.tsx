@@ -90,7 +90,7 @@ export function ShiftPaymentsTab({
                   {currentShiftPayments.length > 0 ? (
                     currentShiftPayments.map((payment, index) => (
                       <motion.tr
-                        key={payment.id}
+                        key={index}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: index * 0.05 }}
