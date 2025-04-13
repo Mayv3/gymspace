@@ -100,7 +100,8 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
           "Fecha de Pago": formData.paymentDate,
           "Fecha de Vencimiento": formData.expirationDate,
           "Responsable": formData.responsable,
-          "Turno": formData.turno
+          "Turno": formData.turno,
+          "Tipo": tipoSeleccionado,
         })
       })
       

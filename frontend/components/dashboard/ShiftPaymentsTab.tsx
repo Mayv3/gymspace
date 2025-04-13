@@ -9,6 +9,8 @@ import { PlusCircle, Edit, Trash } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { DatePicker } from "@/components/dashboard/date-picker"
 import { motion } from "framer-motion"
+import { useEffect } from "react"
+import dayjs from "dayjs"
 
 interface ShiftPaymentsTabProps {
   currentShiftPayments: any[]
@@ -20,8 +22,6 @@ interface ShiftPaymentsTabProps {
   formatDate: (date: Date) => string
   setSelectedPaymentToDelete: (payment: any) => void
   setShowDeletePaymentDialog: (show: boolean) => void
-  onMemberUpdated: (dni: string, nuevaFecha: string, plan: string, numeroClases: number) => void
-  refreshPayments: () => void 
 }
 
 export function ShiftPaymentsTab({
@@ -34,9 +34,22 @@ export function ShiftPaymentsTab({
   formatDate,
   setSelectedPaymentToDelete,
   setShowDeletePaymentDialog,
-  onMemberUpdated,
-  refreshPayments
 }: ShiftPaymentsTabProps) {
+  const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: number }>({})
+
+  useEffect(() => {
+    const totales: { [tipo: string]: number } = {}
+
+    currentShiftPayments.forEach((pago: any) => {
+      const tipo = pago.Tipo || "Sin tipo"
+      const monto = parseFloat(pago.Monto || "0")
+
+      if (!totales[tipo]) totales[tipo] = 0
+      totales[tipo] += monto
+    })
+
+    setResumenPorTipo(totales)
+  }, [currentShiftPayments])
 
   return (
     <>
@@ -131,22 +144,48 @@ export function ShiftPaymentsTab({
             </div>
           </div>
 
-          <div className="mt-4 flex justify-between items-center p-4 bg-muted rounded-lg">
-            <div className="text-sm font-medium">
-              Pagos del turno <span className="text-primary">{selectedShift}</span> del{" "}
-              <span className="text-primary">{formatDate(selectedDate)}</span>
-            </div>
-            <div className="text-lg font-bold">
-              Total:{" "}
-              <span className="text-green-600">
-                $
-                {currentShiftPayments.reduce(
-                  (sum, payment) => sum + parseFloat(String(payment.Monto || "0")),
-                  0
-                )}
+          <div className="bg-white rounded-2xl shadow-sm py-6 space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-center gap-2">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Pagos del turno {selectedShift}
+              </h2>
+              <span className="text-lg text-gray-500">
+                {formatDate(selectedDate)}
               </span>
             </div>
+
+            {Object.keys(resumenPorTipo).length > 0 && (
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                <h3 className="flex items-center text-gray-600 font-medium mb-4">
+                  Recaudación por tipo de pago
+                </h3>
+
+                <ul className="space-y-3">
+                  {Object.entries(resumenPorTipo).map(([tipo, total]) => (
+                    <li key={tipo} className="flex justify-between items-center">
+                      <span className="text-gray-600">{tipo}</span>
+                      <span className="font-semibold text-green-600">
+                        ${total.toLocaleString("es-AR")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="bg-gradient-to-r from-green-50 to-gray-50 rounded-xl p-4">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-medium text-gray-700">Total del turno:</span>
+                <span className="text-2xl font-bold text-green-600">
+                  $
+                  {currentShiftPayments
+                    .reduce((sum, payment) => sum + parseFloat(String(payment.Monto || "0")), 0)
+                    .toLocaleString("es-AR")}
+                </span>
+              </div>
+            </div>
           </div>
+
         </CardContent>
       </Card>
     </>

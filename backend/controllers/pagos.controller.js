@@ -156,6 +156,26 @@ export const getPagosPorFechaYTurno = async (req, res) => {
     }
 };
 
+export const getPagosFiltrados = async (req, res) => {
+    try {
+      const { fecha, tipo } = req.query;
+  
+      const pagos = await getPagosFromSheet();
+  
+      const filtrados = pagos.filter(pago => {
+        const coincideFecha = fecha ? pago['Fecha de Pago'] === fecha : true;
+        const coincideTipo = tipo ? (pago.Tipo || '').toLowerCase() === tipo.toLowerCase() : true;
+        return coincideFecha && coincideTipo;
+      });
+  
+      res.json(filtrados);
+    } catch (error) {
+      console.error('Error al filtrar pagos:', error);
+      res.status(500).json({ message: 'Error al filtrar pagos' });
+    }
+};
+  
+  
 
 // POST
 
@@ -163,7 +183,6 @@ export const addPago = async (req, res) => {
     try {
         const pago = req.body;
 
-        // Validación mínima
         if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago']) {
             return res.status(400).json({ message: 'Faltan campos obligatorios' });
         }

@@ -10,6 +10,7 @@ import {
     updatePago,
     deletePago,
     getPagosPorFechaYTurno,
+    getPagosFiltrados,
 } from '../controllers/pagos.controller.js';
 
 const router = Router();
@@ -21,6 +22,7 @@ router.get('/facturacion/mes/:numeroMes', getFacturacionPorMes);
 router.get('/facturacion/metodo', getFacturacionPorMetodo);
 router.get('/facturacion/metodo/mes/:numeroMes', getFacturacionPorMetodoYMes);
 router.get('/fecha/:dia-:mes-:anio/:turno', getPagosPorFechaYTurno);
+router.get('/', getPagosFiltrados);
 
 router.post('/', addPago);
 router.put('/:id', updatePago);
