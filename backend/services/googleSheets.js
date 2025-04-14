@@ -88,7 +88,6 @@ export async function appendAlumnoToSheet(alumno) {
   });
 }
 
-
 export async function updateAlumnoByDNI(dni, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
