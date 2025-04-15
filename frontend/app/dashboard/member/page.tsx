@@ -14,7 +14,9 @@ import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 import axios from "axios"
 import customParseFormat from "dayjs/plugin/customParseFormat"
+import { useUser } from "@/context/UserContext";
 import dayjs from "dayjs"
+import { useRouter } from "next/navigation"
 
 dayjs.extend(customParseFormat)
 
@@ -45,11 +47,18 @@ interface Member {
 
 export default function MemberDashboard() {
   const [user, setUser] = useState<Member | null>(null)
-  const dni = 45082808
+  const { user: contextUser } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+  if (!contextUser?.dni || !contextUser?.rol) {
+    router.push("/login")
+  }
+}, [contextUser, router])
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get(`http://localhost:3001/api/alumnos/${dni}`)
+      const response = await axios.get(`http://localhost:3001/api/alumnos/${contextUser?.dni}`)
       const rawData = response.data
 
       const userData: Member = {

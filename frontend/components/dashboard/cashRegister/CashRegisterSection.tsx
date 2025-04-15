@@ -11,6 +11,7 @@ type CashRegisterSectionProps = {
   onOpenCashRegister: () => void
   onCloseCashRegister: () => void
   setInitialAmount: (value: string) => void
+  errorMessage?: string | null
 }
 
 export default function CashRegisterSection({
@@ -20,16 +21,21 @@ export default function CashRegisterSection({
   currentShiftPayments,
   onOpenCashRegister,
   onCloseCashRegister,
-  setInitialAmount
+  setInitialAmount,
+  errorMessage
 }: CashRegisterSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between space-x-2">
         <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-            Panel de administracion
+          Panel de recepcionista
         </h1>
+        {errorMessage && (
+          <div className="text-sm text-red-600 font-medium mt-2">
+            {errorMessage}
+          </div>
+        )}
         {!cashRegisterOpen ? (
-            
           <Button
             variant="orange"
             onClick={onOpenCashRegister}
@@ -45,14 +51,18 @@ export default function CashRegisterSection({
           </Button>
         )}
       </div>
+
       {cashRegisterOpen && (
-        <CashRegisterCard
-          selectedShift={selectedShift}
-          initialAmount={initialAmount}
-          setInitialAmount={setInitialAmount}
-          currentShiftPayments={currentShiftPayments}
-        />
+        <>
+          <CashRegisterCard
+            selectedShift={selectedShift}
+            initialAmount={initialAmount}
+            setInitialAmount={setInitialAmount}
+            currentShiftPayments={currentShiftPayments}
+          />
+        </>
       )}
+
     </div>
   )
 }

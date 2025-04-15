@@ -3,8 +3,9 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { useAppData } from "@/context/AppDataContext" 
+import { useAppData } from "@/context/AppDataContext"
 import { parse, format } from "date-fns"
+import { useUser } from "@/context/UserContext"
 
 import {
   Dialog,
@@ -28,6 +29,13 @@ interface AddPaymentDialogProps {
 }
 
 export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberUpdated }: AddPaymentDialogProps) {
+
+
+  const [dniError, setDniError] = useState("")
+  const [tipoSeleccionado, setTipoSeleccionado] = useState("")
+  const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
+  const { planes } = useAppData()
+  const { user } = useUser()
   const [formData, setFormData] = useState({
     dni: "",
     name: "",
@@ -36,18 +44,100 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     concept: "",
     paymentDate: "",
     expirationDate: "",
-    responsable: "",
+    responsable: user?.nombre,
     turno: ""
   })
-
-  const [dniError, setDniError] = useState("")
-  const [tipoSeleccionado, setTipoSeleccionado] = useState("")
-  const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
-  const { planes } = useAppData() 
   
-
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]
   const planesFiltrados = planes.filter(p => p.Tipo === tipoSeleccionado)
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleSelectPlan = (planID: string) => {
+    const selected = planes.find(p => p.ID === planID)
+    setPlanSeleccionado(selected)
+    handleChange("amount", selected?.Precio || "")
+    handleChange("concept", selected?.["Plan o Producto"] || "")
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log("Enviando datos del formulario:", formData)
+    const fields = Object.values(formData)
+    if (fields.some(f => f.trim() === "")) {
+      alert("Todos los campos son obligatorios")
+      return
+    }
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          "Socio DNI": formData.dni,
+          "Nombre": formData.name,
+          "Monto": formData.amount,
+          "Método de Pago": formData.method,
+          "Fecha de Pago": formData.paymentDate,
+          "Fecha de Vencimiento": formData.expirationDate,
+          "Responsable": user?.nombre,
+          "Turno": formData.turno,
+          "Tipo": tipoSeleccionado,
+        })
+      })
+
+      const parsedDate = parse(formData.expirationDate, "yyyy-MM-dd", new Date())
+      const expirationDateFormatted = format(parsedDate, "dd/MM/yyyy")
+
+      console.log("Se actualiza el miembro con:", {
+        dni: formData.dni,
+        expirationDate: expirationDateFormatted,
+        plan: planSeleccionado?.["Plan o Producto"],
+        numeroClases: parseInt(planSeleccionado?.numero_Clases || "0")
+      })
+
+      onMemberUpdated(
+        formData.dni,
+        expirationDateFormatted,
+        planSeleccionado?.["Plan o Producto"],
+        parseInt(planSeleccionado?.numero_Clases || "0")
+      )
+
+      if (!res.ok) throw new Error("Error al registrar el pago")
+
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Fecha_vencimiento: expirationDateFormatted,
+          Plan: planSeleccionado?.["Plan o Producto"] || "",
+          Clases_pagadas: parseInt(planSeleccionado?.numero_Clases || "0"),
+          Clases_realizadas: "0"
+        })
+      })
+
+      setFormData({
+        dni: "",
+        name: "",
+        amount: "",
+        method: "",
+        concept: "",
+        paymentDate: "",
+        expirationDate: "",
+        responsable: user?.nombre || "",
+        turno: ""
+      })
+      setTipoSeleccionado("")
+      setPlanSeleccionado(null)
+
+      onPaymentAdded()
+      onOpenChange(false)
+    } catch (error) {
+      console.error("Error al enviar el pago:", error)
+    }
+  }
 
   useEffect(() => {
     const fetchMember = async () => {
@@ -69,92 +159,11 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     fetchMember()
   }, [formData.dni])
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const handleSelectPlan = (planID: string) => {
-    const selected = planes.find(p => p.ID === planID)
-    setPlanSeleccionado(selected)
-    handleChange("amount", selected?.Precio || "")
-    handleChange("concept", selected?.["Plan o Producto"] || "")
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const fields = Object.values(formData)
-    if (fields.some(f => f.trim() === "")) {
-      alert("Todos los campos son obligatorios")
-      return
+  useEffect(() => {
+    if (user?.nombre) {
+      setFormData((prev) => ({ ...prev, responsable: user.nombre }))
     }
-  
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          "Socio DNI": formData.dni,
-          "Nombre": formData.name,
-          "Monto": formData.amount,
-          "Método de Pago": formData.method,
-          "Fecha de Pago": formData.paymentDate,
-          "Fecha de Vencimiento": formData.expirationDate,
-          "Responsable": formData.responsable,
-          "Turno": formData.turno,
-          "Tipo": tipoSeleccionado,
-        })
-      })
-      
-      const parsedDate = parse(formData.expirationDate, "yyyy-MM-dd", new Date())
-      const expirationDateFormatted = format(parsedDate, "dd/MM/yyyy")
-  
-      console.log("Se actualiza el miembro con:", {
-        dni: formData.dni,
-        expirationDate: expirationDateFormatted,
-        plan: planSeleccionado?.["Plan o Producto"],
-        numeroClases: parseInt(planSeleccionado?.numero_Clases || "0")
-      })
-  
-      onMemberUpdated(
-        formData.dni,
-        expirationDateFormatted,
-        planSeleccionado?.["Plan o Producto"],
-        parseInt(planSeleccionado?.numero_Clases || "0")
-      )
-  
-      if (!res.ok) throw new Error("Error al registrar el pago")
-  
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          Fecha_vencimiento: expirationDateFormatted,
-          Plan: planSeleccionado?.["Plan o Producto"] || "",
-          Clases_pagadas: parseInt(planSeleccionado?.numero_Clases || "0"),
-          Clases_realizadas: "0"
-        })
-      })
-  
-      setFormData({
-        dni: "",
-        name: "",
-        amount: "",
-        method: "",
-        concept: "",
-        paymentDate: "",
-        expirationDate: "",
-        responsable: "",
-        turno: ""
-      })
-      setTipoSeleccionado("")
-      setPlanSeleccionado(null)
-  
-      onPaymentAdded()
-      onOpenChange(false)
-    } catch (error) {
-      console.error("Error al enviar el pago:", error)
-    }
-  }
+  }, [user])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -248,7 +257,12 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
             </div>
             <div className="space-y-2">
               <Label htmlFor="responsable">Responsable</Label>
-              <Input id="responsable" placeholder="Nombre del recepcionista" value={formData.responsable} onChange={(e) => handleChange("responsable", e.target.value)} required />
+              <Input
+                id="responsable"
+                placeholder="Nombre del recepcionista"
+                value={user?.nombre}
+                disabled
+              />
             </div>
           </div>
           <DialogFooter>

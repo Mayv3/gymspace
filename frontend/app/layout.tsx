@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AppDataProvider } from '@/context/AppDataContext'
+import { UserProvider } from "@/context/UserContext";
 
 export const metadata: Metadata = {
   title: 'GYMSPACE',
@@ -19,9 +20,11 @@ export default function RootLayout({
         <link rel="icon" href="/Gymspace-logo-png.png" type="image/png" />
       </head>
       <body>
-        <AppDataProvider>
-          {children}
-        </AppDataProvider>
+        <UserProvider>
+          <AppDataProvider>
+            {children}
+          </AppDataProvider>
+        </UserProvider>
       </body>
     </html>
   )

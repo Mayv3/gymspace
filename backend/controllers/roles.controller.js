@@ -1,4 +1,4 @@
-import { getRolesFromSheet } from '../services/googleSheets.js';
+import { getAlumnosFromSheet, getRolesFromSheet } from '../services/googleSheets.js';
 
 export const getRolPorDNI = async (req, res) => {
   try {
@@ -6,17 +6,29 @@ export const getRolPorDNI = async (req, res) => {
     if (!dni) return res.status(400).json({ message: 'DNI no proporcionado' });
 
     const roles = await getRolesFromSheet();
-    const user = roles.find(r => r.DNI?.trim() === dni);
+    const userRol = roles.find(r => r.DNI?.trim() === dni);
 
-    if (!user) {
-      return res.status(404).json({ message: 'No se encontró un rol para ese DNI' });
+    if (userRol) {
+      return res.json({
+        dni: userRol.DNI,
+        nombre: userRol.Nombre || "Sin nombre",
+        rol: userRol.Rol?.trim() || "Miembro"
+      });
     }
 
-    res.json({
-      dni: user.DNI,
-      nombre: user.Nombre,
-      rol: user.Rol
-    });
+    const alumnos = await getAlumnosFromSheet();
+    const alumno = alumnos.find(a => a.DNI?.trim() === dni);
+
+    if (alumno) {
+      return res.json({
+        dni: alumno.DNI,
+        nombre: alumno.Nombre || "Sin nombre",
+        rol: "Miembro"
+      });
+    }
+
+    return res.status(404).json({ message: 'Usuario no encontrado en roles ni en alumnos' });
+
   } catch (error) {
     console.error('Error al obtener rol:', error);
     res.status(500).json({ message: 'Error al obtener el rol del usuario' });

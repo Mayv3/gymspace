@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DollarSign } from "lucide-react"
 import { motion } from "framer-motion"
+import { useUser } from "@/context/UserContext"
+import { useEffect } from "react"
 
 interface CashRegisterCardProps {
   selectedShift: string
@@ -21,6 +23,26 @@ export function CashRegisterCard({
   const initial = isNaN(parsedInitial) ? 0 : parsedInitial
   const total = currentShiftPayments.reduce((sum, payment) => sum + Number(payment.Monto || 0), 0)
   const balance = initial + total
+  const { user } = useUser()
+
+  useEffect(() => {
+    const verificarCajaAbierta = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/abierta/${selectedShift}`)
+        const data = await res.json()
+
+        if (data.abierta) {
+          setInitialAmount(data.saldoInicial)
+        } else {
+          setInitialAmount("0")
+        }
+      } catch (error) {
+        console.error("Error al verificar caja abierta:", error)
+      }
+    }
+
+    verificarCajaAbierta()
+  }, [selectedShift])
 
   return (
     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -31,7 +53,7 @@ export function CashRegisterCard({
             Caja Registradora
           </CardTitle>
           <CardDescription>
-            Turno actual: {selectedShift.charAt(0).toUpperCase() + selectedShift.slice(1)} - Recepcionista: Juan Pérez
+            Turno actual: {selectedShift.charAt(0).toUpperCase() + selectedShift.slice(1)} - Recepcionista: {user?.nombre}
           </CardDescription>
         </CardHeader>
         <CardContent>

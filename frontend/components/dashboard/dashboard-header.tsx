@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Dumbbell, LogOut, User, Bell, Settings } from "lucide-react"
 import { motion } from "framer-motion"
+import Cookies from "js-cookie";
+import { useUser } from "@/context/UserContext";
 
 interface DashboardHeaderProps {
   role: string
@@ -20,11 +22,16 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ role }: DashboardHeaderProps) {
   const router = useRouter()
+  const { user } = useUser()
 
   const handleLogout = () => {
-    localStorage.removeItem("cajaCerrada")
-    router.push("/")
-  }
+    Cookies.remove("dni");
+    Cookies.remove("nombre");
+    Cookies.remove("rol");
+    localStorage.removeItem("cajaCerrada");
+  
+    router.push("/login");
+  };
 
   return (
     <motion.header
@@ -38,12 +45,8 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
         <span className="gradient-text hidden xs:inline-block text-lg sm:inline-block">GymSpace</span>
       </Link>
       <div className="ml-auto flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
-        </Button>
         <span className="hidden text-sm text-muted-foreground md:inline-block">
-          Conectado como <strong className="text-[#ff6b00]">{role}</strong>
+          Conectado como <strong className="text-[#ff6b00]">{user?.nombre}</strong>
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -52,19 +55,8 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
               <span className="sr-only">Menú de usuario</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Perfil</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configuración</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+          <DropdownMenuContent align="end"> 
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Cerrar sesión</span>
             </DropdownMenuItem>

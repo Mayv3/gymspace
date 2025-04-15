@@ -139,3 +139,34 @@ export const obtenerCaja = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener cajas' });
   }
 };
+
+export const obtenerCajaAbiertaPorTurno = async (req, res) => {
+  try {
+    const { turno } = req.params;
+    const cajas = await getCajasFromSheet();
+
+    const cajaTurno = cajas.find(caja => caja.Turno === turno);
+
+    if (!cajaTurno) {
+      return res.status(200).json({ existe: false, abierta: false });
+    }
+
+    if (!cajaTurno["Hora Cierre"]) {
+      return res.status(200).json({
+        existe: true,
+        abierta: true,
+        id: cajaTurno.ID,
+        saldoInicial: cajaTurno["Saldo Inicial"] || "0",
+      });
+    }
+
+    return res.status(200).json({
+      existe: true,
+      abierta: false
+    });
+
+  } catch (error) {
+    console.error("Error al verificar caja abierta:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+}

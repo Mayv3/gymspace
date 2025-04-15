@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -14,10 +14,20 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { mockMembers, mockPayments } from "@/lib/mock-data"
 import { AddMemberDialog } from "@/components/dashboard/members/add-member-dialog"
 import { motion } from "framer-motion"
+import { useUser } from "@/context/UserContext"
+import { useRouter } from "next/navigation"
 
 export default function AdministratorDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showAddMember, setShowAddMember] = useState(false)
+  const { user } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!user?.dni || user?.rol !== "Administrador") {
+      router.push("/login")
+    }
+  }, [user, router])
 
   const filteredMembers = mockMembers.filter(
     (member) =>

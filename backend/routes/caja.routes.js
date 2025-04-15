@@ -4,7 +4,8 @@ import {
   editarCaja,
   eliminarCaja,
   obtenerCaja,
-  obtenerCajaPorID
+  obtenerCajaPorID,
+  obtenerCajaAbiertaPorTurno
 } from '../controllers/caja.controller.js';
 
 const router = Router();
@@ -14,5 +15,5 @@ router.put('/:id', editarCaja);
 router.delete('/:id', eliminarCaja);
 router.get('/', obtenerCaja);           
 router.get('/:id', obtenerCajaPorID);  
-
+router.get('/abierta/:turno', obtenerCajaAbiertaPorTurno);
 export default router;

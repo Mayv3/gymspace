@@ -145,8 +145,8 @@ export function ShiftPaymentsTab({
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm py-6 space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-center gap-2">
-              <h2 className="text-2xl font-bold text-gray-800">
+            <div className="flex flex-col md:flex-row md:items-center justify-start gap-2">
+              <h2 className="text-2xl text-gray-800">
                 Pagos del turno {selectedShift}
               </h2>
               <span className="text-lg text-gray-500">

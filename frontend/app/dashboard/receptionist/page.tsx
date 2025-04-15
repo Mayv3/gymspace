@@ -16,6 +16,8 @@ import io from "socket.io-client"
 import dayjs from "dayjs"
 import AssistsSection from "@/components/dashboard/assists/AssistsClases"
 import { TabsContent } from "@radix-ui/react-tabs"
+import { useUser } from "@/context/UserContext"
+import { useRouter } from "next/navigation"
 
 export default function ReceptionistDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -36,6 +38,12 @@ export default function ReceptionistDashboard() {
   const currentShiftPayments = payments
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("mañana")
+  const [cashRegisterError, setCashRegisterError] = useState<string | null>(null);
+  const [showCashRegisterCard, setShowCashRegisterCard] = useState(false)
+  const [cajaExiste, setCajaExiste] = useState(true)
+
+  const { user, loading } = useUser()
+  const router = useRouter()
 
   const fetchMembers = async () => {
     try {
@@ -79,7 +87,7 @@ export default function ReceptionistDashboard() {
   }
   const handleOpenCashRegister = async () => {
     try {
-      const requestBody: any = { turno: selectedShift, responsable: "DANI" }
+      const requestBody: any = { turno: selectedShift, responsable: user?.nombre }
       if (selectedShift === "mañana") {
         requestBody.saldoInicial = initialAmount
       }
@@ -89,16 +97,28 @@ export default function ReceptionistDashboard() {
         body: JSON.stringify(requestBody)
       })
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error("Error al abrir caja:", errorData.message)
-        return
+        const errorData = await response.json();
+        setCashRegisterError(errorData.message);
+
+        setTimeout(() => {
+          setCashRegisterError(null);
+        }, 5000);
+
+        return;
       }
+
       const data = await response.json()
       setInitialAmount(data.saldoInicial)
       setCashRegisterId(data.id)
-      setPayments([])
       setCashRegisterOpen(true)
       setIsCajaCerrada(false)
+      setCashRegisterError(null)
+
+      localStorage.setItem("cajaAbierta", "true")
+      localStorage.setItem("initialAmount", data.saldoInicial)
+      localStorage.setItem("cashRegisterId", data.id)
+      localStorage.removeItem("cajaCerrada")
+
     } catch (error) {
       console.error("Error al abrir caja:", error)
     }
@@ -135,8 +155,11 @@ export default function ReceptionistDashboard() {
       setInitialAmount("0")
       setCashRegisterId(null)
       setPayments([])
+
+      localStorage.removeItem("cajaAbierta")
+      localStorage.removeItem("initialAmount")
+      localStorage.removeItem("cashRegisterId")
       localStorage.setItem("cajaCerrada", "true")
-      setIsCajaCerrada(true)
     } catch (error) {
       console.error("Error al cerrar caja:", error)
     }
@@ -152,61 +175,113 @@ export default function ReceptionistDashboard() {
   const handleShowAddPayment = () => {
     if (cashRegisterOpen) setShowAddPayment(true)
   }
+
   useEffect(() => {
-    fetchPaymentsByDateAndShift();
-  }, [selectedDate, selectedShift]);
-  useEffect(() => {
-    fetchMembers();
-    const closedFlag = localStorage.getItem("cajaCerrada") === "true";
-    if (closedFlag) {
-      setCashRegisterOpen(false);
-      setInitialAmount("0");
-      setIsCajaCerrada(true);
+    if (!loading && (!user?.dni || !user?.rol)) {
+      router.push("/login")
     }
-  }, []);
+  }, [user, loading, router])
+
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001");
+    const inicializarCaja = async () => {
+      try {
+        await fetchMembers()
+
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/abierta/${selectedShift}`)
+        const data = await res.json()
+
+        if (!data.existe) {
+          setCajaExiste(false)
+          setCashRegisterOpen(false)
+          setIsCajaCerrada(false)
+          setCashRegisterId(null)
+          setShowCashRegisterCard(false)
+          return
+        }
+
+        setCajaExiste(true)
+
+        if (data.abierta) {
+          setCashRegisterOpen(true)
+          setInitialAmount(data.saldoInicial)
+          setCashRegisterId(data.id)
+          setIsCajaCerrada(false)
+          setShowCashRegisterCard(true)
+        } else {
+          setCashRegisterOpen(false)
+          setCashRegisterId(null)
+          setInitialAmount("0")
+          setIsCajaCerrada(true)
+          setShowCashRegisterCard(false)
+        }
+      } catch (error) {
+        console.error("Error al verificar caja abierta:", error)
+      }
+    }
+
+    inicializarCaja()
+  }, [selectedShift])
+
+
+
+  useEffect(() => {
+    fetchPaymentsByDateAndShift()
+  }, [selectedDate, selectedShift])
+
+  useEffect(() => {
+    const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001")
+
     socket.on("nuevo-pago", data => {
       if (cashRegisterOpen) {
-        setPayments(prev => [...prev, data]);
+        setPayments(prev => [...prev, data])
       }
-    });
+    })
+
     socket.on("asistencia-registrada", data => {
       if (data?.dni && data?.clasesRealizadas !== undefined) {
-        updateMemberAttendance(data.dni, data.clasesRealizadas);
+        updateMemberAttendance(data.dni, data.clasesRealizadas)
       }
-    });
+    })
+
     socket.on("asistencia-actualizada", data => {
       if (data?.dni && data?.clasesRealizadas !== undefined) {
-        updateMemberAttendance(data.dni, data.clasesRealizadas);
+        updateMemberAttendance(data.dni, data.clasesRealizadas)
       }
-    });
+    })
+
     return () => {
-      socket.off("nuevo-pago");
-      socket.off("asistencia-registrada");
-      socket.off("asistencia-actualizada");
-      socket.disconnect();
-    };
-  }, [cashRegisterOpen]);
+      socket.off("nuevo-pago")
+      socket.off("asistencia-registrada")
+      socket.off("asistencia-actualizada")
+      socket.disconnect()
+    }
+  }, [cashRegisterOpen])
+
 
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader role="Recepcionista" />
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <CashRegisterSection
-          cashRegisterOpen={cashRegisterOpen}
-          initialAmount={initialAmount}
-          selectedShift={selectedShift}
-          currentShiftPayments={currentShiftPayments}
-          onOpenCashRegister={handleOpenCashRegister}
-          onCloseCashRegister={handleCloseCashRegister}
-          setInitialAmount={setInitialAmount}
-        />
-        {!cashRegisterOpen && isCajaCerrada && (
+
+        {!cashRegisterOpen && isCajaCerrada && cajaExiste && (
           <div className="text-center text-xl font-bold text-gray-600">
-            La caja se ha cerrado
+            La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
           </div>
         )}
+
+        {(!isCajaCerrada || !cajaExiste) && (
+          <CashRegisterSection
+            cashRegisterOpen={cashRegisterOpen}
+            initialAmount={initialAmount}
+            selectedShift={selectedShift}
+            currentShiftPayments={currentShiftPayments}
+            onOpenCashRegister={handleOpenCashRegister}
+            onCloseCashRegister={handleCloseCashRegister}
+            setInitialAmount={setInitialAmount}
+            errorMessage={cashRegisterError}
+          />
+        )}
+ 
         <Tabs defaultValue="members" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3 md:w-auto">
             <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
