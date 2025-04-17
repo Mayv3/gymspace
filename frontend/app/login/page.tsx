@@ -20,7 +20,7 @@ const LoginPage = () => {
         return;
       }
       
-      const res = await axios.get(`http://localhost:3001/api/roles/${dni}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${dni}`);
       const data = res.data;
   
       // Guardar en cookies
