@@ -160,6 +160,10 @@ export default function MemberDashboard() {
   const daysLeft = user.Fecha_vencimiento ? Math.max(0, dayjs(user.Fecha_vencimiento, "D/M/YYYY").diff(dayjs().startOf("day"), "day") + 1) : 0
   const progressPercentage = Math.min(100, Math.max(0, (daysLeft / 30) * 100))
 
+  const vencido = daysLeft <= 0
+  const agotado = user.Clases_restantes <= 0
+  const planInhabilitado = vencido || agotado
+
   return (
     <div className="flex min-h-screen flex-col">
       <AnimatePresence>
@@ -241,19 +245,23 @@ export default function MemberDashboard() {
               <CardContent className="pt-2 px-4 flex flex-col justify-between">
                 <div>
                   <div className="text-2xl font-bold">
-                    {daysLeft > 0
-                      ? `${daysLeft} días restantes`
-                      : "Expirado"}
+                    {planInhabilitado
+                      ? "Plan inhabilitado"
+                      : `${daysLeft} días restantes`}
                   </div>
                   <div className="flex justify-between mb-5">
                     <div className="text-xs text-muted-foreground mt-1">
                       Fin: {user.Fecha_vencimiento}
                     </div>
                     <Badge
-                      variant={daysLeft > 0 ? "success" : "destructive"}
+                      variant={planInhabilitado ? "destructive" : "success"}
                       className="animate-pulse-scale"
                     >
-                      {daysLeft > 0 ? "Activo" : "Expirado"}
+                      {vencido
+                        ? "VENCIMIENTO"
+                        : planInhabilitado
+                          ? "INHABILITADO"
+                          : "Activo"}
                     </Badge>
                   </div>
                 </div>
@@ -283,32 +291,27 @@ export default function MemberDashboard() {
               </CardHeader>
 
               <CardContent className="pt-2 px-4 flex flex-col justify-between">
-                {/* Bloque superior: número y subtítulo */}
                 <div>
                   <div className="text-2xl font-bold">
-                    {user.Clases_restantes}
+                    {planInhabilitado ? "Sin acceso" : user.Clases_restantes}
                   </div>
-                  <div className="flex  justify-between mb-5">
+                  <div className="flex justify-between mb-5">
                     <div className="text-xs text-muted-foreground mt-1">
                       De {user.Clases_pagadas} clases este mes
                     </div>
                     <Badge
-                      variant={
-                        user.Clases_restantes === 0 ? "destructive" : "success"
-                      }
+                      variant={planInhabilitado ? "destructive" : "success"}
                       className="animate-pulse-scale"
                     >
-                      {user.Clases_restantes === 0
+                      {agotado
                         ? "LÍMITE DE CLASES"
-                        : "Activo"}
+                        : planInhabilitado
+                          ? "INHABILITADO"
+                          : "Activo"}
                     </Badge>
                   </div>
-
                 </div>
-
-                {/* Bloque inferior: badge y progreso */}
                 <div className="flex items-center justify-between">
-
                   <Progress
                     value={(user.Clases_restantes / user.Clases_pagadas) * 100}
                     className="h-2 flex-1 ml-2"
@@ -316,6 +319,7 @@ export default function MemberDashboard() {
                 </div>
               </CardContent>
             </Card>
+
           </motion.div>
         </div>
 

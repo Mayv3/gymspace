@@ -20,6 +20,17 @@ export const registrarAsistencia = async (req, res) => {
       return res.status(404).json({ message: 'Alumno no encontrado' });
     }
 
+    const vencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
+    const hoyDate = dayjs();
+
+    if (hoyDate.isAfter(vencimiento, 'day')) {
+      return res.status(403).json({
+        message: `El plan de ${alumno.Nombre || alumno['Nombre']} venció el ${vencimiento.format('DD/MM/YYYY')}`,
+        fechaVencimiento: vencimiento.format('DD/MM/YYYY'),
+      });
+    }
+
+
     const hoy = dayjs().format('DD-MM-YYYY');
     const asistencias = await getAsistenciasFromSheet();
 
@@ -95,7 +106,6 @@ export const registrarAsistencia = async (req, res) => {
     res.status(500).json({ message: 'Error al registrar la asistencia' });
   }
 };
-
 
 export const getAsistenciasPorDNI = async (req, res) => {
   try {

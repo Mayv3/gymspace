@@ -21,7 +21,7 @@ export default function AsistenciaPage() {
             })
 
             const result = await res.json()
-            setData(result)
+            setData({ ...result, success: res.ok })
 
             const id = setTimeout(() => {
                 setData(null)
@@ -31,6 +31,7 @@ export default function AsistenciaPage() {
             console.error('Error al registrar asistencia:', error)
         }
     }
+
 
     const yaRegistrado = data?.message?.toLowerCase().includes('ya registró asistencia')
     const clasesRealizadas = data?.clasesRealizadas || 0
@@ -76,11 +77,11 @@ export default function AsistenciaPage() {
 
                 {data && (
                     <div className="mt-8 p-6 rounded-2xl bg-gray-100 shadow-inner">
-                        <p className={`text-xl text-center font-semibold ${yaRegistrado ? 'text-red-600' : 'text-green-700'}`}>
+                        <p className={`text-xl text-center font-semibold ${data.success ? 'text-green-700' : 'text-red-600'}`}>
                             {data.message}
                         </p>
 
-                        {!yaRegistrado && (
+                        {data.success && !yaRegistrado && (
                             <div className="mt-4 space-y-4">
                                 <div>
                                     <p className="text-lg font-medium text-gray-700">
