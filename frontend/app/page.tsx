@@ -1,109 +1,65 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, UserRound, Users } from "lucide-react"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
-export default function LoginPage() {
-  const router = useRouter()
-  const [selectedRole, setSelectedRole] = useState<string | null>(null)
+const LoginPage = () => {
+  const [dni, setDni] = useState("");
+  const router = useRouter();
+  const { setUser } = useUser();
 
-  const handleRoleSelect = (role: string) => {
-    setSelectedRole(role)
-  }
+  const handleLogin = async () => {
+    try {
+      console.log("DNI ingresado:", dni);
 
-  const handleContinue = () => {
-    if (selectedRole) {
-      router.push(`/dashboard/${selectedRole.toLowerCase()}`)
+      if (!dni.trim()) {
+        alert("Por favor ingresá un DNI válido.");
+        return;
+      }
+      
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${dni}`);
+      const data = res.data;
+  
+      // Guardar en cookies
+      Cookies.set("dni", data.dni);
+      Cookies.set("nombre", data.nombre);
+      Cookies.set("rol", data.rol);
+  
+      // Actualizar contexto
+      setUser(data);
+  
+      // Redirigir según el rol
+      if (data.rol === "Administrador") {
+        router.push("/dashboard/administrator");
+      } else if (data.rol === "Recepcionista") {
+        router.push("/dashboard/receptionist");
+      } else {
+        router.push("/dashboard/member");
+      }
+    } catch (error) {
+      console.error("Error en login:", error);
     }
-  }
+  };
+  
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Card className="w-[95vw] max-w-md shadow-xl">
-          <CardHeader className="text-center">
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex justify-center mb-4"
-            >
-              <img src="/Gymspace-logo-png.png" alt="GymSpace Logo" className="h-20" />
-            </motion.div>
-            <CardTitle className="text-3xl font-bold gradient-text">GymSpace</CardTitle>
-            <CardDescription className="text-[#ff6b00] font-medium">
-              Por favor selecciona tu rol para continuar
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant={selectedRole === "administrator" ? "orange" : "outline"}
-                  className="flex flex-col h-20 sm:h-24 items-center justify-center gap-2 w-full text-sm sm:text-base"
-                  onClick={() => handleRoleSelect("administrator")}
-                >
-                  <Shield
-                    className={selectedRole === "administrator" ? "h-6 w-6 text-white" : "h-6 w-6 text-[#ff6b00]"}
-                  />
-                  <span>
-                    {selectedRole === "administrator" ? (
-                      "Administrador"
-                    ) : (
-                      <span className="text-[#ff6b00]">Administrador</span>
-                    )}
-                  </span>
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant={selectedRole === "receptionist" ? "orange" : "outline"}
-                  className="flex flex-col h-20 sm:h-24 items-center justify-center gap-2 w-full text-sm sm:text-base"
-                  onClick={() => handleRoleSelect("receptionist")}
-                >
-                  <UserRound
-                    className={selectedRole === "receptionist" ? "h-6 w-6 text-white" : "h-6 w-6 text-[#ff6b00]"}
-                  />
-                  <span>
-                    {selectedRole === "receptionist" ? (
-                      "Recepcionista"
-                    ) : (
-                      <span className="text-[#ff6b00]">Recepcionista</span>
-                    )}
-                  </span>
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant={selectedRole === "member" ? "orange" : "outline"}
-                  className="flex flex-col h-20 sm:h-24 items-center justify-center gap-2 w-full text-sm sm:text-base"
-                  onClick={() => handleRoleSelect("member")}
-                >
-                  <Users className={selectedRole === "member" ? "h-6 w-6 text-white" : "h-6 w-6 text-[#ff6b00]"} />
-                  <span>{selectedRole === "member" ? "Miembro" : <span className="text-[#ff6b00]">Miembro</span>}</span>
-                </Button>
-              </motion.div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <motion.div className="w-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="orange"
-                className="w-full text-lg font-semibold"
-                disabled={!selectedRole}
-                onClick={handleContinue}
-              >
-                Continuar
-              </Button>
-            </motion.div>
-          </CardFooter>
-        </Card>
-      </motion.div>
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-xl font-bold mb-4">Ingresar</h1>
+      <input
+        type="text"
+        value={dni}
+        onChange={(e) => setDni(e.target.value)}
+        placeholder="Ingresá tu DNI"
+        className="border p-2 w-full mb-4"
+      />
+      <button onClick={handleLogin} className="bg-blue-500 text-white px-4 py-2 rounded">
+        Ingresar
+      </button>
     </div>
-  )
-}
+  );
+};
 
+export default LoginPage;

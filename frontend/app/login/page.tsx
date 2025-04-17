@@ -13,7 +13,7 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     try {
-      console.log("DNI ingresado:", dni); // 👈 Verifica si realmente hay un valor acá
+      console.log("DNI ingresado:", dni);
 
       if (!dni.trim()) {
         alert("Por favor ingresá un DNI válido.");

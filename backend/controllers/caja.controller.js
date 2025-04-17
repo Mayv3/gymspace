@@ -8,10 +8,8 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 const ahoraAR = new Date().toLocaleTimeString('es-AR', {
   timeZone: 'America/Argentina/Buenos_Aires',
@@ -145,28 +143,30 @@ export const obtenerCajaAbiertaPorTurno = async (req, res) => {
     const { turno } = req.params;
     const cajas = await getCajasFromSheet();
 
-    const cajaTurno = cajas.find(caja => caja.Turno === turno);
+    const hoy = dayjs().format("D/M/YYYY");
 
-    if (!cajaTurno) {
+    const cajaHoy = cajas.find(caja =>
+      caja.Turno === turno &&
+      dayjs(caja.Fecha, "D/M/YYYY").format("D/M/YYYY") === hoy
+    );
+
+    if (!cajaHoy) {
       return res.status(200).json({ existe: false, abierta: false });
     }
 
-    if (!cajaTurno["Hora Cierre"]) {
+    if (!cajaHoy["Hora Cierre"]) {
       return res.status(200).json({
         existe: true,
         abierta: true,
-        id: cajaTurno.ID,
-        saldoInicial: cajaTurno["Saldo Inicial"] || "0",
+        id: cajaHoy.ID,
+        saldoInicial: cajaHoy["Saldo Inicial"] || "0",
       });
     }
-
-    return res.status(200).json({
-      existe: true,
-      abierta: false
-    });
+    return res.status(200).json({ existe: true, abierta: false });
 
   } catch (error) {
     console.error("Error al verificar caja abierta:", error);
     return res.status(500).json({ message: "Error interno del servidor" });
   }
-}
+};
+
