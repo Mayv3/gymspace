@@ -719,3 +719,53 @@ export async function deleteAnotacionInSheet(id) {
   return true;
 }
 
+
+// Clases del Club
+
+export async function getClasesElClubFromSheet() {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'ClasesElClub!A1:F',
+  });
+
+  const [headers, ...rows] = res.data.values;
+
+  if (!headers || !rows) {
+    throw new Error('No se encontraron datos en la hoja de Clases del Club.');
+  }
+  
+  return rows.map(row => {
+    const clase = {};
+    headers.forEach((header, i) => {
+      clase[header] = row[i] || '';
+    });
+    return clase;
+  });
+}
+
+export async function updateClaseElClubInSheet(id, nuevosDatos) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'ClasesElClub!A1:F',
+  });
+
+  const [headers, ...rows] = res.data.values;
+  const rowIndex = rows.findIndex(row => row[0] === id);
+
+  if (rowIndex === -1) return false;
+
+  const actual = rows[rowIndex];
+
+  const nuevaFila = headers.map((header, i) =>
+    nuevosDatos[header] !== undefined ? nuevosDatos[header] : actual[i]
+  );
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: `ClasesElClub!A${rowIndex + 2}:F${rowIndex + 2}`,
+    valueInputOption: 'USER_ENTERED',
+    resource: { values: [nuevaFila] },
+  });
+
+  return true;
+}
