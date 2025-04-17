@@ -37,8 +37,18 @@ export default function AssistsSection() {
     fetchAssists({ selectedDate, selectedType })
   }, [selectedDate, selectedType])
 
+  const displayedAssists = assists.filter((asistencia: any) => {
+    const mismaFecha = dayjs(asistencia.Fecha, "D/M/YYYY").isSame(dayjs(selectedDate), "day")
+    const mismoTipo =
+      selectedType === "todas" || asistencia["Tipo de Clase"] === selectedType
+    return mismaFecha && mismoTipo
+  })
+
   const handleAddLocal = (nuevaClase: any) => {
-    setAssists((prev: any[]) => [...prev, nuevaClase])
+    const fechaFormateada = dayjs(nuevaClase.Fecha).format("D/M/YYYY")
+    const claseConFechaFormateada = { ...nuevaClase, Fecha: fechaFormateada }
+
+    setAssists((prev: any[]) => [...prev, claseConFechaFormateada])
     setShowAddDialog(false)
   }
 
@@ -102,8 +112,8 @@ export default function AssistsSection() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {assists.length > 0 ? (
-                    assists.map((asistencia, index) => (
+                  {displayedAssists.length > 0 ? (
+                    displayedAssists.map((asistencia, index) => (
                       <motion.tr
                         key={asistencia.ID || index}
                         initial={{ opacity: 0, y: 10 }}

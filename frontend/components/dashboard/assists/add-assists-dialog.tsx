@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { motion } from "framer-motion"
+import { useUser } from "@/context/UserContext"
 
 interface RegisterClassDialogProps {
     open: boolean
@@ -16,6 +17,7 @@ const tiposDeClase = ["Funcional", "Tela", "Acrobacia", "Yoga", "Cross"]
 
 export default function RegisterClassDialog({ open, onOpenChange, onAdd }: RegisterClassDialogProps) {
   const [formData, setFormData] = useState({ tipoClase: "", cantidadPersonas: "", responsable: "DANI" })
+  const { user } = useUser()
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -34,11 +36,11 @@ export default function RegisterClassDialog({ open, onOpenChange, onAdd }: Regis
       onAdd({
         "Tipo de Clase": formData.tipoClase,
         "Cantidad de presentes": formData.cantidadPersonas,
-        "Responsable": formData.responsable,
+        "Responsable": user?.nombre,
         "Fecha": new Date().toISOString().split("T")[0]
       })
       onOpenChange(false)
-      setFormData({ tipoClase: "", cantidadPersonas: "", responsable: "DANI" })
+      setFormData({ tipoClase: "", cantidadPersonas: "", responsable: user?.nombre || "" })
     } catch (error) {
       console.error("Error al registrar clase diaria:", error)
     }
