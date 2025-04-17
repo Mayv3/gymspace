@@ -40,7 +40,7 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
       transition={{ duration: 0.3 }}
       className="sticky top-0 z-10 flex h-16 items-center gap-2 sm:gap-4 border-b bg-background px-2 sm:px-4 md:px-6 shadow-sm"
     >
-      <Link href={`/dashboard/${role.toLowerCase()}`} className="flex items-center gap-2 font-semibold">
+      <Link href="#" className="flex items-center gap-2 font-semibold">
       <img src="/Gymspace-logo-png.png" alt="GymSpace Logo" className="h-16" />
         <span className="gradient-text hidden xs:inline-block text-lg sm:inline-block">GymSpace</span>
       </Link>
