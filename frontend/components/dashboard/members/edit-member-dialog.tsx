@@ -142,6 +142,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
               />
             </div>
             <div className="space-y-2">
+            <Label>Fecha de Vencimiento</Label>
               <DatePicker
                 date={editedMember.Fecha_vencimiento ? parseDate(editedMember.Fecha_vencimiento) || undefined : new Date()}
                 setDate={(newDate: Date) => handleChange("Fecha_vencimiento", format(newDate, "dd/MM/yyyy"))}

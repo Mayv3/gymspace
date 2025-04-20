@@ -227,9 +227,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Efectivo">Efectivo</SelectItem>
-                  <SelectItem value="Tarjeta de Crédito">Tarjeta de Crédito</SelectItem>
-                  <SelectItem value="Tarjeta de Débito">Tarjeta de Débito</SelectItem>
-                  <SelectItem value="Transferencia Bancaria">Transferencia Bancaria</SelectItem>
+                  <SelectItem value="Tarjeta">Mercado Pago - otro</SelectItem>
                 </SelectContent>
               </Select>
             </div>

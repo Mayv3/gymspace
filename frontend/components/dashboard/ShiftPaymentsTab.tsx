@@ -36,19 +36,36 @@ export function ShiftPaymentsTab({
   setShowDeletePaymentDialog,
 }: ShiftPaymentsTabProps) {
   const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: number }>({})
+  const [totalesPorMetodo, setTotalesPorMetodo] = useState({ efectivo: 0, tarjeta: 0 })
 
   useEffect(() => {
-    const totales: { [tipo: string]: number } = {}
+    const totales: { [tipo: string]: { [metodo: string]: number } } = {}
+    let totalEfectivo = 0
+    let totalTarjeta = 0
 
     currentShiftPayments.forEach((pago: any) => {
       const tipo = pago.Tipo || "Sin tipo"
+      const metodo = pago.Metodo_de_Pago || "Sin método"
       const monto = parseFloat(pago.Monto || "0")
 
-      if (!totales[tipo]) totales[tipo] = 0
-      totales[tipo] += monto
+      if (!totales[tipo]) {
+        totales[tipo] = {}
+      }
+      if (!totales[tipo][metodo]) {
+        totales[tipo][metodo] = 0
+      }
+
+      totales[tipo][metodo] += monto
+
+      if (metodo.toLowerCase() === "efectivo") {
+        totalEfectivo += monto
+      } else if (metodo.toLowerCase() === "tarjeta") {
+        totalTarjeta += monto
+      }
     })
 
     setResumenPorTipo(totales)
+    setTotalesPorMetodo({ efectivo: totalEfectivo, tarjeta: totalTarjeta })
   }, [currentShiftPayments])
 
   return (
@@ -93,8 +110,9 @@ export function ShiftPaymentsTab({
                     <TableHead>Hora</TableHead>
                     <TableHead>Monto</TableHead>
                     <TableHead>Método</TableHead>
-                    <TableHead>Fecha de inicio</TableHead>
+                    <TableHead>Fecha de pago</TableHead>
                     <TableHead>Fecha de vencimiento</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Registrado Por</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
@@ -115,6 +133,7 @@ export function ShiftPaymentsTab({
                         <TableCell>{payment.Metodo_de_Pago}</TableCell>
                         <TableCell>{payment.Fecha_de_Pago}</TableCell>
                         <TableCell>{payment.Fecha_de_Vencimiento}</TableCell>
+                        <TableCell>{payment.Tipo}</TableCell>
                         <TableCell>{payment.Responsable}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -145,9 +164,9 @@ export function ShiftPaymentsTab({
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm py-6 space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-start gap-2">
+            <div className="flex flex-col md:flex-row md:items-end justify-start gap-2">
               <h2 className="text-2xl text-gray-800">
-                Pagos del turno {selectedShift}
+                Totales del turno {selectedShift}
               </h2>
               <span className="text-lg text-gray-500">
                 {formatDate(selectedDate)}
@@ -159,31 +178,52 @@ export function ShiftPaymentsTab({
                 <h3 className="flex items-center text-gray-600 font-medium mb-4">
                   Recaudación por tipo de pago
                 </h3>
-
-                <ul className="space-y-3">
-                  {Object.entries(resumenPorTipo).map(([tipo, total]) => (
-                    <li key={tipo} className="flex justify-between items-center">
-                      <span className="text-gray-600">{tipo}</span>
-                      <span className="font-semibold text-green-600">
-                        ${total.toLocaleString("es-AR")}
-                      </span>
-                    </li>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
+                    <div key={tipo} className="bg-gray-50 rounded-xl p-5 border ">
+                      <h4 className="text-lg font-semibold text-gray-700 mb-4 text-start">{tipo}</h4>
+                      <ul className="space-y-2">
+                        {Object.entries(metodos).map(([metodo, total]) => (
+                          <li key={metodo} className="flex justify-between">
+                            <span className="text-gray-600">{metodo}</span>
+                            <span className="font-semibold text-green-600">
+                              ${total.toLocaleString("es-AR")}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                  <div className="bg-gradient-to-r from-green-50 to-gray-50 rounded-xl p-4 space-y-4 border">
+
+                  <div className="flex justify-between items-center">
+                      <span className="text-lg text-gray-700">Total en Tarjeta:</span>
+                      <span className="text-xl font-semibold text-green-500">
+                        ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg text-gray-700">Total en Efectivo:</span>
+                      <span className="text-xl font-semibold text-green-500">
+                        ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-medium text-gray-700">Total del turno:</span>
+                      <span className="text-2xl font-bold text-green-600">
+                        $
+                        {currentShiftPayments
+                          .reduce((sum, payment) => sum + parseFloat(String(payment.Monto || "0")), 0)
+                          .toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
-            <div className="bg-gradient-to-r from-green-50 to-gray-50 rounded-xl p-4">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-medium text-gray-700">Total del turno:</span>
-                <span className="text-2xl font-bold text-green-600">
-                  $
-                  {currentShiftPayments
-                    .reduce((sum, payment) => sum + parseFloat(String(payment.Monto || "0")), 0)
-                    .toLocaleString("es-AR")}
-                </span>
-              </div>
-            </div>
+
           </div>
 
         </CardContent>
