@@ -110,7 +110,7 @@ export function ShiftPaymentsTab({
                     <TableHead>Hora</TableHead>
                     <TableHead>Monto</TableHead>
                     <TableHead>Método</TableHead>
-                    <TableHead>Fecha de pago</TableHead>
+                    <TableHead>Fecha de </TableHead>
                     <TableHead>Fecha de vencimiento</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Registrado Por</TableHead>
@@ -178,7 +178,7 @@ export function ShiftPaymentsTab({
                 <h3 className="flex items-center text-gray-600 font-medium mb-4">
                   Recaudación por tipo de pago
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className={`grid grid-cols-1 ${Object.keys(resumenPorTipo).length === 1 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4`}>
                   {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
                     <div key={tipo} className="bg-gray-50 rounded-xl p-5 border ">
                       <h4 className="text-lg font-semibold text-gray-700 mb-4 text-start">{tipo}</h4>
@@ -222,8 +222,6 @@ export function ShiftPaymentsTab({
                 </div>
               </div>
             )}
-
-
           </div>
 
         </CardContent>
