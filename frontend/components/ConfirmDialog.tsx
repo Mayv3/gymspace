@@ -9,7 +9,7 @@ interface ConfirmDialogProps {
   onOpenChange: (open: boolean) => void
   title: string
   description?: string
-  children?: ReactNode // contenido del medio
+  children?: ReactNode
   confirmText?: string
   cancelText?: string
   onConfirm: () => void
@@ -24,7 +24,7 @@ export function ConfirmDialog({
   description,
   children,
   confirmText = "Confirmar",
-  cancelText = "Cancelar",
+  cancelText,
   onConfirm,
   loading = false,
   destructive = false,
@@ -40,9 +40,13 @@ export function ConfirmDialog({
         {children && <div className="py-4 text-sm">{children}</div>}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            {cancelText}
-          </Button>
+          {cancelText ? (
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              {cancelText}
+            </Button>
+          ) : (
+            <div className="flex-1" />
+          )}
           <Button
             variant={destructive ? "destructive" : "default"}
             onClick={onConfirm}

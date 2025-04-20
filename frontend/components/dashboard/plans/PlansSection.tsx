@@ -330,13 +330,13 @@ export default function PlansSection() {
                 title="Historial de aumentos"
                 description={planSeleccionado?.['Plan o Producto'] || ''}
                 confirmText="Cerrar"
-                onConfirm={() => setShowAumentosDialog(false)}
+                onConfirm={() => setShowAumentosDialog(false)}              
             >
-                <div className="space-y-4 p-4 bg-muted/50 text-sm rounded-md max-h-[60vh] overflow-auto">
+                <div className="p-2 bg-muted/50 rounded-md text-sm">
                     {aumentos.length > 0 ? (
-                        <>
+                        <div className="max-h-[50vh] overflow-y-auto scrollbar-hide">
                             {aumentos.map((aumento, idx) => (
-                                <div key={idx} className="flex flex-col gap-2 border-b pb-2">
+                                <div key={idx} className="flex flex-col gap-2 border-b py-2">
                                     <div className="flex justify-between items-center text-primary font-medium">
                                         <div className="flex items-center">
                                             <CalendarDays className="mr-2 h-4 w-4" />
@@ -367,14 +367,15 @@ export default function PlansSection() {
                                     </div>
                                 </div>
                             ))}
-                        </>
+                        </div>
                     ) : (
-                        <div className="text-center text-muted-foreground text-sm">
+                        <div className="text-center text-muted-foreground text-sm py-4">
                             No hay aumentos registrados para este plan.
                         </div>
                     )}
                 </div>
             </ConfirmDialog>
+
 
         </TabsContent>
     )
