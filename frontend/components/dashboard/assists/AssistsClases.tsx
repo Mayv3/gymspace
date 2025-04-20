@@ -97,11 +97,11 @@ export default function AssistsSection() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-1/5">Tipo de Clase</TableHead>
-                    <TableHead className="w-1/5">Fecha</TableHead>
-                    <TableHead className="w-1/5">Presentes</TableHead>
-                    <TableHead className="w-1/5">Responsable</TableHead>
-                    <TableHead className="w-1/5">Acciones</TableHead>
+                    <TableHead className="text-center w-1/5">Tipo de Clase</TableHead>
+                    <TableHead className="text-center w-1/5">Fecha</TableHead>
+                    <TableHead className="text-center w-1/5">Presentes</TableHead>
+                    <TableHead className="text-center w-1/5">Responsable</TableHead>
+                    <TableHead className="text-center w-1/5">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -114,12 +114,14 @@ export default function AssistsSection() {
                         transition={{ duration: 0.2, delay: index * 0.05 }}
                         className="hover:bg-accent"
                       >
-                        <TableCell className="w-1/5">{asistencia["Tipo de Clase"]}</TableCell>
-                        <TableCell className="w-1/5">{dayjs(asistencia.Fecha, "D/M/YYYY").format("DD/MM/YYYY")}</TableCell>
-                        <TableCell className="w-1/5">{asistencia["Cantidad de presentes"]}</TableCell>
-                        <TableCell className="w-1/5">{asistencia.Responsable}</TableCell>
-                        <TableCell className="w-1/5">
-                          <div className="flex gap-2">
+                        <TableCell className="text-center w-1/5">{asistencia["Tipo de Clase"]}</TableCell>
+                        <TableCell className="text-center w-1/5">
+                          {dayjs(asistencia.Fecha, "D/M/YYYY").format("DD/MM/YYYY")}
+                        </TableCell>
+                        <TableCell className="text-center w-1/5">{asistencia["Cantidad de presentes"]}</TableCell>
+                        <TableCell className="text-center w-1/5">{asistencia.Responsable}</TableCell>
+                        <TableCell className="text-center w-1/5">
+                          <div className="flex justify-center gap-2">
                             <Button
                               size="icon"
                               variant="ghost"
@@ -159,6 +161,7 @@ export default function AssistsSection() {
                   )}
                 </TableBody>
               </Table>
+
             </div>
           </div>
         </CardContent>

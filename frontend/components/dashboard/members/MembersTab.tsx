@@ -69,8 +69,11 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
             <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  {["Nombre", "DNI", "Email", "Teléfono", "C.Pagadas", "C.Realizadas", "Inicio", "Vencimiento", "Nacimiento", "Plan", "Profesor", "Estado", "Acciones"].map((head, i) => (
-                    <TableHead key={i} className="w-[7.7%]">{head}</TableHead>
+                  {[
+                    "Nombre", "DNI", "Email", "Teléfono", "C.Pagadas", "C.Realizadas",
+                    "Inicio", "Vencimiento", "Nacimiento", "Plan", "Profesor", "Estado", "Acciones"
+                  ].map((head, i) => (
+                    <TableHead key={i} className="text-center w-[7.7%]">{head}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
@@ -83,18 +86,18 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                     transition={{ duration: 0.2, delay: index * 0.05 }}
                     className="hover:bg-accent"
                   >
-                    <TableCell>{member.Nombre}</TableCell>
-                    <TableCell>{member.DNI}</TableCell>
-                    <TableCell className="whitespace-nowrap overflow-hidden text-ellipsis">{member.Email}</TableCell>
-                    <TableCell>{member.Telefono}</TableCell>
-                    <TableCell>{member.Clases_pagadas}</TableCell>
-                    <TableCell>{member.Clases_realizadas}</TableCell>
-                    <TableCell>{member.Fecha_inicio} </TableCell>
-                    <TableCell>{member.Fecha_vencimiento}</TableCell>
-                    <TableCell>{member.Fecha_nacimiento}</TableCell>
-                    <TableCell>{member.Plan}</TableCell>
-                    <TableCell>{member.Profesor_asignado}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">{member.Nombre}</TableCell>
+                    <TableCell className="text-center">{member.DNI}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap overflow-hidden text-ellipsis">{member.Email}</TableCell>
+                    <TableCell className="text-center">{member.Telefono}</TableCell>
+                    <TableCell className="text-center">{member.Clases_pagadas}</TableCell>
+                    <TableCell className="text-center">{member.Clases_realizadas}</TableCell>
+                    <TableCell className="text-center">{member.Fecha_inicio}</TableCell>
+                    <TableCell className="text-center">{member.Fecha_vencimiento}</TableCell>
+                    <TableCell className="text-center">{member.Fecha_nacimiento}</TableCell>
+                    <TableCell className="text-center">{member.Plan}</TableCell>
+                    <TableCell className="text-center">{member.Profesor_asignado}</TableCell>
+                    <TableCell className="text-center">
                       {(() => {
                         const hoy = dayjs();
                         const fechaVencimiento = dayjs(member.Fecha_vencimiento, "DD/MM/YYYY");
@@ -119,9 +122,8 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                         }
                       })()}
                     </TableCell>
-
-                    <TableCell>
-                      <div className="flex gap-2">
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-2">
                         <Button size="icon" variant="ghost" onClick={() => onEdit(member)}>
                           <Edit className="h-4 w-4 text-primary" />
                         </Button>
@@ -134,6 +136,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 ))}
               </TableBody>
             </Table>
+
           </div>
         </div>
       </CardContent>

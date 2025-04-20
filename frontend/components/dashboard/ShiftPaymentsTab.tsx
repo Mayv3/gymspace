@@ -106,15 +106,15 @@ export function ShiftPaymentsTab({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Miembro</TableHead>
-                    <TableHead>Hora</TableHead>
-                    <TableHead>Monto</TableHead>
-                    <TableHead>Método</TableHead>
-                    <TableHead>Fecha de </TableHead>
-                    <TableHead>Fecha de vencimiento</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Registrado Por</TableHead>
-                    <TableHead>Acciones</TableHead>
+                    <TableHead className="text-center w-32">Miembro</TableHead>
+                    <TableHead className="text-center w-32">Hora</TableHead>
+                    <TableHead className="text-center w-32">Monto</TableHead>
+                    <TableHead className="text-center w-32">Método</TableHead>
+                    <TableHead className="text-center w-32">Fecha de pago</TableHead>
+                    <TableHead className="text-center w-32">Fecha de vencimiento</TableHead>
+                    <TableHead className="text-center w-32">Tipo</TableHead>
+                    <TableHead className="text-center w-32">Registrado Por</TableHead>
+                    <TableHead className="text-center w-32">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -127,16 +127,16 @@ export function ShiftPaymentsTab({
                         transition={{ duration: 0.2, delay: index * 0.05 }}
                         className="hover:bg-accent"
                       >
-                        <TableCell className="font-medium">{payment.Nombre}</TableCell>
-                        <TableCell>{payment.Hora || "No hay horario"}</TableCell>
-                        <TableCell className="text-green-600 font-medium">${payment.Monto}</TableCell>
-                        <TableCell>{payment.Metodo_de_Pago}</TableCell>
-                        <TableCell>{payment.Fecha_de_Pago}</TableCell>
-                        <TableCell>{payment.Fecha_de_Vencimiento}</TableCell>
-                        <TableCell>{payment.Tipo}</TableCell>
-                        <TableCell>{payment.Responsable}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
+                        <TableCell className="text-center w-32 font-medium">{payment.Nombre}</TableCell>
+                        <TableCell className="text-center w-32">{payment.Hora || "No hay horario"}</TableCell>
+                        <TableCell className="text-center w-32 text-green-600 font-medium">${payment.Monto}</TableCell>
+                        <TableCell className="text-center w-32">{payment.Metodo_de_Pago}</TableCell>
+                        <TableCell className="text-center w-32">{payment.Fecha_de_Pago}</TableCell>
+                        <TableCell className="text-center w-32">{payment.Fecha_de_Vencimiento}</TableCell>
+                        <TableCell className="text-center w-32">{payment.Tipo}</TableCell>
+                        <TableCell className="text-center w-32">{payment.Responsable}</TableCell>
+                        <TableCell className="text-center w-32">
+                          <div className="flex justify-center gap-2">
                             <Button
                               size="icon"
                               variant="ghost"
@@ -153,13 +153,14 @@ export function ShiftPaymentsTab({
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-4 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">
                         No hay pagos registrados para este turno
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
+
             </div>
           </div>
 
@@ -180,7 +181,7 @@ export function ShiftPaymentsTab({
                 </h3>
                 <div className={`grid grid-cols-1 ${Object.keys(resumenPorTipo).length === 1 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4`}>
                   {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
-                    <div key={tipo} className="bg-gray-50 rounded-xl p-5 border ">
+                    <div key={tipo} className="bg-gray-50 rounded-xl p-5  border border-orange-500 ">
                       <h4 className="text-lg font-semibold text-gray-700 mb-4 text-start">{tipo}</h4>
                       <ul className="space-y-2">
                         {Object.entries(metodos).map(([metodo, total]) => (
@@ -194,31 +195,31 @@ export function ShiftPaymentsTab({
                       </ul>
                     </div>
                   ))}
-                  <div className="bg-gradient-to-r from-green-50 to-gray-50 rounded-xl p-4 space-y-4 border">
+                    <div className="rounded-xl p-4 space-y-4  border border-orange-500">
 
-                  <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center">
                       <span className="text-lg text-gray-700">Total en Tarjeta:</span>
                       <span className="text-xl font-semibold text-green-500">
-                        ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
+                      ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-center">
                       <span className="text-lg text-gray-700">Total en Efectivo:</span>
                       <span className="text-xl font-semibold text-green-500">
-                        ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
+                      ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-medium text-gray-700">Total del turno:</span>
                       <span className="text-2xl font-bold text-green-600">
-                        $
-                        {currentShiftPayments
-                          .reduce((sum, payment) => sum + parseFloat(String(payment.Monto || "0")), 0)
-                          .toLocaleString("es-AR")}
+                      $
+                      {currentShiftPayments
+                        .reduce((sum, payment) => sum + parseFloat(String(payment.Monto || "0")), 0)
+                        .toLocaleString("es-AR")}
                       </span>
                     </div>
-                  </div>
+                    </div>
                 </div>
               </div>
             )}
