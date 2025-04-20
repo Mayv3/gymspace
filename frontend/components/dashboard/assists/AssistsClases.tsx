@@ -44,16 +44,9 @@ export default function AssistsSection() {
     return mismaFecha && mismoTipo
   })
 
-  const handleAddLocal = (nuevaClase: any) => {
-    const fechaFormateada = dayjs(nuevaClase.Fecha).format("D/M/YYYY")
-    const claseConFechaFormateada = { ...nuevaClase, Fecha: fechaFormateada }
-
-    setAssists((prev: any[]) => [...prev, claseConFechaFormateada])
-    setShowAddDialog(false)
-  }
-
   const handleConfirmDelete = async () => {
     if (!selectedClass) return
+    console.log(selectedClass)
     try {
       await deleteAsistencia(selectedClass.ID)
       setShowDeleteDialog(false)
@@ -171,7 +164,14 @@ export default function AssistsSection() {
         </CardContent>
       </Card>
 
-      <RegisterClassDialog open={showAddDialog} onOpenChange={setShowAddDialog} onAdd={handleAddLocal} />
+      <RegisterClassDialog open={showAddDialog}
+        onOpenChange={async (open) => {
+          setShowAddDialog(open)
+          if (!open) {
+            // Cuando se cierra el modal, recargamos las asistencias
+            await fetchAssists({ selectedDate, selectedType })
+          }
+        }} />
 
       <ConfirmDialog
         open={showDeleteDialog}
@@ -254,6 +254,7 @@ export default function AssistsSection() {
             <Label>Responsable</Label>
             <Input
               value={editForm.Responsable}
+              disabled
               onChange={(e) => setEditForm({ ...editForm, Responsable: e.target.value })}
             />
           </div>

@@ -8,11 +8,11 @@ import { motion } from "framer-motion"
 import { useUser } from "@/context/UserContext"
 
 interface RegisterClassDialogProps {
-    open: boolean
-    onOpenChange: (value: boolean) => void
-    onAdd: (nuevaClase: any) => void
-  }
-  
+  open: boolean
+  onOpenChange: (value: boolean) => void
+  onAdd: (nuevaClase: any) => void
+}
+
 const tiposDeClase = ["Funcional", "Tela", "Acrobacia", "Yoga", "Cross"]
 
 export default function RegisterClassDialog({ open, onOpenChange, onAdd }: RegisterClassDialogProps) {
@@ -33,12 +33,6 @@ export default function RegisterClassDialog({ open, onOpenChange, onAdd }: Regis
       })
       if (!res.ok) throw new Error("Error al registrar clase")
 
-      onAdd({
-        "Tipo de Clase": formData.tipoClase,
-        "Cantidad de presentes": formData.cantidadPersonas,
-        "Responsable": user?.nombre,
-        "Fecha": new Date().toISOString().split("T")[0]
-      })
       onOpenChange(false)
       setFormData({ tipoClase: "", cantidadPersonas: "", responsable: user?.nombre || "" })
     } catch (error) {

@@ -15,7 +15,7 @@ export const registrarClaseDiaria = async (req, res) => {
         if (!tipoClase || !cantidadPersonas || !responsable) {
             return res.status(400).json({ message: 'Todos los campos son requeridos' });
         }
-
+        
         const clase = {
             Fecha: dayjs().format('YYYY-MM-DD'),
             Tipo: tipoClase,
@@ -25,7 +25,7 @@ export const registrarClaseDiaria = async (req, res) => {
 
         await appendClaseDiariaToSheet(clase);
 
-        res.status(201).json({ message: 'Clase diaria registrada con éxito' });
+        res.status(201).json({ message: 'Clase diaria registrada con éxito' }, clase.ID );
     } catch (error) {
         console.error('Error al registrar clase diaria:', error);
         res.status(500).json({ message: 'Error al registrar clase diaria' });
