@@ -31,7 +31,7 @@ export default function AssistsSection() {
     "Cantidad de presentes": "",
     Responsable: ""
   })
-  const { assists, fetchAssists, setAssists, deleteAsistencia, editAsistencia } = useAppData()
+  const { assists, fetchAssists, deleteAsistencia, editAsistencia } = useAppData()
 
   useEffect(() => {
     fetchAssists({ selectedDate, selectedType })

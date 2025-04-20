@@ -10,12 +10,11 @@ import { useUser } from "@/context/UserContext"
 interface RegisterClassDialogProps {
   open: boolean
   onOpenChange: (value: boolean) => void
-  onAdd: (nuevaClase: any) => void
 }
 
 const tiposDeClase = ["Funcional", "Tela", "Acrobacia", "Yoga", "Cross"]
 
-export default function RegisterClassDialog({ open, onOpenChange, onAdd }: RegisterClassDialogProps) {
+export default function RegisterClassDialog({ open, onOpenChange }: RegisterClassDialogProps) {
   const [formData, setFormData] = useState({ tipoClase: "", cantidadPersonas: "", responsable: "DANI" })
   const { user } = useUser()
 

@@ -4,7 +4,8 @@ import {
     appendPlanToSheet,
     updatePlanInSheet,
     deletePlanInSheet,
-    appendAumentoToSheet
+    appendAumentoToSheet,
+    getAumentosPlanesFromSheet
   } from '../services/googleSheets.js';
   
   export const getPlanes = async (req, res) => {
@@ -95,7 +96,6 @@ import {
     }
   };
   
-  
   export const deletePlanByID = async (req, res) => {
     try {
       const { id } = req.params;
@@ -109,4 +109,21 @@ import {
       res.status(500).json({ message: 'Error al eliminar plan' });
     }
   };
+
+  export const getAumentosPlanes = async (req, res) => {
+    try {
+      const { plan } = req.query;
+      if (!plan) {
+        return res.status(400).json({ message: 'Se requiere el nombre del plan' });
+      }
   
+      const aumentos = await getAumentosPlanesFromSheet();
+  
+      const aumentosFiltrados = aumentos.filter(a => a.Plan?.toLowerCase() === plan.toLowerCase());
+  
+      res.json(aumentosFiltrados);
+    } catch (error) {
+      console.error('Error al obtener aumentos:', error);
+      res.status(500).json({ message: 'Error al obtener aumentos' });
+    }
+  };

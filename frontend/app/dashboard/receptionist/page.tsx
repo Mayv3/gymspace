@@ -18,6 +18,7 @@ import AssistsSection from "@/components/dashboard/assists/AssistsClases"
 import { TabsContent } from "@radix-ui/react-tabs"
 import { useUser } from "@/context/UserContext"
 import { useRouter } from "next/navigation"
+import PlansSection from "@/components/dashboard/plans/PlansSection"
 
 export default function ReceptionistDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -223,7 +224,6 @@ export default function ReceptionistDashboard() {
   }, [selectedShift])
 
 
-
   useEffect(() => {
     fetchPaymentsByDateAndShift()
   }, [selectedDate, selectedShift])
@@ -283,7 +283,7 @@ export default function ReceptionistDashboard() {
         )}
  
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 md:w-auto">
+          <TabsList className="grid w-full grid-cols-4 md:w-auto">
             <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               Miembros
             </TabsTrigger>
@@ -292,6 +292,9 @@ export default function ReceptionistDashboard() {
             </TabsTrigger>
             <TabsTrigger value="assists" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               Asistencias
+            </TabsTrigger>
+            <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
+              Planes
             </TabsTrigger>
           </TabsList>
 
@@ -323,6 +326,11 @@ export default function ReceptionistDashboard() {
 
           <TabsContent value="assists" className="space-y-4">
             <AssistsSection />
+          </TabsContent>
+
+          
+          <TabsContent value="plans" className="space-y-4">
+            <PlansSection />
           </TabsContent>
         </Tabs>
       </div>
