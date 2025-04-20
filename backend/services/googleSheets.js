@@ -554,47 +554,52 @@ export async function getPlanesFromSheet() {
 }
 
 export async function appendPlanToSheet(data) {
-  const planes = await getPlanesFromSheet();
-  const nuevoID = String((planes.length || 0) + 1);
+  const planes = await getPlanesFromSheet()
+  const nuevoID = String((planes.length || 0) + 1)
+
+  console.log('>> appendPlanToSheet recibí data:', data);
 
   const values = [[
     nuevoID,
     data.Tipo,
     data['Plan o Producto'],
-    data.Precio
-  ]];
+    data.Precio,
+    data.numero_Clases
+  ]]
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A1:D1',
+    range: 'PlanesYprecios!A:E',       // <— aquí el cambio clave
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values }
-  });
+  })
 }
 
 export async function updatePlanInSheet(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A1:D',
+    range: 'PlanesYprecios!A1:E',   
   });
 
   const [headers, ...rows] = res.data.values;
   const rowIndex = rows.findIndex(row => row[0] === id);
-
   if (rowIndex === -1) return false;
 
-  const nuevaFila = headers.map((header, i) => nuevosDatos[header] || rows[rowIndex][i]);
+  const nuevaFila = headers.map((header, i) => {
+    return nuevosDatos[header] ?? rows[rowIndex][i] ?? '';
+  });
 
-  await sheets.spreadsheets.values.update({
+  sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `PlanesYprecios!A${rowIndex + 2}:D${rowIndex + 2}`,
+    range: `PlanesYprecios!A${rowIndex + 2}:E${rowIndex + 2}`, 
     valueInputOption: 'USER_ENTERED',
     resource: { values: [nuevaFila] }
   });
 
   return true;
 }
+
 
 export async function deletePlanInSheet(id) {
   const res = await sheets.spreadsheets.values.get({
@@ -627,6 +632,27 @@ export async function deletePlanInSheet(id) {
 
   return true;
 }
+
+export const appendAumentoToSheet = async ({
+  Fecha,
+  Precio_anterior,
+  Precio_actualiza,
+  Porcentaje_aumento,
+  Plan
+}) => {
+  const sheets = google.sheets({ version: 'v4', auth });
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Aumentos_planes!A:E',      
+    valueInputOption: 'RAW',
+    resource: {
+      values: [
+        [ Fecha, Precio_anterior, Precio_actualiza, Porcentaje_aumento, Plan ]
+      ]
+    }
+  });
+};
 
 // Anotaciones
 
@@ -705,7 +731,7 @@ export async function deleteAnotacionInSheet(id) {
         {
           deleteDimension: {
             range: {
-              sheetId: 1095798724, // Reemplazá con el ID de la hoja
+              sheetId: 1095798724, 
               dimension: 'ROWS',
               startIndex: rowIndex,
               endIndex: rowIndex + 1

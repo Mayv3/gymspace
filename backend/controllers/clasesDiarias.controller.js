@@ -4,9 +4,7 @@ import {
     deleteClaseDiariaByID,
     getClasesDiariasFromSheet
 } from '../services/googleSheets.js';
-
 import dayjs from 'dayjs';
-
 
 export const registrarClaseDiaria = async (req, res) => {
     try {

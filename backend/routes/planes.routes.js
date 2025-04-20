@@ -10,7 +10,7 @@ const router = Router();
 
 router.get('/', getPlanes);
 router.post('/', createPlan);
-router.put('/:id', updatePlanByID);
+router.patch('/:id', updatePlanByID);
 router.delete('/:id', deletePlanByID);
 
 export default router;
