@@ -824,3 +824,111 @@ export async function updateClaseElClubInSheet(id, nuevosDatos) {
 
   return true;
 }
+
+// Turnos
+
+export async function getTurnosFromSheet() {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Turnos!A1:F',
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+
+  return rows.map(row => {
+    const turno = {};
+    headers.forEach((h, i) => {
+      turno[h] = row[i] || '';
+    });
+    return turno;
+  });
+}
+
+export async function appendTurnoToSheet(turno) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Turnos!A2:A', // solo ID
+  });
+
+  const nuevoID = (res.data.values?.length || 0) + 1;
+
+  const values = [[
+    String(nuevoID),
+    turno.Fecha,
+    turno.Tipo,
+    turno.Fecha_turno,
+    turno.Profesional,
+    turno.Responsable
+  ]];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Turnos!A1:F1',
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    resource: { values },
+  });
+}
+
+export async function updateTurnoByID(id, nuevosDatos) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Turnos!A1:F',
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+  const rowIndex = rows.findIndex(row => row[0] === id);
+
+  if (rowIndex === -1) return false;
+
+  const actual = rows[rowIndex];
+
+  const nuevaFila = headers.map((header, i) =>
+    nuevosDatos[header] !== undefined ? nuevosDatos[header] : actual[i]
+  );
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: `Turnos!A${rowIndex + 2}:F${rowIndex + 2}`,
+    valueInputOption: 'USER_ENTERED',
+    resource: { values: [nuevaFila] },
+  });
+
+  return true;
+}
+
+export async function deleteTurnoByID(id) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Turnos!A1:F',
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+  const rowIndex = rows.findIndex(row => row[0] === id);
+
+  if (rowIndex === -1) return false;
+
+  const sheetRowIndex = rowIndex + 1 + 1; 
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId: 1421664716,
+              dimension: 'ROWS',
+              startIndex: sheetRowIndex - 1, 
+              endIndex: sheetRowIndex
+            }
+          }
+        }
+      ]
+    }
+  });
+
+  return true;
+}
+
+

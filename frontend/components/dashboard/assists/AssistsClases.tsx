@@ -171,7 +171,6 @@ export default function AssistsSection() {
         onOpenChange={async (open) => {
           setShowAddDialog(open)
           if (!open) {
-            // Cuando se cierra el modal, recargamos las asistencias
             await fetchAssists({ selectedDate, selectedType })
           }
         }} />

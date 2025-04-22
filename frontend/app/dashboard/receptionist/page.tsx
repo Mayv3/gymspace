@@ -19,6 +19,7 @@ import { TabsContent } from "@radix-ui/react-tabs"
 import { useUser } from "@/context/UserContext"
 import { useRouter } from "next/navigation"
 import PlansSection from "@/components/dashboard/plans/PlansSection"
+import ShiftsSection from "@/components/dashboard/shifts/ShiftSection"
 
 export default function ReceptionistDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -283,7 +284,7 @@ export default function ReceptionistDashboard() {
         )}
  
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 md:w-auto">
+          <TabsList className="grid w-full grid-cols-5 md:w-auto">
             <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               Miembros
             </TabsTrigger>
@@ -295,6 +296,9 @@ export default function ReceptionistDashboard() {
             </TabsTrigger>
             <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               Planes
+            </TabsTrigger>
+            <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
+              Turnos
             </TabsTrigger>
           </TabsList>
 
@@ -327,11 +331,15 @@ export default function ReceptionistDashboard() {
           <TabsContent value="assists" className="space-y-4">
             <AssistsSection />
           </TabsContent>
-
           
           <TabsContent value="plans" className="space-y-4">
             <PlansSection />
           </TabsContent>
+
+          <TabsContent value="shifts" className="space-y-4">
+            <ShiftsSection />
+          </TabsContent>
+
         </Tabs>
       </div>
       <AddMemberDialog open={showAddMember} onOpenChange={setShowAddMember} onMemberAdded={fetchMembers} />

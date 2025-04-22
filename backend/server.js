@@ -13,6 +13,7 @@ import cajaRoutes from './routes/caja.routes.js';
 import planes from './routes/planes.routes.js';
 import anotaciones from './routes/anotaciones.routes.js';
 import clasesClubRoutes from './routes/clasesElClub.routes.js';
+import turnosRoutes from './routes/turnos.routes.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/api/caja', cajaRoutes);
 app.use('/api/planes', planes);
 app.use('/api/anotaciones', anotaciones);
 app.use('/api/clases-el-club', clasesClubRoutes)
+app.use('/api/turnos', turnosRoutes);
 
 const PORT = process.env.PORT || 3001;
 const server = http.createServer(app);
