@@ -69,7 +69,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
   const convertToISO = (dateStr: string): string => {
     const [day, month, year] = dateStr.split('/')
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+    return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
   }
 
   const resetForm = () => {
@@ -109,7 +109,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       Fecha_vencimiento: convertToISO(formData.fechaVencimiento),
       Profesor_asignado: formData.profesorAsignado
     }
-
+    console.log(payload)
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`,

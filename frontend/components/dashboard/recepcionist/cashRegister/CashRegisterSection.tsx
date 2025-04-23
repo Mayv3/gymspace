@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { DollarSign } from "lucide-react"
-import { CashRegisterCard } from "@/components/dashboard/cashRegister/CashRegisterCard"
+import { CashRegisterCard } from "@/components/dashboard/recepcionist/cashRegister/CashRegisterCard"
 
 type CashRegisterSectionProps = {
   cashRegisterOpen: boolean

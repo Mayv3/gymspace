@@ -25,15 +25,12 @@ const LoginPage = () => {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${dni}`);
       const data = res.data;
 
-      // Guardar en cookies
       Cookies.set("dni", data.dni);
       Cookies.set("nombre", data.nombre);
       Cookies.set("rol", data.rol);
 
-      // Actualizar contexto
       setUser(data);
 
-      // Redirigir según el rol
       if (data.rol === "Administrador") {
         router.push("/dashboard/administrator");
       } else if (data.rol === "Recepcionista") {
@@ -49,7 +46,7 @@ const LoginPage = () => {
 
   return (
     <div className="h-screen flex flex-col justify-center items-center bg-gradient-to-br from-orange-300 via-orange-500 to-red-500 p-4 w-full">
-      <div className="bg-zinc-900 p-10 rounded-2xl shadow-xl w-full max-w-sm flex flex-col justify-center items-center border border-orange-400">
+      <div className="bg-zinc-900 bg-opacity-90 p-10 rounded-2xl shadow-xl w-full max-w-sm flex flex-col justify-center items-center border border-orange-400">
         <Image
           src="/gymspace-titulo.png"
           alt="Logo"
@@ -57,19 +54,14 @@ const LoginPage = () => {
           height={60}
           className="mb-6"
         />
-
-        <h1 className="text-2xl font-bold text-orange-400 text-center mb-4 tracking-wide">
-          Ingresa tu DNI
-        </h1>
-
         <input
           type="text"
           value={dni}
           onChange={(e) => setDni(e.target.value)}
           placeholder="Ej: 34023002"
           className="
-            border border-orange-400 
-            bg-zinc-800 text-white 
+            
+            bg-white text-black
             placeholder:text-zinc-400
             focus:outline-none focus:ring-2 focus:ring-orange-500 
             p-3 w-full rounded-lg mb-4 transition

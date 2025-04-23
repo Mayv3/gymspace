@@ -1,0 +1,228 @@
+import { useEffect, useMemo, useState } from "react"
+import axios from "axios"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Edit, Trash, PlusCircle } from "lucide-react"
+
+import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add-member-dialog"
+import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
+import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/delete-member-dialog"
+import { useAppData } from "@/context/AppDataContext"
+
+interface Alumno {
+  ID: string
+  DNI: string
+  Nombre: string
+  Email: string
+  Telefono: string
+  Sexo: string
+  Fecha_nacimiento: string
+  Plan: string
+  Clases_pagadas: string
+  Clases_realizadas: string
+  Fecha_inicio: string
+  Fecha_vencimiento: string
+  Profesor_asignado: string
+}
+
+export function MembersStatsTab() {
+  const { alumnos, setAlumnos } = useAppData()
+  const total = alumnos.length;
+
+  const [sexo, setSexo] = useState("")
+  const [edadMin, setEdadMin] = useState("")
+  const [edadMax, setEdadMax] = useState("")
+  const [profe, setProfe] = useState("")
+  const [plan, setPlan] = useState("")
+
+  const [selectedAlumno, setSelectedAlumno] = useState<Alumno | null>(null)
+  const [openAdd, setOpenAdd] = useState(false)
+  const [openEdit, setOpenEdit] = useState(false)
+  const [openDelete, setOpenDelete] = useState(false)
+  const [planesUnicos, setPlanesUnicos] = useState<string[]>([])
+
+  const filteredAlumnos = useMemo(() => {
+    return alumnos.filter((a) => {
+      const cumpleSexo = !sexo || a.Sexo === sexo
+      const cumpleEdadMin = !edadMin || calcularEdad(a.Fecha_nacimiento) >= parseInt(edadMin)
+      const cumpleEdadMax = !edadMax || calcularEdad(a.Fecha_nacimiento) <= parseInt(edadMax)
+      const cumpleProfe = !profe || a.Profesor_asignado?.toLowerCase().includes(profe.toLowerCase())
+      const cumplePlan = !plan || plan === "todos" || a.Plan?.toLowerCase() === plan.toLowerCase()
+      return cumpleSexo && cumpleEdadMin && cumpleEdadMax && cumpleProfe && cumplePlan
+    })
+  }, [alumnos, sexo, edadMin, edadMax, profe, plan])
+
+  function calcularEdad(fecha: string): number {
+    const [dia, mes, año] = fecha.split("/")
+    const fechaNacimiento = new Date(`${año}-${mes}-${dia}`)
+    const hoy = new Date()
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear()
+    const mesActual = hoy.getMonth()
+    const mesNacimiento = fechaNacimiento.getMonth()
+    const diaNacimiento = fechaNacimiento.getDate()
+
+    if (
+      mesActual < mesNacimiento ||
+      (mesActual === mesNacimiento && hoy.getDate() < diaNacimiento)
+    ) {
+      edad--
+    }
+
+    return edad
+  }
+
+  useEffect(() => {
+    const fetchPlanesUnicos = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`)
+        setPlanesUnicos(res.data.map((p: any) => p["Plan o Producto"]))
+      } catch (error) {
+        console.error("Error al obtener planes únicos:", error)
+      }
+    }
+
+    fetchPlanesUnicos()
+  }, [])
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Estadísticas de Alumnos</CardTitle>
+        <div className="flex flex-wrap justify-between gap-4 mt-4">
+          <div className="flex gap-2">
+            <Select onValueChange={setSexo}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Sexo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="M">Masculino</SelectItem>
+                <SelectItem value="F">Femenino</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              placeholder="Edad mínima"
+              value={edadMin}
+              onChange={(e) => setEdadMin(e.target.value)}
+              className="w-[130px]"
+            />
+            <Input
+              type="number"
+              placeholder="Edad máxima"
+              value={edadMax}
+              onChange={(e) => setEdadMax(e.target.value)}
+              className="w-[130px]"
+            />
+            <Input
+              placeholder="Profesor"
+              value={profe}
+              onChange={(e) => setProfe(e.target.value)}
+              className="w-[180px]"
+            />
+            <Select onValueChange={setPlan} value={plan}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Seleccionar plan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {planesUnicos.map((nombre, index) => (
+                  <SelectItem key={index} value={nombre}>
+                    {nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Button onClick={() => setOpenAdd(true)} variant="orange">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Añadir Miembro
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="mb-2 text-sm text-muted-foreground">
+          Total de alumnos: {total} | Filtrados: {filteredAlumnos.length}
+        </p>
+        <div className="overflow-auto">
+          <Table className="table-fixed w-full">
+            <TableHeader>
+              <TableRow>
+                {[
+                  "Nombre", "DNI", "Email", "Teléfono", "Sexo", "Nacimiento",
+                  "Plan", "C.Pagadas", "C.Realizadas", "Inicio", "Vencimiento", "Profesor", "Acciones"
+                ].map((head, i) => (
+                  <TableHead key={i} className="text-center w-[7.7%]">{head}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAlumnos.map((a) => (
+                <TableRow key={a.DNI}>
+                  <TableCell className="text-center">{a.Nombre}</TableCell>
+                  <TableCell className="text-center">{a.DNI}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap overflow-hidden text-ellipsis">{a.Email}</TableCell>
+                  <TableCell className="text-center">{a.Telefono}</TableCell>
+                  <TableCell className="text-center">{a.Sexo}</TableCell>
+                  <TableCell className="text-center">{a.Fecha_nacimiento}</TableCell>
+                  <TableCell className="text-center">{a.Plan}</TableCell>
+                  <TableCell className="text-center">{a.Clases_pagadas}</TableCell>
+                  <TableCell className="text-center">{a.Clases_realizadas}</TableCell>
+                  <TableCell className="text-center">{a.Fecha_inicio}</TableCell>
+                  <TableCell className="text-center">{a.Fecha_vencimiento}</TableCell>
+                  <TableCell className="text-center">{a.Profesor_asignado}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex justify-center gap-2">
+                      <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenEdit(true) }}>
+                        <Edit className="w-4 h-4 text-primary" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenDelete(true) }}>
+                        <Trash className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+
+      <AddMemberDialog
+        open={openAdd}
+        onOpenChange={setOpenAdd}
+        onMemberAdded={(newAlumno) => {
+          setAlumnos((prev) => [...prev, newAlumno])
+        }}
+      />
+      {selectedAlumno && (
+        <>
+          <EditMemberDialog
+            open={openEdit}
+            onOpenChange={setOpenEdit}
+            member={selectedAlumno}
+            onSave={(alumnoEditado: Alumno) => {
+              setAlumnos((prev) =>
+                prev.map((alumno) =>
+                  alumno.DNI === alumnoEditado.DNI ? alumnoEditado : alumno
+                )
+              )
+            }}
+          />
+          <DeleteMemberDialog
+            open={openDelete}
+            onOpenChange={setOpenDelete}
+            member={selectedAlumno}
+            onDelete={() => {
+              setAlumnos((prev) => prev.filter((a) => a.DNI !== selectedAlumno?.DNI))
+            }}
+          />
+        </>
+      )}
+    </Card>
+  )
+}

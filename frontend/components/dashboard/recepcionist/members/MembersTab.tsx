@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Edit, Trash, PlusCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
+
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 dayjs.extend(customParseFormat)
@@ -136,7 +137,6 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 ))}
               </TableBody>
             </Table>
-
           </div>
         </div>
       </CardContent>

@@ -8,6 +8,21 @@ interface Plan {
   ["Plan o Producto"]: string
   numero_Clases: number
 }
+interface Alumno {
+  ID: string
+  DNI: string
+  Nombre: string
+  Email: string
+  Telefono: string
+  Sexo: string
+  Fecha_nacimiento: string
+  Plan: string
+  Clases_pagadas: string
+  Clases_realizadas: string
+  Fecha_inicio: string
+  Fecha_vencimiento: string
+  Profesor_asignado: string
+}
 
 interface Asistencia {
   ID: string
@@ -24,22 +39,40 @@ interface AppDataContextProps {
   fetchAssists: (options: { selectedDate: Date; selectedType: string }) => Promise<void>
   setAssists: React.Dispatch<React.SetStateAction<Asistencia[]>>
   deleteAsistencia: (id: string) => Promise<void>
-  editAsistencia: (id: string, nuevosDatos: Partial<Asistencia>) => Promise<void> 
+  editAsistencia: (id: string, nuevosDatos: Partial<Asistencia>) => Promise<void>
+  alumnos: Alumno[]
+  fetchAlumnos: () => Promise<void>
+  setAlumnos: React.Dispatch<React.SetStateAction<Alumno[]>>
+
 }
 
 const AppDataContext = createContext<AppDataContextProps>({
   planes: [],
   assists: [],
-  fetchPlanes: async () => {},
-  fetchAssists: async () => {},
-  setAssists: () => {},
-  deleteAsistencia: async () => {},
-  editAsistencia: async () => {},
+  alumnos: [],
+  fetchPlanes: async () => { },
+  fetchAssists: async () => { },
+  fetchAlumnos: async () => { },
+  setAssists: () => { },
+  setAlumnos: () => { },
+  deleteAsistencia: async () => { },
+  editAsistencia: async () => { },
 })
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [planes, setPlanes] = useState<Plan[]>([])
   const [assists, setAssists] = useState<Asistencia[]>([])
+  const [alumnos, setAlumnos] = useState<Alumno[]>([])
+
+  const fetchAlumnos = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
+      const data = await res.json()
+      setAlumnos(data)
+    } catch (error) {
+      console.error("Error al obtener alumnos:", error)
+    }
+  }
 
   const fetchPlanes = async () => {
     try {
@@ -101,12 +134,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         },
         body: JSON.stringify(nuevosDatos)
       })
-  
+
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.message || "Error al editar asistencia")
       }
-  
+
       setAssists((prev) =>
         prev.map((asistencia) =>
           asistencia.ID === id ? { ...asistencia, ...nuevosDatos } : asistencia
@@ -117,14 +150,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       throw error
     }
   }
-  
+
+  useEffect(() => {
+    fetchAlumnos()
+  }, [])
+
   useEffect(() => {
     fetchPlanes()
   }, [])
 
   return (
     <AppDataContext.Provider
-      value={{ planes, assists, fetchPlanes, fetchAssists, setAssists, deleteAsistencia, editAsistencia }}
+      value={{ planes, assists,  alumnos,  fetchPlanes, fetchAlumnos, fetchAssists, setAlumnos, setAssists, deleteAsistencia, editAsistencia }}
     >
       {children}
     </AppDataContext.Provider>

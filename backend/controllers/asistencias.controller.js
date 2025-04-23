@@ -2,9 +2,11 @@ import {
   getAlumnosFromSheet,
   getAsistenciasFromSheet,
   appendAsistenciaToSheet,
-  updateAlumnoByDNI
+  updateAlumnoByDNI,
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween.js'
+dayjs.extend(isBetween)
 
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
 
@@ -119,5 +121,102 @@ export const getAsistenciasPorDNI = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener asistencias por DNI:', error);
     res.status(500).json({ message: 'Error al obtener asistencias del alumno' });
+  }
+};
+
+export const getAsistenciasPorHora = async (req, res) => {
+  try {
+    const { dia, mes, anio } = req.params;
+    const fechaFormateada = `${dia}/${mes}/${anio}`;
+
+    const asistencias = await getAsistenciasFromSheet();
+    const conteoHoras = {};
+
+    for (let h = 7; h <= 22; h++) {
+      const hora = `${h.toString().padStart(2, "0")}:00`;
+      conteoHoras[hora] = 0;
+    }
+
+    for (const asistencia of asistencias) {
+      const fecha = dayjs(asistencia.Fecha, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+      if (fecha.isValid() && fecha.format("DD/MM/YYYY") === fechaFormateada) {
+        const [h, _] = asistencia.Hora.split(":");
+        const horaClave = `${h.padStart(2, "0")}:00`;
+        if (conteoHoras[horaClave] !== undefined) {
+          conteoHoras[horaClave] += 1;
+        }
+      }
+    }
+
+    res.json(conteoHoras);
+  } catch (error) {
+    console.error("Error al obtener asistencias por hora:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+export const getPromediosRangosHorarios = async (req, res) => {
+  try {
+    const { dia, mes, anio } = req.params;
+    const fechaFin = dayjs(`${dia}/${mes}/${anio}`, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+
+    if (!fechaFin.isValid()) {
+      return res.status(400).json({ message: "Fecha inválida. Usa el formato correcto: /dd/mm/yyyy" });
+    }
+
+    const fechaInicio = fechaFin.subtract(30, 'day');
+    const asistencias = await getAsistenciasFromSheet();
+
+    const rangos = {
+      manana: { total: 0, diasContados: new Set() },
+      tarde: { total: 0, diasContados: new Set() },
+      noche: { total: 0, diasContados: new Set() },
+    };
+
+    for (const asistencia of asistencias) {
+      const fechaClase = dayjs(asistencia.Fecha, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+      const horaStr = asistencia.Hora?.trim();
+
+      if (!fechaClase.isValid()) continue;
+      if (!fechaClase.isBetween(fechaInicio, fechaFin, 'day', '[]')) continue;
+
+      const [hh] = horaStr.split(':');
+      const hora = parseInt(hh);
+      const fechaClave = fechaClase.format('YYYY-MM-DD');
+      const cantidad = 1;
+
+      if (hora >= 7 && hora < 12) {
+        rangos.manana.total += cantidad;
+        rangos.manana.diasContados.add(fechaClave);
+      } else if (hora >= 15 && hora < 18) {
+        rangos.tarde.total += cantidad;
+        rangos.tarde.diasContados.add(fechaClave);
+      } else if (hora >= 18 && hora <= 22) {
+        rangos.noche.total += cantidad;
+        rangos.noche.diasContados.add(fechaClave);
+      }
+    }
+
+    res.json({
+      desde: fechaInicio.format('DD/MM/YYYY'),
+      hasta: fechaFin.format('DD/MM/YYYY'),
+      rangos: {
+        manana: {
+          total: rangos.manana.total,
+          promedio: +(rangos.manana.total / rangos.manana.diasContados.size).toFixed(2)
+        },
+        tarde: {
+          total: rangos.tarde.total,
+          promedio: +(rangos.tarde.total / rangos.tarde.diasContados.size).toFixed(2)
+        },
+        noche: {
+          total: rangos.noche.total,
+          promedio: +(rangos.noche.total / rangos.noche.diasContados.size).toFixed(2)
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error al calcular promedios por rangos horarios:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
