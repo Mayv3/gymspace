@@ -104,16 +104,23 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                       {(() => {
                         const hoy = dayjs();
                         const fechaVencimiento = dayjs(member.Fecha_vencimiento, ["D/M/YYYY", "DD/MM/YYYY"], true);
+
+                        const clasesPagadas = Number(member.Clases_pagadas);
+                        const clasesRealizadas = Number(member.Clases_realizadas);
+
                         if (fechaVencimiento.isValid() && fechaVencimiento.isSameOrBefore(hoy, 'day')) {
                           return (
                             <Badge variant="destructive" className="animate-pulse-scale">
                               Expirado
                             </Badge>
                           );
-                        } else if (member.Clases_realizadas >= member.Clases_pagadas) {
+                        } else if (
+                          clasesPagadas > 0 &&
+                          clasesRealizadas >= clasesPagadas
+                        ) {
                           return (
                             <Badge variant="destructive" className="animate-pulse-scale">
-                              Limite
+                              Límite
                             </Badge>
                           );
                         } else {
