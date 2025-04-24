@@ -158,7 +158,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dni">DNI/Identificación</Label>
-                <Input id="dni" placeholder="12345678A" value={formData.dni} onChange={(e) => handleChange("dni", e.target.value)} required />
+                <Input id="dni" placeholder="12345678A" type="number" value={formData.dni} onChange={(e) => handleChange("dni", e.target.value)} required />
               </div>
             </div>
 
