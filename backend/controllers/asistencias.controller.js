@@ -3,6 +3,7 @@ import {
   getAsistenciasFromSheet,
   appendAsistenciaToSheet,
   updateAlumnoByDNI,
+  getClasesElClubFromSheet
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween.js'
@@ -24,14 +25,10 @@ export const registrarAsistencia = async (req, res) => {
 
     const alumnos = await getAlumnosFromSheet();
     const alumno = alumnos.find(a => a.DNI === dni);
-
-    if (!alumno) {
-      return res.status(404).json({ message: 'Alumno no encontrado' });
-    }
+    if (!alumno) return res.status(404).json({ message: 'Alumno no encontrado' });
 
     const vencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
     const hoyDate = dayjs();
-
     if (hoyDate.isSame(vencimiento, 'day') || hoyDate.isAfter(vencimiento, 'day')) {
       return res.status(403).json({
         message: `El plan de ${alumno.Nombre || alumno['Nombre']} venció el ${vencimiento.format('DD/MM/YYYY')}`,
@@ -41,14 +38,12 @@ export const registrarAsistencia = async (req, res) => {
 
     const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format('DD-MM-YYYY');
     const asistencias = await getAsistenciasFromSheet();
-
     const asistenciasFormateadas = asistencias.map(a => {
       const fecha = dayjs(a.Fecha, ['D/M/YYYY', 'DD/MM/YYYY']);
       return { ...a, Fecha: fecha.format('DD-MM-YYYY') };
     });
 
     const yaAsistioHoy = asistenciasFormateadas.some(a => a.DNI === dni && a.Fecha === hoy);
-
     if (yaAsistioHoy) {
       return res.status(409).json({
         message: `El alumno ${alumno.Nombre || alumno['Nombre']} ya registró asistencia hoy`
@@ -66,16 +61,29 @@ export const registrarAsistencia = async (req, res) => {
 
     await appendAsistenciaToSheet(nuevaAsistencia);
 
-    // Emite el evento de asistencia registrada a través de Socket.IO
     const io = req.app.get('socketio');
     io.emit('asistencia-registrada', { dni, nuevaAsistencia });
 
     const plan = alumno.Plan;
     const esIlimitado = PLANES_ILIMITADOS.includes(plan);
 
+    const clases = await getClasesElClubFromSheet();
+    const hoySimple = dayjs().format('D/M/YYYY');
+    const clasesDeHoy = clases.filter(c => c.Dia === hoySimple);
+
+    const claseInscripto = clasesDeHoy.find(c => {
+      const inscriptos = c.Inscriptos ? c.Inscriptos.split(',').map(d => d.trim()) : [];
+      return inscriptos.includes(dni);
+    });
+
+    let mensaje = 'Asistencia registrada correctamente';
+    if (claseInscripto) {
+      mensaje = `Bienvenido a la clase de "${claseInscripto['Nombre de clase']}"`;
+    }
+
     if (esIlimitado) {
       return res.status(201).json({
-        message: 'Asistencia registrada correctamente',
+        message: mensaje,
         plan,
         fechaVencimiento: alumno['Fecha_vencimiento']
       });
@@ -95,15 +103,11 @@ export const registrarAsistencia = async (req, res) => {
     }
 
     const realizadas = realizadasActual + 1;
-
-    await updateAlumnoByDNI(dni, {
-      'Clases_realizadas': String(realizadas),
-    });
-
+    await updateAlumnoByDNI(dni, { 'Clases_realizadas': String(realizadas) });
     io.emit('asistencia-actualizada', { dni, clasesRealizadas: realizadas });
 
     res.status(201).json({
-      message: 'Asistencia registrada correctamente',
+      message: mensaje,
       plan,
       clasesPagadas: pagadas,
       clasesRealizadas: realizadas,
