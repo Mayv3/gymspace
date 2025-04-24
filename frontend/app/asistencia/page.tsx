@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dayjs from "dayjs"
 
 export default function AsistenciaPage() {
     const [dni, setDni] = useState('')
@@ -94,7 +95,6 @@ export default function AsistenciaPage() {
                                         ></div>
                                     </div>
                                 </div>
-
                                 <div>
                                     <p className="text-lg text-gray-800">
                                         <strong>Plan:</strong> {data.plan}

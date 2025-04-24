@@ -18,7 +18,8 @@ import { useUser } from "@/context/UserContext";
 import { CheckCircle, XCircle } from "lucide-react"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
-
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
+dayjs.extend(isSameOrBefore)
 dayjs.extend(customParseFormat)
 
 interface Pago {
@@ -157,12 +158,15 @@ export default function MemberDashboard() {
     return <div className="p-8 text-muted-foreground">Cargando datos del usuario...</div>
   }
 
-  const daysLeft = user.Fecha_vencimiento ? Math.max(0, dayjs(user.Fecha_vencimiento, "D/M/YYYY").diff(dayjs().startOf("day"), "day") + 1) : 0
-  const progressPercentage = Math.min(100, Math.max(0, (daysLeft / 30) * 100))
 
-  const vencido = daysLeft <= 0
+  const fechaVencimiento = dayjs(user.Fecha_vencimiento, ["D/M/YYYY", "DD/MM/YYYY"], true)
+  const today = dayjs().startOf("day")
+  const vencido = fechaVencimiento.isSameOrBefore(today, "day")
+  const daysLeft = vencido ? 0 : fechaVencimiento.diff(today, "day")
   const agotado = user.Clases_restantes <= 0
   const planInhabilitado = vencido || agotado
+  const progressPercentage = Math.min(100, Math.max(0, (daysLeft / 30) * 100))
+
 
   return (
     <div className="flex min-h-screen flex-col">

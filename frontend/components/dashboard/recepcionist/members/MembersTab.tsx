@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Edit, Trash, PlusCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
+dayjs.extend(isSameOrBefore)
 
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
@@ -101,8 +103,8 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                     <TableCell className="text-center">
                       {(() => {
                         const hoy = dayjs();
-                        const fechaVencimiento = dayjs(member.Fecha_vencimiento, "DD/MM/YYYY");
-                        if (fechaVencimiento.isValid() && fechaVencimiento.isBefore(hoy, 'day')) {
+                        const fechaVencimiento = dayjs(member.Fecha_vencimiento, ["D/M/YYYY", "DD/MM/YYYY"], true);
+                        if (fechaVencimiento.isValid() && fechaVencimiento.isSameOrBefore(hoy, 'day')) {
                           return (
                             <Badge variant="destructive" className="animate-pulse-scale">
                               Expirado

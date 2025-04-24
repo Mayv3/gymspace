@@ -6,6 +6,8 @@ import {
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween.js'
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js"
+dayjs.extend(isSameOrBefore)
 dayjs.extend(isBetween)
 
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
@@ -25,13 +27,12 @@ export const registrarAsistencia = async (req, res) => {
     const vencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
     const hoyDate = dayjs();
 
-    if (hoyDate.isAfter(vencimiento, 'day')) {
+    if (hoyDate.isSameOrBefore(vencimiento, 'day')) {
       return res.status(403).json({
         message: `El plan de ${alumno.Nombre || alumno['Nombre']} venció el ${vencimiento.format('DD/MM/YYYY')}`,
         fechaVencimiento: vencimiento.format('DD/MM/YYYY'),
       });
     }
-
 
     const hoy = dayjs().format('DD-MM-YYYY');
     const asistencias = await getAsistenciasFromSheet();
