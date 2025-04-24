@@ -217,7 +217,7 @@ export default function MemberDashboard() {
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {/* Plan Actual */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-            <Card className="card-hover-effect border-primary/20  h-[18vh]">
+            <Card className="card-hover-effect border-primary/20  h-[20vh]">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
                 <Award className="h-5 w-5 text-primary animate-pulse-scale" />
@@ -238,7 +238,7 @@ export default function MemberDashboard() {
             transition={{ duration: 0.3, delay: 0.2 }}
             className="w-full"
           >
-            <Card className="w-full h-[18vh] card-hover-effect border-primary/20">
+            <Card className="w-full h-[20vh] card-hover-effect border-primary/20">
               <CardHeader className="flex justify-between h-12 px-4">
                 <CardTitle className="text-sm font-medium">
                   Estado de Membresía
@@ -286,7 +286,7 @@ export default function MemberDashboard() {
             transition={{ duration: 0.3, delay: 0.3 }}
             className="w-full"
           >
-            <Card className="w-full h-[18vh] card-hover-effect border-primary/20">
+            <Card className="w-full h-[20vh] card-hover-effect border-primary/20">
               <CardHeader className="flex justify-between h-12 px-4">
                 <CardTitle className="text-sm font-medium">
                   Clases Restantes
@@ -403,7 +403,7 @@ export default function MemberDashboard() {
           transition={{ duration: 0.5, delay: 0.5 }}
         >
           <Card>
-            <CardHeader className="bg-primary/5">
+            <CardHeader className="bg-primary/5 bg">
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 text-primary mr-2" />
                 <CardTitle>Inscripción a Clases</CardTitle>
@@ -414,7 +414,7 @@ export default function MemberDashboard() {
               {loadingClases
                 ? <p>Cargando clases...</p>
                 : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {clases.map((clase, idx) => {
                       const inscritos = clase.Inscriptos
                         ? clase.Inscriptos.split(',').map(d => d.trim())
@@ -446,16 +446,16 @@ export default function MemberDashboard() {
                       return (
                         <Card
                           key={clase.ID}
-                          className={`bg-white-100 text-gray-800 rounded-lg p-4 border-orange-500 transition p-6 flex flex-col justify-between `}
+                          className={`bg-white-100 text-gray-800 rounded-lg p-4 border-orange-500 transition p-6 flex flex-col justify-between`}
                         >
                           <div>
                             <div className="flex justify-between items-center mb-4 w-full">
-                              <CardTitle className="text-3xl font-bold">{clase['Nombre de clase']}</CardTitle>
+                              <CardTitle className="text-xl font-bold">{clase['Nombre de clase']}</CardTitle>
                               <Badge variant="outline" className="text-sm font-semibold bg-white">
                               {clase.Dia} - {clase.ProximaFecha}
                               </Badge>
                             </div>
-                            <p className="text-2xl font-medium mb-3">{clase.Hora}hs</p>
+                            <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
                             <p className="text-lg">
                               <span className="font-semibold">{inscritos.length}</span> /{' '}
                               <span className="font-semibold">{clase['Cupo maximo']}</span> inscritos
