@@ -26,7 +26,7 @@ export const crearCaja = async (req, res) => {
       return res.status(400).json({ message: 'Campos requeridos: turno, responsable' });
     }
 
-    const hoy = dayjs().format("YYYY-MM-DD");
+    const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format("YYYY-MM-DD")
     const cajas = await getCajasFromSheet();
     console.log("Cajas existentes:", cajas);
 
