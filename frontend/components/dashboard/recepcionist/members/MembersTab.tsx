@@ -113,7 +113,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                         } else if (member.Clases_realizadas >= member.Clases_pagadas) {
                           return (
                             <Badge variant="destructive" className="animate-pulse-scale">
-                              Faso
+                              Limite
                             </Badge>
                           );
                         } else {
