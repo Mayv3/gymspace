@@ -6,7 +6,9 @@ import {
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import "dayjs/locale/es.js";
 
+dayjs.locale("es");
 dayjs.extend(customParseFormat);
 
 export const getPagosPorDNI = async (req, res) => {
@@ -175,7 +177,43 @@ export const getPagosFiltrados = async (req, res) => {
     }
 };
   
+export const getFacturacionPorTipoYMes = async (req, res) => {
+    try {
+      const { mes, anio } = req.params;
+      const pagos = await getPagosFromSheet();
   
+      const totalesPorTipo = {};
+      let totalGeneral = 0;
+  
+      for (const pago of pagos) {
+        const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+        if (!fecha.isValid()) continue;
+  
+        if (fecha.month() + 1 !== parseInt(mes) || fecha.year() !== parseInt(anio)) continue;
+  
+        const tipo = pago.Tipo?.trim().toUpperCase() || "OTRO";
+        const monto = parseFloat(pago.Monto) || 0;
+  
+        if (!totalesPorTipo[tipo]) {
+          totalesPorTipo[tipo] = 0;
+        }
+  
+        totalesPorTipo[tipo] += monto;
+        totalGeneral += monto;
+      }
+      const nombreMes = dayjs(`${anio}-${mes}-01`).format('MMMM');
+
+      res.json({
+        mes: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
+        anio: parseInt(anio),
+        totales: totalesPorTipo,
+        totalGeneral: +totalGeneral.toFixed(2)
+      });
+    } catch (error) {
+      console.error("Error al calcular facturación por tipo:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
 
 // POST
 

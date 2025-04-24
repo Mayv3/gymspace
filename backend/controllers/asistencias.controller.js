@@ -164,13 +164,14 @@ export const getPromediosRangosHorarios = async (req, res) => {
       return res.status(400).json({ message: "Fecha inválida. Usa el formato correcto: /dd/mm/yyyy" });
     }
 
-    const fechaInicio = fechaFin.subtract(30, 'day');
+    const fechaInicio = fechaFin.startOf('month');
+    const diasEnRango = fechaFin.diff(fechaInicio, 'day') + 1;
     const asistencias = await getAsistenciasFromSheet();
 
     const rangos = {
-      manana: { total: 0, diasContados: new Set() },
-      tarde: { total: 0, diasContados: new Set() },
-      noche: { total: 0, diasContados: new Set() },
+      manana: { total: 0 },
+      tarde: { total: 0 },
+      noche: { total: 0 },
     };
 
     for (const asistencia of asistencias) {
@@ -182,18 +183,14 @@ export const getPromediosRangosHorarios = async (req, res) => {
 
       const [hh] = horaStr.split(':');
       const hora = parseInt(hh);
-      const fechaClave = fechaClase.format('YYYY-MM-DD');
       const cantidad = 1;
 
       if (hora >= 7 && hora < 12) {
         rangos.manana.total += cantidad;
-        rangos.manana.diasContados.add(fechaClave);
       } else if (hora >= 15 && hora < 18) {
         rangos.tarde.total += cantidad;
-        rangos.tarde.diasContados.add(fechaClave);
       } else if (hora >= 18 && hora <= 22) {
         rangos.noche.total += cantidad;
-        rangos.noche.diasContados.add(fechaClave);
       }
     }
 
@@ -203,15 +200,15 @@ export const getPromediosRangosHorarios = async (req, res) => {
       rangos: {
         manana: {
           total: rangos.manana.total,
-          promedio: +(rangos.manana.total / rangos.manana.diasContados.size).toFixed(2)
+          promedio: +(rangos.manana.total / diasEnRango).toFixed(2),
         },
         tarde: {
           total: rangos.tarde.total,
-          promedio: +(rangos.tarde.total / rangos.tarde.diasContados.size).toFixed(2)
+          promedio: +(rangos.tarde.total / diasEnRango).toFixed(2),
         },
         noche: {
           total: rangos.noche.total,
-          promedio: +(rangos.noche.total / rangos.noche.diasContados.size).toFixed(2)
+          promedio: +(rangos.noche.total / diasEnRango).toFixed(2),
         }
       }
     });
@@ -220,3 +217,4 @@ export const getPromediosRangosHorarios = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
