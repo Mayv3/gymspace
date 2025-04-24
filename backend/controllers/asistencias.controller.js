@@ -7,6 +7,11 @@ import {
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween.js'
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js"
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isBetween)
 
@@ -34,7 +39,7 @@ export const registrarAsistencia = async (req, res) => {
       });
     }
 
-    const hoy = dayjs().format('DD-MM-YYYY');
+    const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format('DD-MM-YYYY');
     const asistencias = await getAsistenciasFromSheet();
 
     const asistenciasFormateadas = asistencias.map(a => {
@@ -52,7 +57,7 @@ export const registrarAsistencia = async (req, res) => {
 
     const nuevaAsistencia = {
       Fecha: hoy,
-      Hora: dayjs().format('HH:mm'),
+      Hora: dayjs().tz("America/Argentina/Buenos_Aires").format('HH:mm'),
       DNI: alumno.DNI,
       Nombre: alumno.Nombre || alumno['Nombre'],
       Plan: alumno.Plan,
