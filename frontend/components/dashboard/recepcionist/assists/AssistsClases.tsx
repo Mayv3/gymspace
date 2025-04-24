@@ -82,11 +82,11 @@ export default function AssistsSection() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas</SelectItem>
-                  <SelectItem value="tela">Tela</SelectItem>
-                  <SelectItem value="acrobacia">Acrobacia</SelectItem>
-                  <SelectItem value="funcional">Funcional</SelectItem>
-                  <SelectItem value="cross">Cross</SelectItem>
-                  <SelectItem value="yoga">Yoga</SelectItem>
+                  <SelectItem value="Tela">Tela</SelectItem>
+                  <SelectItem value="Acrobacia">Acrobacia</SelectItem>
+                  <SelectItem value="Funcional">Funcional</SelectItem>
+                  <SelectItem value="Cross">Cross</SelectItem>
+                  <SelectItem value="Yoga">Yoga</SelectItem>
                 </SelectContent>
               </Select>
             </div>

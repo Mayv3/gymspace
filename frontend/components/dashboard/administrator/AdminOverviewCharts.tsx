@@ -205,7 +205,7 @@ export default function AdminOverviewCharts({ isVisible }: { isVisible: boolean 
         <CardHeader className="flex flex-col ">
           <div className="flex items-center flex-col gap-2">
             <Users className="text-orange-500" />
-            <CardTitle>Promedio por Rangos (desde el 1 hasta hoy)</CardTitle>
+            <CardTitle>Promedio por mes</CardTitle>
           </div>
         </CardHeader>
         <div className="w-full flex justify-end">

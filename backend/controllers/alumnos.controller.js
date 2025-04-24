@@ -153,12 +153,19 @@ export const getAlumnosEstado = async (req, res) => {
     let vencidos = 0;
 
     for (const alumno of alumnos) {
-      const fechaVenc = dayjs(alumno.Fecha_vencimiento, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+      const fechaStr = (alumno.Fecha_vencimiento || "").trim();
+      const fechaVenc = dayjs(fechaStr, ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'], true);
 
-      if (fechaVenc.isValid() && fechaVenc.isSameOrAfter(hoy, 'day')) {
-        activos++;
-      } else {
+      const clasesPagadas = Number(alumno.Clases_pagadas || 0);
+      const clasesRealizadas = Number(alumno.Clases_realizadas || 0);
+
+      const vencidoPorFecha = !fechaVenc.isValid() || fechaVenc.isSameOrBefore(hoy, 'day');
+      const vencidoPorClases = clasesPagadas > 0 && clasesRealizadas >= clasesPagadas;
+
+      if (vencidoPorFecha || vencidoPorClases) {
         vencidos++;
+      } else {
+        activos++;
       }
     }
 
