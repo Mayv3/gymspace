@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
+import dayjs from 'dayjs';
 dotenv.config();
 
 const auth = new google.auth.GoogleAuth({
@@ -774,7 +775,6 @@ export async function deleteAnotacionInSheet(id) {
   return true;
 }
 
-
 // Clases del Club
 
 export async function getClasesElClubFromSheet() {
@@ -824,6 +824,76 @@ export async function updateClaseElClubInSheet(id, nuevosDatos) {
 
   return true;
 }
+
+export async function appendToRegistrosClasesSheet(registro) {
+  const sheets = google.sheets({ version: 'v4', auth });
+
+  const values = [[
+    registro.IDClase,
+    registro['Nombre de clase'],
+    registro.Fecha,
+    registro.Hora,
+    registro['DNI Alumno'],
+    registro['Nombre Alumno']
+  ]];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'RegistrosClasesElClub!A1',
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: {
+      values
+    }
+  });
+}
+
+export async function eliminarRegistroDeClase({ IDClase, DNI, Fecha }) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'RegistrosClasesElClub!A1:F',
+  });
+
+  const [headers, ...rows] = res.data.values;
+  const idIndex = headers.indexOf('ID');
+  const dniIndex = headers.indexOf('DNI Alumno');
+  const fechaIndex = headers.indexOf('Fecha');
+
+  const rowIndex = rows.findIndex(row =>
+    String(row[idIndex]) === String(IDClase) &&
+    String(row[dniIndex]) === String(DNI) &&
+    dayjs(row[fechaIndex], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']).format('D/M/YYYY') ===
+    dayjs(Fecha, ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']).format('D/M/YYYY')
+  );
+
+  if (rowIndex === -1) {
+    console.log("❌ No se encontró el registro a eliminar");
+    return false;
+  }
+
+  console.log("✅ Eliminando fila:", rowIndex + 2);
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId: 1279938571,
+              dimension: 'ROWS',
+              startIndex: rowIndex + 1,
+              endIndex: rowIndex + 2
+            }
+          }
+        }
+      ]
+    }
+  });
+
+  return true;
+}
+
 
 // Turnos
 

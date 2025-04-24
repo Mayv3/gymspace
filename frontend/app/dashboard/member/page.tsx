@@ -54,6 +54,7 @@ interface Clase {
   Hora: string
   'Cupo maximo': string
   Inscriptos: string
+  ProximaFecha?: string 
 }
 
 export default function MemberDashboard() {
@@ -104,6 +105,7 @@ export default function MemberDashboard() {
     try {
       setLoadingClases(true)
       const res = await axios.get<Clase[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/clases-el-club`)
+        console.log(res)
       setClases(res.data)
     } catch (err) {
       console.error("Error al cargar clases:", err)
@@ -121,12 +123,6 @@ export default function MemberDashboard() {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/clases-el-club/${claseID}`,
         payload
       )
-
-      setUser(prev => {
-        if (!prev) return prev
-        const delta = desuscribir ? +1 : -1
-        return { ...prev, Clases_restantes: prev.Clases_restantes + delta }
-      })
 
       setClases(prev =>
         prev.map(c => {
@@ -157,7 +153,6 @@ export default function MemberDashboard() {
   if (!user) {
     return <div className="p-8 text-muted-foreground">Cargando datos del usuario...</div>
   }
-
 
   const rawFecha = user.Fecha_vencimiento
   const fechaVencimiento = dayjs(rawFecha, ["D/M/YYYY", "DD/MM/YYYY"], true)
@@ -208,7 +203,6 @@ export default function MemberDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
-
 
       <DashboardHeader role="Miembro" />
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -458,7 +452,7 @@ export default function MemberDashboard() {
                             <div className="flex justify-between items-center mb-4 w-full">
                               <CardTitle className="text-3xl font-bold">{clase['Nombre de clase']}</CardTitle>
                               <Badge variant="outline" className="text-sm font-semibold bg-white">
-                                {clase.Dia}
+                              {clase.Dia} - {clase.ProximaFecha}
                               </Badge>
                             </div>
                             <p className="text-2xl font-medium mb-3">{clase.Hora}hs</p>

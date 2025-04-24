@@ -50,6 +50,16 @@ export const registrarAsistencia = async (req, res) => {
       });
     }
 
+    // ⚠️ Revisar si está inscripto a alguna clase hoy
+    const clases = await getClasesElClubFromSheet();
+    const diaHoy = dayjs().locale('es').format('dddd'); // ej: "jueves"
+    const clasesDeHoy = clases.filter(c => c.Dia.toLowerCase() === diaHoy.toLowerCase());
+
+    const claseInscripto = clasesDeHoy.find(c => {
+      const inscriptos = c.Inscriptos ? c.Inscriptos.split(',').map(d => d.trim()) : [];
+      return inscriptos.includes(dni);
+    });
+
     const nuevaAsistencia = {
       Fecha: hoy,
       Hora: dayjs().tz("America/Argentina/Buenos_Aires").format('HH:mm'),
@@ -66,15 +76,6 @@ export const registrarAsistencia = async (req, res) => {
 
     const plan = alumno.Plan;
     const esIlimitado = PLANES_ILIMITADOS.includes(plan);
-
-    const clases = await getClasesElClubFromSheet();
-    const hoySimple = dayjs().format('D/M/YYYY');
-    const clasesDeHoy = clases.filter(c => c.Dia === hoySimple);
-
-    const claseInscripto = clasesDeHoy.find(c => {
-      const inscriptos = c.Inscriptos ? c.Inscriptos.split(',').map(d => d.trim()) : [];
-      return inscriptos.includes(dni);
-    });
 
     let mensaje = 'Asistencia registrada correctamente';
     if (claseInscripto) {

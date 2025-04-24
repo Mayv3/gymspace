@@ -3,7 +3,9 @@ import {
   getClasesElClubFromSheet,
   updateClaseElClubInSheet,
   getAlumnosFromSheet,
-  updateAlumnoByDNI
+  updateAlumnoByDNI,
+  appendToRegistrosClasesSheet,
+  eliminarRegistroDeClase
 } from '../services/googleSheets.js';
 
 const RESPONSES = {
@@ -25,6 +27,30 @@ const sendSuccess = (res, payload) => res.status(200).json(payload);
 const parseList = raw => raw ? raw.split(',').map(s => s.trim()) : [];
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
 
+const DIA_SEMANA_MAP = {
+  'Domingo': 0,
+  'Lunes': 1,
+  'Martes': 2,
+  'Miercoles': 3,
+  'Jueves': 4,
+  'Viernes': 5,
+  'Sábado': 6
+}
+
+function calcularProximaFecha(diaSemana) {
+  const hoy = dayjs()
+  const diaObjetivo = DIA_SEMANA_MAP[diaSemana]
+
+  if (diaObjetivo === undefined) return null
+
+  let proxima = hoy.day(diaObjetivo)
+  if (proxima.isBefore(hoy, 'day')) {
+    proxima = proxima.add(1, 'week')
+  }
+
+  return proxima.format('D/M/YYYY')
+}
+
 async function findClase(id) {
   const clases = await getClasesElClubFromSheet();
   return clases.find(c => c.ID === id);
@@ -35,10 +61,40 @@ async function findAlumno(dni) {
   return alumnos.find(a => a.DNI === dni);
 }
 
+const limpiarInscriptosPasados = async () => {
+  const clases = await getClasesElClubFromSheet();
+  const ahora = dayjs();
+
+  for (const clase of clases) {
+    const proximaFecha = calcularProximaFecha(clase.Dia);
+    if (!proximaFecha) continue;
+
+    const fechaClase = dayjs(`${dayjs(proximaFecha, 'D/M/YYYY').format('YYYY-MM-DD')}T${clase.Hora.padStart(5, '0')}`);
+    
+    if (fechaClase.isBefore(ahora, 'minute') && clase.Inscriptos && clase.Inscriptos.trim() !== '') {
+      await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' });
+    }
+  }
+};
+
 export const obtenerClasesElClub = async (req, res) => {
   try {
+    await limpiarInscriptosPasados();
+    
     const clases = await getClasesElClubFromSheet();
-    return sendSuccess(res, clases);
+
+    const clasesConFecha = clases.map(clase => {
+      const diaSemana = clase.Dia;
+      const proximaFecha = calcularProximaFecha(diaSemana);
+
+      return {
+        ...clase,
+        ProximaFecha: proximaFecha,
+
+      };
+    });
+
+    return sendSuccess(res, clasesConFecha);
   } catch (error) {
     console.error('Error al obtener clases del club:', error);
     return sendError(res, RESPONSES.fetchClasesError);
@@ -50,29 +106,24 @@ export const updateClaseTableroByID = async (req, res) => {
     const { id } = req.params;
     const { dni, desuscribir } = req.body;
 
-    if (!dni) return sendError(res, { status: 400, message: RESPONSES.requiredDni });
+    if (!dni) return sendError(res, RESPONSES.requiredDni);
 
     const [clase, alumno] = await Promise.all([
       findClase(id),
       findAlumno(dni)
     ]);
 
-    if (!clase) return sendError(res, { status: 404, message: RESPONSES.classNotFound });
-    if (!alumno) return sendError(res, { status: 404, message: RESPONSES.alumnoNotFound });
+    if (!clase) return sendError(res, RESPONSES.classNotFound);
+    if (!alumno) return sendError(res, RESPONSES.alumnoNotFound);
 
     const inscritos = clase.Inscriptos ? clase.Inscriptos.split(',').map(d => d.trim()) : [];
     const now = dayjs();
-    const classDateStart = dayjs(clase.Dia, ['D/M/YYYY', 'DD/MM/YYYY']).startOf('day');
-    const todayStart = now.startOf('day');
 
-    if (classDateStart.isBefore(todayStart)) {
-      return sendError(res, { status: 400, message: RESPONSES.classDone });
-    }
+    const proximaFecha = calcularProximaFecha(clase.Dia); // ✅ ahora sí
 
-    const classTime = dayjs(`${classDateStart.format('YYYY-MM-DD')}T${clase.Hora.padStart(5, '0')}`);
+    const classTime = dayjs(`${dayjs(proximaFecha, 'D/M/YYYY').format('YYYY-MM-DD')}T${clase.Hora.padStart(5, '0')}`);
 
     if (!desuscribir) {
-      // ✅ Verifica vencimiento
       const vencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
       if (now.isSame(vencimiento, 'day') || now.isAfter(vencimiento, 'day')) {
         return sendError(res, {
@@ -81,7 +132,6 @@ export const updateClaseTableroByID = async (req, res) => {
         });
       }
 
-      // ✅ Verifica clases pagadas si el plan no es ilimitado
       const esIlimitado = PLANES_ILIMITADOS.includes(alumno.Plan);
       if (!esIlimitado) {
         const pagadas = parseInt(alumno['Clases_pagadas'] || '0', 10);
@@ -94,21 +144,31 @@ export const updateClaseTableroByID = async (req, res) => {
         }
       }
 
-      // ✅ Validaciones adicionales
       if (classTime.diff(now, 'minute') < 60) {
-        return sendError(res, { status: 403, message: RESPONSES.subscribeLate });
+        return sendError(res, RESPONSES.subscribeLate);
       }
 
       if (inscritos.includes(dni)) {
-        return sendError(res, { status: 409, message: RESPONSES.alreadySubscribed });
+        return sendError(res, RESPONSES.alreadySubscribed);
       }
 
       if (inscritos.length >= Number(clase['Cupo maximo'])) {
-        return sendError(res, { status: 409, message: RESPONSES.fullCapacity });
+        return sendError(res, RESPONSES.fullCapacity);
       }
 
       inscritos.push(dni);
       await updateClaseElClubInSheet(id, { Inscriptos: inscritos.join(', ') });
+
+      await appendToRegistrosClasesSheet({
+        IDClase: clase.ID,
+        'Nombre de clase': clase['Nombre de clase'],
+        Fecha: proximaFecha,
+        Hora: clase.Hora.toString(),
+        'DNI Alumno': alumno.DNI,
+        'Nombre Alumno': alumno.Nombre,
+        Acción: 'Inscripción',
+        Timestamp: now.format('YYYY-MM-DD HH:mm:ss')
+      });
 
       return sendSuccess(res, {
         message: `Inscripción exitosa a la clase de ${clase['Nombre de clase']}. Podés desuscribirte hasta una hora después de haberte inscripto. De lo contrario, perderás una clase pagada.`,
@@ -118,15 +178,21 @@ export const updateClaseTableroByID = async (req, res) => {
       });
     }
 
-    // ✅ DESUSCRIPCIÓN
+    // DESUSCRIPCIÓN
     if (!inscritos.includes(dni)) {
-      return sendError(res, { status: 400, message: RESPONSES.notSubscribed });
+      return sendError(res, RESPONSES.notSubscribed);
     }
 
     const minutesSinceClassStart = now.diff(classTime, 'minute');
     if (minutesSinceClassStart > 60) {
-      return sendError(res, { status: 403, message: RESPONSES.unsubscribeTooLate });
+      return sendError(res, RESPONSES.unsubscribeTooLate);
     }
+
+    await eliminarRegistroDeClase({
+      IDClase: clase.ID,
+      DNI: alumno.DNI,
+      Fecha: proximaFecha
+    });
 
     const updatedInscritos = inscritos.filter(d => d !== dni);
     await updateClaseElClubInSheet(id, { Inscriptos: updatedInscritos.join(', ') });
@@ -142,7 +208,7 @@ export const updateClaseTableroByID = async (req, res) => {
     });
   } catch (error) {
     console.error('Error en updateClaseTableroByID:', error);
-    return sendError(res, { status: 500, message: RESPONSES.processError });
+    return sendError(res, RESPONSES.processError);
   }
 };
 
