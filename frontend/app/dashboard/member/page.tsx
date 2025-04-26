@@ -446,12 +446,12 @@ export default function MemberDashboard() {
                       return (
                         <Card
                           key={clase.ID}
-                          className={`bg-white-100 text-gray-800 rounded-lg p-4 border-orange-500 transition p-6 flex flex-col justify-between`}
+                          className={`bg-background text-foreground rounded-lg border border-orange-500 transition p-6 flex flex-col justify-between`}
                         >
                           <div>
                             <div className="flex justify-between items-center mb-4 w-full">
                               <CardTitle className="text-xl font-bold">{clase['Nombre de clase']}</CardTitle>
-                              <Badge variant="outline" className="text-sm font-semibold bg-white">
+                              <Badge variant="outline" className="text-sm font-semibold bg-background text-foreground">
                               {clase.Dia} - {clase.ProximaFecha}
                               </Badge>
                             </div>

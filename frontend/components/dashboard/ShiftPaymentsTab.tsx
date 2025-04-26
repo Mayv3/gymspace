@@ -164,29 +164,39 @@ export function ShiftPaymentsTab({
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm py-6 space-y-6">
+          <div className="bg-background rounded-2xl shadow-sm py-6 space-y-6">
             <div className="flex flex-col md:flex-row md:items-end justify-start gap-2">
-              <h2 className="text-2xl text-gray-800">
+              <h2 className="text-2xl text-foreground">
                 Totales del turno {selectedShift}
               </h2>
-              <span className="text-lg text-gray-500">
+              <span className="text-lg text-muted-foreground">
                 {formatDate(selectedDate)}
               </span>
             </div>
 
             {Object.keys(resumenPorTipo).length > 0 && (
-              <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                <h3 className="flex items-center text-gray-600 font-medium mb-4">
+              <div className="bg-muted rounded-xl p-5 border border-border">
+                <h3 className="flex items-center text-muted-foreground font-medium mb-4">
                   Recaudación por tipo de pago
                 </h3>
-                <div className={`grid grid-cols-1 ${Object.keys(resumenPorTipo).length === 1 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4`}>
+                <div
+                  className={`grid grid-cols-1 ${Object.keys(resumenPorTipo).length === 1
+                      ? "md:grid-cols-2"
+                      : "md:grid-cols-3"
+                    } gap-4`}
+                >
                   {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
-                    <div key={tipo} className="bg-gray-50 rounded-xl p-5  border border-orange-500 ">
-                      <h4 className="text-lg font-semibold text-gray-700 mb-4 text-start">{tipo}</h4>
+                    <div
+                      key={tipo}
+                      className="bg-muted rounded-xl p-5 border border-orange-500"
+                    >
+                      <h4 className="text-lg font-semibold text-foreground mb-4 text-start">
+                        {tipo}
+                      </h4>
                       <ul className="space-y-2">
                         {Object.entries(metodos).map(([metodo, total]) => (
                           <li key={metodo} className="flex justify-between">
-                            <span className="text-gray-600">{metodo}</span>
+                            <span className="text-muted-foreground">{metodo}</span>
                             <span className="font-semibold text-green-600">
                               ${total.toLocaleString("es-AR")}
                             </span>
@@ -195,36 +205,42 @@ export function ShiftPaymentsTab({
                       </ul>
                     </div>
                   ))}
-                    <div className="rounded-xl p-4 space-y-4  border border-orange-500">
 
+                  {/* Box de totales finales */}
+                  <div className="bg-muted rounded-xl p-4 space-y-4 border border-orange-500">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg text-gray-700">Total en Tarjeta:</span>
+                      <span className="text-lg text-foreground">Total en Tarjeta:</span>
                       <span className="text-xl font-semibold text-green-500">
-                      ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
+                        ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <span className="text-lg text-gray-700">Total en Efectivo:</span>
+                      <span className="text-lg text-foreground">Total en Efectivo:</span>
                       <span className="text-xl font-semibold text-green-500">
-                      ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
+                        ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
                       </span>
                     </div>
+
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium text-gray-700">Total del turno:</span>
+                      <span className="text-lg font-medium text-foreground">
+                        Total del turno:
+                      </span>
                       <span className="text-2xl font-bold text-green-600">
-                      $
-                      {currentShiftPayments
-                        .reduce((sum, payment) => sum + parseFloat(String(payment.Monto || "0")), 0)
-                        .toLocaleString("es-AR")}
+                        $
+                        {currentShiftPayments
+                          .reduce(
+                            (sum, payment) => sum + parseFloat(String(payment.Monto || "0")),
+                            0
+                          )
+                          .toLocaleString("es-AR")}
                       </span>
                     </div>
-                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-
         </CardContent>
       </Card>
     </>

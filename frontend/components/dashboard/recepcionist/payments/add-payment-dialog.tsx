@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { motion } from "framer-motion"
 import { CreditCard, DollarSign } from "lucide-react"
+import { DatePicker } from "../../date-picker"
 
 interface AddPaymentDialogProps {
   open: boolean
@@ -42,12 +43,12 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     amount: "",
     method: "",
     concept: "",
-    paymentDate: "",
+    paymentDate: format(new Date(), "yyyy-MM-dd"),
     expirationDate: "",
     responsable: user?.nombre,
     turno: ""
   })
-  
+
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]
   const planesFiltrados = planes.filter(p => p.Tipo === tipoSeleccionado)
 
@@ -60,6 +61,12 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     setPlanSeleccionado(selected)
     handleChange("amount", selected?.Precio || "")
     handleChange("concept", selected?.["Plan o Producto"] || "")
+  }
+
+  const handleDateChange = (field: "paymentDate" | "expirationDate", date: Date | undefined) => {
+    if (!date) return
+    const formattedDate = format(date, "yyyy-MM-dd")
+    setFormData((prev) => ({ ...prev, [field]: formattedDate }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,7 +131,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
         amount: "",
         method: "",
         concept: "",
-        paymentDate: "",
+        paymentDate: format(new Date(), "yyyy-MM-dd"),
         expirationDate: "",
         responsable: user?.nombre || "",
         turno: ""
@@ -234,12 +241,17 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="paymentDate">Fecha de Pago</Label>
-                <Input type="date" id="paymentDate" value={formData.paymentDate} onChange={(e) => handleChange("paymentDate", e.target.value)} required />
+                <DatePicker
+                  date={formData.paymentDate ? new Date(formData.paymentDate) : undefined}
+                  setDate={(date) => handleDateChange("paymentDate", date)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="expirationDate">Fecha de Vencimiento</Label>
-                <Input type="date" id="expirationDate" value={formData.expirationDate} onChange={(e) => handleChange("expirationDate", e.target.value)} required />
-              </div>
+                <DatePicker
+                  date={formData.expirationDate ? new Date(formData.expirationDate) : undefined}
+                  setDate={(date) => handleDateChange("expirationDate", date)}
+                />              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="turno">Turno</Label>

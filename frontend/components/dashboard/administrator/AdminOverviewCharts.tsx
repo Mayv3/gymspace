@@ -69,13 +69,6 @@ interface Factura {
   clase: number;
 }
 
-interface DashboardData {
-  estado: EstadoData;
-  edades: Record<string, number>;
-  planes: Plan[];
-  asistenciasPorHora: Record<string, number>;
-  facturacion: Factura[];
-}
 
 type TipoPlan = "TODOS" | "GIMNASIO" | "CLASE";
 
@@ -84,23 +77,82 @@ interface Promedio {
   promedio: number;
 }
 
+interface PersonalizadosPorProfesor {
+  profesor: string;
+  cantidad: number;
+  alumnos: string[];
+}
+
+interface DashboardData {
+  estado: EstadoData;
+  edades: Record<string, number>;
+  planes: Plan[];
+  asistenciasPorHora: Record<string, number>;
+  facturacion: Factura[];
+  personalizadosPorProfesor: PersonalizadosPorProfesor[];
+}
+
+
 const CustomTooltip: React.FC<TooltipProps<number, string> & {
   explicaciones?: Record<string, string>;
 }> = ({ active, payload, label, explicaciones = {} }) => {
   if (active && payload && payload.length) {
-    const data = payload[0].payload as any;
-    const nombre = data.rango ?? data.estado ?? data.plan ?? data.hora ?? "";
-    const valor = payload[0].value;
-    const descripcion = explicaciones[nombre] ?? null;
+    const isDark = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
+
     return (
-      <div className="bg-white p-2 rounded-md shadow text-sm border w-max max-w-[220px]">
-        <p className="font-semibold">{nombre}: {valor}</p>
-        {descripcion && <p className="text-gray-600">{descripcion}</p>}
+      <div
+        className="p-2 rounded-md shadow text-sm border w-max max-w-[240px]"
+        style={{
+          backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
+          color: isDark ? "hsl(0, 0%, 95%)" : "#000",
+        }}
+      >
+        {/* Si es facturación o tiene múltiples payloads */}
+        {payload.length > 1 ? (
+          payload.map((entry, index) => (
+            <div key={index} className="mb-1">
+              <p
+                className="font-semibold"
+                style={{
+                  color: isDark ? "hsl(30, 100%, 70%)" : "#000",
+                }}
+              >
+                {entry.name} : ${entry.value}
+              </p>
+            </div>
+          ))
+        ) : (
+          <>
+            {payload[0] && (
+              <>
+                <p
+                  className="font-semibold mb-1"
+                  style={{
+                    color: isDark ? "hsl(30, 100%, 70%)" : "#000",
+                  }}
+                >
+                  {(payload[0].payload.rango ?? payload[0].payload.estado ?? payload[0].payload.plan ?? payload[0].payload.hora ?? payload[0].payload.profesor) ?? ""}
+                  : {payload[0].value}
+                </p>
+                {explicaciones[payload[0].payload.estado ?? ""] && (
+                  <p
+                    style={{
+                      color: isDark ? "hsl(0, 0%, 85%)" : "#666",
+                    }}
+                  >
+                    {explicaciones[payload[0].payload.estado]}
+                  </p>
+                )}
+              </>
+            )}
+          </>
+        )}
       </div>
     );
   }
   return null;
 };
+
 
 export default function AdminOverviewCharts({
   isVisible,
@@ -115,6 +167,7 @@ export default function AdminOverviewCharts({
   );
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
+  const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState<string>("");
 
   const [promedios, setPromedios] = useState<Promedio[]>([
     { rango: "Mañana (7-12hs)", promedio: 0 },
@@ -125,12 +178,17 @@ export default function AdminOverviewCharts({
   // Fetch general
   const fetchDashboard = async () => {
     try {
-      const res = await axios.get<DashboardData>(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`,
-        {
-          params: { fecha: dayjs(selectedDate).format("YYYY-MM-DD") },
-        }
-      );
+      const params: any = {
+        fecha: dayjs(selectedDate).format("YYYY-MM-DD"),
+      };
+      if (selectedMonthPersonalizados) {
+        params.mesPersonalizados = selectedMonthPersonalizados;
+      }
+
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`, {
+        params,
+      });
+
       setDashboardData(res.data);
     } catch (error) {
       console.error("Error al cargar dashboard:", error);
@@ -164,7 +222,7 @@ export default function AdminOverviewCharts({
 
   useEffect(() => {
     fetchDashboard();
-  }, [selectedDate]);
+  }, [selectedDate, selectedMonthPersonalizados]);
 
   useEffect(() => {
     fetchPromedios();
@@ -172,14 +230,14 @@ export default function AdminOverviewCharts({
 
   if (!dashboardData) return null;
 
-  const { estado, edades, planes, asistenciasPorHora, facturacion } =
-    dashboardData;
+  const { estado, edades, planes, asistenciasPorHora, facturacion, personalizadosPorProfesor } = dashboardData;
 
   const estadoArray = [
     { estado: "Activos", cantidad: estado.activos },
     { estado: "Vencidos", cantidad: estado.vencidos },
     { estado: "Abandonos", cantidad: estado.abandonos },
   ];
+
   const estadoExplicaciones = {
     Activos: "Alumnos con plan vigente y clases disponibles.",
     Vencidos: "Alumnos cuyo plan venció hace menos de 30 días.",
@@ -243,7 +301,7 @@ export default function AdminOverviewCharts({
             <BarChart data={edadDistribucion}>
               <XAxis dataKey="edad" />
               <YAxis />
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
                 {edadDistribucion.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -304,7 +362,7 @@ export default function AdminOverviewCharts({
             <LineChart data={asistenciasHoraData}>
               <XAxis dataKey="hora" />
               <YAxis />
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               <Line
                 type="monotone"
                 dataKey="cantidad"
@@ -387,7 +445,7 @@ export default function AdminOverviewCharts({
             <BarChart data={promedios}>
               <XAxis dataKey="rango" />
               <YAxis />
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="promedio" radius={[10, 10, 0, 0]}>
                 {promedios.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -409,9 +467,7 @@ export default function AdminOverviewCharts({
             <BarChart data={facturacion}>
               <XAxis dataKey="mes" />
               <YAxis />
-              <Tooltip
-                formatter={(value: number, name: string) => [`$${value}`, name]}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="gimnasio" name="Gimnasio" radius={[10, 10, 0, 0]}>
                 {facturacion.map((_, i) => (
                   <Cell key={i} fill={COLORS[0]} />
@@ -426,6 +482,65 @@ export default function AdminOverviewCharts({
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
+        <CardHeader className="flex flex-col">
+          <div className="flex items-center flex-col pb-4">
+            <CalendarCheck className="text-orange-500" />
+            <CardTitle>Planes Personalizados por Profesor</CardTitle>
+          </div>
+          <TooltipProvider>
+            <div className="flex items-center gap-2">
+              <div className="flex justify-end w-full">
+                <div className="w-[120px]">
+                  <Select
+                    value={selectedMonthPersonalizados}
+                    onValueChange={(val) => setSelectedMonthPersonalizados(val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Mes" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background dark:bg-card text-foreground dark:text-foreground">
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <SelectItem key={i} value={(i + 1).toString()}>
+                          {dayjs().month(i).locale("es").format("MMMM")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>                  <TooltipUI>
+                <TooltipTrigger asChild>
+                  <Info className="text-muted-foreground cursor-pointer w-4 h-4" />
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-sm max-w-[220px] text-center">
+                    Se muestran la cantidad de alumnos que son de tipo GIMNASIO, que pagaron en el mes seleccionado y tienen plan PERSONALIZADO con cada profesor.
+                  </p>
+                </TooltipContent>
+              </TooltipUI>
+            </div>
+          </TooltipProvider>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={personalizadosPorProfesor}>
+              <XAxis dataKey="profesor" />
+              <YAxis />
+              <Tooltip
+                content={<CustomTooltip />}
+                formatter={(value: number, name: string) => [`$${value}`, name]}
+              />
+              <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
+                {personalizadosPorProfesor.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }

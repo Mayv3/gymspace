@@ -114,3 +114,29 @@ body {
   scrollbar-width: thin; /* Opciones: auto, thin, none */
   scrollbar-color: #a0aec0 #f1f1f1; /* primer color: pulgar; segundo: pista */
 }
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* Blanco */
+    --foreground: 0 0% 3.9%; /* Casi negro */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 24 100% 50%; /* Naranja vibrante */
+    --primary-foreground: 0 0% 100%;
+    /* Más variables si querés */
+  }
+
+  .dark {
+    --background: 220 14% 18%; /* Azul muy oscuro tipo Dark Reader */
+    --foreground: 0 0% 90%;    /* Gris clarito */
+    --card: 220 14% 20%;
+    --card-foreground: 0 0% 95%;
+    --popover: 220 14% 20%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 24 100% 65%; /* Naranja más clarito */
+    --primary-foreground: 0 0% 10%;
+    /* Ajustás lo que quieras para el modo dark */
+  }
+}
