@@ -5,6 +5,7 @@ import {
   deleteAlumnoByDNI,
   getPlanesFromSheet,
   getPagosFromSheet,
+
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter.js'
@@ -224,3 +225,75 @@ export const getDistribucionPlanes = async (req, res) => {
     res.status(500).json({ message: "Error al obtener distribución de planes" });
   }
 };
+
+export const getDashboardAlumnos = async (req, res) => {
+  try {
+    const alumnos = await getAlumnosFromSheet()
+    const planesBD = await getPlanesFromSheet()
+    const hoy = dayjs()
+
+    let activos = 0
+    let vencidos = 0
+    let abandonos = 0
+    const edades = {}
+    const planesConteo = {}
+
+    const planesBDMap = {}
+    for (const p of planesBD) {
+      const nombre = (p["Plan o Producto"] || "").trim().toUpperCase()
+      planesBDMap[nombre] = p.Tipo?.trim().toUpperCase() || "OTRO"
+    }
+
+    for (const alumno of alumnos) {
+      const fechaStr = (alumno.Fecha_vencimiento || "").trim()
+      const fechaVenc = dayjs(fechaStr, ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'], true)
+      const clasesPagadas = Number(alumno.Clases_pagadas || 0)
+      const clasesRealizadas = Number(alumno.Clases_realizadas || 0)
+
+      const tieneVencimiento = fechaVenc.isValid()
+      const vencidoPorFecha = tieneVencimiento && fechaVenc.isBefore(hoy, 'day')
+      const vencidoPorClases = clasesPagadas > 0 && clasesRealizadas >= clasesPagadas
+      const diasDesdeVencimiento = tieneVencimiento ? hoy.diff(fechaVenc, 'day') : 0
+
+      if (vencidoPorFecha || vencidoPorClases) {
+        if (diasDesdeVencimiento > 30) {
+          abandonos++
+        } else {
+          vencidos++
+        }
+      } else {
+        activos++
+      }
+
+      const fechaNac = dayjs(alumno.Fecha_nacimiento, ['D/M/YYYY', 'DD/MM/YYYY'], true)
+      if (fechaNac.isValid()) {
+        const edad = hoy.diff(fechaNac, 'year')
+        edades[edad] = (edades[edad] || 0) + 1
+      }
+
+      const planNombre = (alumno.Plan || "").trim().toUpperCase()
+      const tipo = planesBDMap[planNombre] || "OTRO"
+      const key = `${planNombre}__${tipo}`
+
+      planesConteo[key] = (planesConteo[key] || 0) + 1
+    }
+
+    const planes = Object.entries(planesConteo).map(([key, cantidad]) => {
+      const [plan, tipo] = key.split("__")
+      return { plan, tipo, cantidad }
+    })
+
+    res.json({
+      estado: { activos, vencidos, abandonos },
+      edades,
+      planes
+    })
+  } catch (error) {
+    console.error('Error en dashboard alumnos:', error)
+    res.status(500).json({ message: 'Error interno del servidor' })
+  }
+}
+
+
+
+

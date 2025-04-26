@@ -215,6 +215,46 @@ export const getFacturacionPorTipoYMes = async (req, res) => {
     }
 };
 
+export const getFacturacionAnual = async (req, res) => {
+    try {
+      const anio = parseInt(req.query.anio)
+  
+      if (isNaN(anio)) {
+        return res.status(400).json({ message: 'Año inválido' })
+      }
+  
+      const pagos = await getPagosFromSheet()
+  
+      const meses = Array.from({ length: 12 }, (_, i) => ({
+        mes: dayjs(`${anio}-${i + 1}-01`).format('MMMM'),
+        gimnasio: 0,
+        clase: 0,
+      }))
+  
+      for (const pago of pagos) {
+        const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true)
+        if (!fecha.isValid()) continue
+  
+        if (fecha.year() !== anio) continue
+  
+        const mesIndex = fecha.month();
+        const tipo = (pago.Tipo || "").toUpperCase()
+        const monto = parseFloat(pago.Monto) || 0
+  
+        if (tipo === "GIMNASIO") {
+          meses[mesIndex].gimnasio += monto
+        } else if (tipo === "CLASE") {
+          meses[mesIndex].clase += monto
+        }
+      }
+  
+      res.json(meses)
+    } catch (error) {
+      console.error('Error en facturación anual:', error)
+      res.status(500).json({ message: 'Error interno del servidor' })
+    }
+  }
+
 // POST
 
 export const addPago = async (req, res) => {

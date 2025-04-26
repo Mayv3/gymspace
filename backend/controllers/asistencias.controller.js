@@ -10,11 +10,14 @@ import isBetween from 'dayjs/plugin/isBetween.js'
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js"
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
+import weekOfYear from 'dayjs/plugin/weekOfYear.js'
+
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isBetween)
+dayjs.extend(weekOfYear)
 
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
 
@@ -229,3 +232,63 @@ export const getPromediosRangosHorarios = async (req, res) => {
   }
 };
 
+export const getPromedios = async (req, res) => {
+  try {
+    const { anio, mes, semana, fecha } = req.query
+
+    const anioNum = parseInt(anio, 10)
+    if (isNaN(anioNum)) return res.status(400).json({ message: 'Año inválido' })
+
+    const mesNum    = mes    ? parseInt(mes, 10)    : null
+    const semanaNum = semana ? parseInt(semana, 10) : null
+    if (mes    && isNaN(mesNum))    return res.status(400).json({ message: 'Mes inválido' })
+    if (semana && isNaN(semanaNum)) return res.status(400).json({ message: 'Semana inválida' })
+
+    let useDateRange = false
+    let startDate, endDate
+    if (fecha) {
+      endDate = dayjs(fecha, 'YYYY-MM-DD', true)
+      if (!endDate.isValid()) return res.status(400).json({ message: 'Fecha inválida (debe ser YYYY-MM-DD)' })
+      startDate = endDate.subtract(7, 'day')
+      useDateRange = true
+    }
+
+    const asistencias = await getAsistenciasFromSheet()
+    const rangos = { manana: 0, tarde: 0, noche: 0 }
+    const diasConAsistencias = new Set()
+
+    for (const a of asistencias) {
+      const f = dayjs(a.Fecha, ['D/M/YYYY','DD/MM/YYYY','YYYY-MM-DD'], true)
+      const h = dayjs(a.Hora, 'H:mm', true).hour()
+      if (!f.isValid()) continue
+
+      if (f.year() !== anioNum) continue
+
+      if (useDateRange) {
+        if (f.isBefore(startDate, 'day') || f.isAfter(endDate, 'day')) continue
+      } else {
+        if (mesNum    && (f.month()+1) !== mesNum)    continue
+        if (semanaNum && f.week() !== semanaNum)      continue
+      }
+
+      diasConAsistencias.add(f.format('YYYY-MM-DD'))
+
+      if (h >= 7  && h < 12) rangos.manana++
+      if (h >= 15 && h < 18) rangos.tarde++
+      if (h >= 18 && h <= 22) rangos.noche++
+    }
+
+    const totalDias = diasConAsistencias.size || 1
+
+    const promedios = {
+      manana: { total: rangos.manana, promedio: (rangos.manana/totalDias).toFixed(2), dias: totalDias },
+      tarde:  { total: rangos.tarde,  promedio: (rangos.tarde/totalDias).toFixed(2),  dias: totalDias },
+      noche:  { total: rangos.noche,  promedio: (rangos.noche/totalDias).toFixed(2),  dias: totalDias },
+    }
+
+    res.json(promedios)
+  } catch (error) {
+    console.error('Error al calcular promedios:', error)
+    res.status(500).json({ message: 'Error interno del servidor' })
+  }
+}

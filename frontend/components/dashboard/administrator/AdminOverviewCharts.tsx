@@ -1,135 +1,238 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useEffect, useState } from "react"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
-import axios from "axios"
-import { Users, CalendarCheck, PieChart as PieIcon, DollarSign } from "lucide-react"
-import { LineChart, Line } from "recharts"
-import { DatePicker } from "@/components/dashboard/date-picker"
-import dayjs from "dayjs"
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  TooltipProps,
+} from "recharts";
+import { DatePicker } from "@/components/dashboard/date-picker";
+import axios from "axios";
+import {
+  Users,
+  CalendarCheck,
+  PieChart as PieIcon,
+  DollarSign,
+} from "lucide-react";
+import { PlanSelect } from "@/components/PlanSelect";
+import {
+  Select,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+} from "@/components/ui/select";
+import { Tooltip as TooltipUI, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
+
+import dayjs from "dayjs";
+import 'dayjs/locale/es';
+dayjs.locale('es');
 
 const COLORS = [
-  "#FFB74D", "#FFA726", "#FF9800", "#FB8C00", "#F57C00",
-  "#EF6C00", "#E65100", "#BF360C"
-]
+  "#FFB74D",
+  "#FFA726",
+  "#FF9800",
+  "#FB8C00",
+  "#F57C00",
+  "#EF6C00",
+  "#E65100",
+  "#BF360C",
+];
 
-export default function AdminOverviewCharts({ isVisible }: { isVisible: boolean }) {
-  const [estadoAlumnos, setEstadoAlumnos] = useState({ activos: 0, vencidos: 0 })
-  const [edadDistribucion, setEdadDistribucion] = useState<{ edad: number; cantidad: number }[]>([])
-  const [planesDistribucion, setPlanesDistribucion] = useState([])
-  const [asistenciasHora, setAsistenciasHora] = useState<{ hora: string; cantidad: number }[]>([])
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [promedios, setPromedios] = useState<{ rango: string, promedio: number }[]>([])
-  const [selectedRangeDate, setSelectedRangeDate] = useState(new Date())
-  const [facturacionAnual, setFacturacionAnual] = useState<{ mes: string; gimnasio: number; clase: number }[]>([])
+// --- Interfaces para tipar datos ---
+interface EstadoData {
+  activos: number;
+  vencidos: number;
+  abandonos: number;
+}
 
-  const fetchAsistenciasPorHora = async (fecha: Date) => {
-    const dia = dayjs(fecha).format("DD")
-    const mes = dayjs(fecha).format("MM")
-    const anio = dayjs(fecha).format("YYYY")
+interface Plan {
+  plan: string;
+  cantidad: number;
+  tipo: "GIMNASIO" | "CLASE";
+}
 
-    const asistenciasRes = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/por-hora/${dia}/${mes}/${anio}`)
+interface Factura {
+  mes: string;
+  gimnasio: number;
+  clase: number;
+}
 
-    const dataHora = Object.entries(asistenciasRes.data).map(([hora, cantidad]) => ({
-      hora,
-      cantidad: Number(cantidad)
-    }))
+interface DashboardData {
+  estado: EstadoData;
+  edades: Record<string, number>;
+  planes: Plan[];
+  asistenciasPorHora: Record<string, number>;
+  facturacion: Factura[];
+}
 
-    setAsistenciasHora(dataHora)
+type TipoPlan = "TODOS" | "GIMNASIO" | "CLASE";
+
+interface Promedio {
+  rango: string;
+  promedio: number;
+}
+
+const CustomTooltip: React.FC<TooltipProps<number, string> & {
+  explicaciones?: Record<string, string>;
+}> = ({ active, payload, label, explicaciones = {} }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload as any;
+    const nombre = data.rango ?? data.estado ?? data.plan ?? data.hora ?? "";
+    const valor = payload[0].value;
+    const descripcion = explicaciones[nombre] ?? null;
+    return (
+      <div className="bg-white p-2 rounded-md shadow text-sm border w-max max-w-[220px]">
+        <p className="font-semibold">{nombre}: {valor}</p>
+        {descripcion && <p className="text-gray-600">{descripcion}</p>}
+      </div>
+    );
   }
+  return null;
+};
 
-  const fetchPromedios = async (fecha: Date) => {
-    const dia = dayjs(fecha).format("DD")
-    const mes = dayjs(fecha).format("MM")
-    const anio = dayjs(fecha).format("YYYY")
-    const formattedDate = `${dia}/${mes}/${anio}`
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/promedios-rangos/${formattedDate}`)
+export default function AdminOverviewCharts({
+  isVisible,
+}: {
+  isVisible: boolean;
+}) {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [tipoPlan, setTipoPlan] = useState<TipoPlan>("TODOS");
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
 
-    const dataPromedios = [
-      {
-        rango: "Mañana (7-12hs)",
-        promedio: res.data.rangos.manana.promedio ?? 0,
-      },
-      {
-        rango: "Tarde (15-18hs)",
-        promedio: res.data.rangos.tarde.promedio ?? 0,
-      },
-      {
-        rango: "Noche (18-22hs)",
-        promedio: res.data.rangos.noche.promedio ?? 0,
-      },
-    ]
+  const [promedios, setPromedios] = useState<Promedio[]>([
+    { rango: "Mañana (7-12hs)", promedio: 0 },
+    { rango: "Tarde (15-18hs)", promedio: 0 },
+    { rango: "Noche (18-22hs)", promedio: 0 },
+  ]);
 
-    setPromedios(dataPromedios)
-  }
-
-  const fetchFacturacionAnual = async () => {
-    const anio = dayjs().year()
-    const promises = Array.from({ length: 12 }, (_, i) =>
-      axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos/facturacion/tipo/${i + 1}/${anio}`)
-        .then(res => ({
-          mes: res.data.mes,
-          gimnasio: res.data.totales.GIMNASIO ?? 0,
-          clase: res.data.totales.CLASE ?? 0
-        }))
-    )
-    const data = await Promise.all(promises)
-    setFacturacionAnual(data)
-  }
-
-  useEffect(() => {
-    fetchAsistenciasPorHora(selectedDate)
-  }, [selectedDate])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const [estadoRes, edadRes, planesRes] = await Promise.all([
-        axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/estado`),
-        axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/estadisticas/edades`),
-        axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/planes/distribucion`),
-      ])
-
-      setEstadoAlumnos(estadoRes.data)
-      setEdadDistribucion(
-        Object.entries(edadRes.data).map(([edad, cantidad]) => ({
-          edad: Number(edad),
-          cantidad: Number(cantidad)
-        }))
-      )
-      setPlanesDistribucion(planesRes.data)
+  // Fetch general
+  const fetchDashboard = async () => {
+    try {
+      const res = await axios.get<DashboardData>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`,
+        {
+          params: { fecha: dayjs(selectedDate).format("YYYY-MM-DD") },
+        }
+      );
+      setDashboardData(res.data);
+    } catch (error) {
+      console.error("Error al cargar dashboard:", error);
     }
+  };
 
-    fetchData()
-    fetchFacturacionAnual()
-  }, [])
+  const fetchPromedios = async () => {
+    try {
+      const params: any = {
+        anio: selectedYear,
+      };
+
+      if (selectedMonth) params.mes = Number(selectedMonth);
+      if (selectedFecha) params.fecha = dayjs(selectedFecha).format("YYYY-MM-DD");
+
+      const res = await axios.get<{
+        manana: { promedio: string };
+        tarde: { promedio: string };
+        noche: { promedio: string };
+      }>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/promedios`, { params });
+
+      setPromedios([
+        { rango: "Mañana (7-12hs)", promedio: Number(res.data.manana.promedio) },
+        { rango: "Tarde (15-18hs)", promedio: Number(res.data.tarde.promedio) },
+        { rango: "Noche (18-22hs)", promedio: Number(res.data.noche.promedio) },
+      ]);
+    } catch (error) {
+      console.error("Error al cargar promedios:", error);
+    }
+  };
 
   useEffect(() => {
-    fetchPromedios(selectedRangeDate)
-  }, [selectedRangeDate])
+    fetchDashboard();
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchPromedios();
+  }, [selectedYear, selectedMonth, selectedFecha]);
+
+  if (!dashboardData) return null;
+
+  const { estado, edades, planes, asistenciasPorHora, facturacion } =
+    dashboardData;
+
+  const estadoArray = [
+    { estado: "Activos", cantidad: estado.activos },
+    { estado: "Vencidos", cantidad: estado.vencidos },
+    { estado: "Abandonos", cantidad: estado.abandonos },
+  ];
+  const estadoExplicaciones = {
+    Activos: "Alumnos con plan vigente y clases disponibles.",
+    Vencidos: "Alumnos cuyo plan venció hace menos de 30 días.",
+    Abandonos: "Alumnos con plan vencido hace más de 30 días.",
+  };
+
+  const edadDistribucion = Object.entries(edades).map(([edad, cantidad]) => ({
+    edad: Number(edad),
+    cantidad,
+  }));
+
+  const planesFiltrados = planes.filter((p) =>
+    tipoPlan === "TODOS" ? true : p.tipo === tipoPlan
+  );
+
+  const asistenciasHoraData = Object.entries(asistenciasPorHora).map(
+    ([hora, cantidad]) => ({
+      hora,
+      cantidad,
+    })
+  );
+
   return (
-    <div className={isVisible ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" : "hidden"}>
+    <div
+      className={
+        isVisible ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" : "hidden"
+      }
+    >
+      {/* 1. Activos vs Vencidos vs Abandonos */}
       <Card className="shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="flex items-center gap-2">
           <Users className="text-orange-500" />
-          <CardTitle>Alumnos Activos vs Vencidos</CardTitle>
+          <CardTitle>Alumnos Activos vs Vencidos vs Abandonos</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={[
-              { estado: "Activos", cantidad: estadoAlumnos.activos },
-              { estado: "Vencidos", cantidad: estadoAlumnos.vencidos },
-            ]}>
+            <BarChart data={estadoArray}>
               <XAxis dataKey="estado" />
               <YAxis />
-              <Tooltip />
+              <Tooltip
+                content={<CustomTooltip explicaciones={estadoExplicaciones} />}
+              />
               <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                <Cell fill="#FFA726" />
-                <Cell fill="#FB8C00" />
+                {estadoArray.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i]} />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
+      {/* 2. Distribución por Edad */}
       <Card className="shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="flex items-center gap-2">
           <CalendarCheck className="text-orange-500" />
@@ -142,8 +245,8 @@ export default function AdminOverviewCharts({ isVisible }: { isVisible: boolean 
               <YAxis />
               <Tooltip />
               <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                {edadDistribucion.map((_, index) => (
-                  <Cell key={`edad-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {edadDistribucion.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Bar>
             </BarChart>
@@ -151,98 +254,178 @@ export default function AdminOverviewCharts({ isVisible }: { isVisible: boolean 
         </CardContent>
       </Card>
 
+      {/* 3. Alumnos por Plan */}
       <Card className="shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="flex items-center gap-2">
           <PieIcon className="text-orange-500" />
           <CardTitle>Alumnos por Plan</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <div className="flex justify-end mb-2">
+            <div className="w-[140px]">
+              <PlanSelect tipoPlan={tipoPlan} setTipoPlan={setTipoPlan} />
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
-                data={Object.entries(planesDistribucion).map(([plan, cantidad]) => ({ plan, cantidad }))}
+                data={planesFiltrados}
                 dataKey="cantidad"
                 nameKey="plan"
-                outerRadius={100}
-                animationDuration={500}
+                outerRadius={80}
                 label
               >
-                {Object.entries(planesDistribucion).map(([_, __], index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {planesFiltrados.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
+      {/* 4. Asistencias por Hora */}
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-center">
-          <div className="flex items-center flex-col gap-2">
+        <CardHeader className="flex items-center flex-col">
+          <div className="flex flex-col items-center pb-4">
             <Users className="text-orange-500" />
             <CardTitle>Asistencias por Hora</CardTitle>
           </div>
-        </CardHeader>
-        <div className="w-full flex justify-end">
-          <div className="w-[200px] my-3 mx-5">
-            <DatePicker date={selectedDate} setDate={setSelectedDate} />
+          <div className="flex justify-end w-full">
+            <div>
+              <DatePicker date={selectedDate} setDate={setSelectedDate} />
+            </div>
           </div>
-        </div>
+        </CardHeader>
+
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={asistenciasHora}>
+            <LineChart data={asistenciasHoraData}>
               <XAxis dataKey="hora" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="cantidad" stroke="#FFA726" strokeWidth={3} dot={{ r: 4 }} />
+              <Line
+                type="monotone"
+                dataKey="cantidad"
+                stroke={COLORS[0]}
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
+      {/* 5. Promedio por Rango */}
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
-        <CardHeader className="flex flex-col ">
-          <div className="flex items-center flex-col gap-2">
-            <Users className="text-orange-500" />
-            <CardTitle>Promedio por mes</CardTitle>
+        <CardHeader className="flex flex-col">
+          <div className="flex items-center flex-col pb-4">
+            <CalendarCheck className="text-orange-500" />
+            <CardTitle>Promedio por Año ({selectedYear})</CardTitle>
+          </div>
+          <div className="flex flex-wrap justify-between">
+            <div className="flex gap-2">
+              <div className="w-[100px]">
+                <Select
+                  value={selectedYear.toString()}
+                  onValueChange={(val) => setSelectedYear(Number(val))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Año" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Mes */}
+              <div className="w-[100px]">
+                <Select
+                  value={selectedMonth}
+                  onValueChange={(val) => setSelectedMonth(val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Mes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i} value={(i + 1).toString()}>
+                        {dayjs().month(i).locale("es").format("MMMM")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Fecha */}
+            <div className="flex flex-col w-[160px]">
+              <TooltipProvider>
+                <div className="flex items-center gap-2">
+                  <DatePicker date={selectedFecha ?? undefined} setDate={setSelectedFecha} />
+                  <TooltipUI>
+                    <TooltipTrigger asChild>
+                      <Info className="text-muted-foreground cursor-pointer w-4 h-4" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-sm max-w-[220px] text-center">
+                        Se mostrará el promedio de asistencias desde esta fecha hasta 7 días atrás.
+                      </p>
+                    </TooltipContent>
+                  </TooltipUI>
+                </div>
+              </TooltipProvider>
+            </div>
           </div>
         </CardHeader>
-        <div className="w-full flex justify-end">
-          <div className="w-[200px] my-3 mx-5">
-            <DatePicker date={selectedRangeDate} setDate={setSelectedRangeDate} />
-          </div>
-        </div>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={promedios}>
               <XAxis dataKey="rango" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="promedio" radius={[10, 10, 0, 0]} fill="#FFA726" />
+              <Bar dataKey="promedio" radius={[10, 10, 0, 0]}>
+                {promedios.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
+      {/* 6. Facturación Mensual */}
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-3">
-        <CardHeader className="flex w-full items-center">
-            <DollarSign className="text-orange-500" />
-            <CardTitle>Facturación mensual. Gimnasio y Clases</CardTitle>
+        <CardHeader className="flex items-center gap-2">
+          <DollarSign className="text-orange-500" />
+          <CardTitle>Facturación Mensual: Gimnasio y Clases</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={facturacionAnual}>
+            <BarChart data={facturacion}>
               <XAxis dataKey="mes" />
               <YAxis />
-              <Tooltip formatter={(value: number, name: string) => [`$${value}`, name]} />
-              <Bar dataKey="gimnasio" fill="#FFA726" name="Gimnasio" radius={[10, 10, 0, 0]} />
-              <Bar dataKey="clase" fill="#FF7043" name="Clase" radius={[10, 10, 0, 0]} />
+              <Tooltip
+                formatter={(value: number, name: string) => [`$${value}`, name]}
+              />
+              <Bar dataKey="gimnasio" name="Gimnasio" radius={[10, 10, 0, 0]}>
+                {facturacion.map((_, i) => (
+                  <Cell key={i} fill={COLORS[0]} />
+                ))}
+              </Bar>
+              <Bar dataKey="clase" name="Clases" radius={[10, 10, 0, 0]}>
+                {facturacion.map((_, i) => (
+                  <Cell key={i} fill={COLORS[2]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-
     </div>
-  )
+  );
 }
