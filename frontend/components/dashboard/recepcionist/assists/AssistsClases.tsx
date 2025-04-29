@@ -33,9 +33,15 @@ export default function AssistsSection() {
   })
   const { assists, fetchAssists, deleteAsistencia, editAsistencia } = useAppData()
 
-  useEffect(() => {
-    fetchAssists({ selectedDate, selectedType })
-  }, [selectedDate, selectedType])
+  const handleDateChange = async (date: Date) => {
+    setSelectedDate(date)
+    await fetchAssists({ selectedDate: date, selectedType })
+  }
+
+  const handleTypeChange = async (type: string) => {
+    setSelectedType(type)
+    await fetchAssists({ selectedDate, selectedType: type })
+  }
 
   const displayedAssists = assists.filter((asistencia: any) => {
     const mismaFecha = dayjs(asistencia.Fecha, "D/M/YYYY").isSame(dayjs(selectedDate), "day")
@@ -72,11 +78,17 @@ export default function AssistsSection() {
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="flex-1">
               <Label>Fecha</Label>
-              <DatePicker date={selectedDate} setDate={setSelectedDate} />
+              <DatePicker
+                date={selectedDate}
+                setDate={handleDateChange}
+              />
             </div>
             <div className="flex-1">
               <Label>Tipo de clase</Label>
-              <Select value={selectedType} onValueChange={setSelectedType}>
+              <Select
+                value={selectedType}
+                onValueChange={handleTypeChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
@@ -170,9 +182,6 @@ export default function AssistsSection() {
       <RegisterClassDialog open={showAddDialog}
         onOpenChange={async (open) => {
           setShowAddDialog(open)
-          if (!open) {
-            await fetchAssists({ selectedDate, selectedType })
-          }
         }} />
 
       <ConfirmDialog

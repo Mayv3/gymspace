@@ -14,6 +14,7 @@ type PaymentsSectionProps = {
   setShowDeletePaymentDialog: (value: boolean) => void
   onMemberUpdated: (dni: string, nuevaFecha: string, nuevoPlan: string, clasesPagadas: number) => void
   refreshPayments: () => void
+  cashOpen: boolean
 }
 
 export default function PaymentsSection({
@@ -27,11 +28,14 @@ export default function PaymentsSection({
   setSelectedPaymentToDelete,
   setShowDeletePaymentDialog,
   onMemberUpdated,
-  refreshPayments
+  refreshPayments,
+  cashOpen
+
 }: PaymentsSectionProps) {
   return (
     <TabsContent value="shift-payments" className="space-y-4">
       <ShiftPaymentsTab
+        cashOpen={cashOpen}
         currentShiftPayments={currentShiftPayments}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}

@@ -15,11 +15,13 @@ import dayjs from "dayjs"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
 import { useUser } from "@/context/UserContext";
+import { useAppData } from "@/context/AppDataContext"
 
 export default function ShiftsSection() {
+    const { turnos, setTurnos } = useAppData()
+
     const [selectedDate, setSelectedDate] = useState(new Date())
     const [selectedType, setSelectedType] = useState("todas")
-    const [turnos, setTurnos] = useState<any[]>([])
 
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [createForm, setCreateForm] = useState({ Tipo: "", Fecha_turno: "", Profesional: "", Responsable: "" })
@@ -32,22 +34,6 @@ export default function ShiftsSection() {
     const [selectedTurno, setSelectedTurno] = useState<any | null>(null)
 
     const { user } = useUser();
-
-    const fetchTurnos = async () => {
-        try {
-            const fecha = dayjs(selectedDate).format("DD/MM/YYYY")
-            const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos?fecha=${fecha}`
-            const res = await axios.get(url)
-            setTurnos(res.data)
-            console.log(res.data)
-        } catch (error) {
-            console.error("Error al obtener turnos:", error)
-        }
-    }
-
-    useEffect(() => {
-        fetchTurnos()
-    }, [selectedDate, selectedType])
 
     const filteredTurnos = turnos.filter(turno => {
         if (selectedType === "todas") return true
@@ -64,39 +50,53 @@ export default function ShiftsSection() {
                 responsable: user?.nombre,
             };
 
-            console.log(payload)
-            await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos`, payload);
+            const { data: nuevoTurno } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos`, payload);
+
+            setTurnos(prev => [...prev, nuevoTurno]);
+
             setShowCreateDialog(false);
             setCreateForm({ Tipo: "", Fecha_turno: "", Profesional: "", Responsable: "" });
-            fetchTurnos();
         } catch (error) {
             console.error("Error al crear turno:", error);
         }
     }
 
-
-
     const handleConfirmEdit = async () => {
-        if (!editingTurno) return
+        if (!editingTurno) return;
         try {
-            await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${editingTurno.ID}`, editForm)
-            setShowEditDialog(false)
-            setEditingTurno(null)
-            fetchTurnos()
+          const { data: turnoActualizado } = await axios.put(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${editingTurno.ID}`,
+            editForm
+          );
+      
+          setTurnos(prev =>
+            prev.map(turno =>
+              turno.ID === editingTurno.ID
+                ? { ...turno, ...turnoActualizado } // 
+                : turno
+            )
+          );
+      
+          setShowEditDialog(false);
+          setEditingTurno(null);
         } catch (error) {
-            console.error("Error al actualizar turno:", error)
+          console.error("Error al actualizar turno:", error);
+          alert("Error al actualizar el turno.");
         }
-    }
+      };
+      
 
     const handleConfirmDelete = async () => {
-        if (!selectedTurno) return
+        if (!selectedTurno) return;
         try {
-            await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${selectedTurno.ID}`)
-            setShowDeleteDialog(false)
-            setSelectedTurno(null)
-            fetchTurnos()
+            await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${selectedTurno.ID}`);
+
+            setTurnos(prev => prev.filter(turno => turno.ID !== selectedTurno.ID));
+
+            setShowDeleteDialog(false);
+            setSelectedTurno(null);
         } catch (error) {
-            console.error("Error al eliminar turno:", error)
+            console.error("Error al eliminar turno:", error);
         }
     }
 
@@ -149,7 +149,7 @@ export default function ShiftsSection() {
                                     {filteredTurnos.length > 0 ? (
                                         filteredTurnos.map((turno, index) => (
                                             <motion.tr
-                                                key={turno.ID || index}
+                                                key={index}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ duration: 0.2, delay: index * 0.05 }}
@@ -319,8 +319,8 @@ export default function ShiftsSection() {
                         </div>
                         <div className="flex justify-between items-center text-primary">
                             <div className="flex">
-                            <User className="mr-2 h-4 w-4 " />
-                            <span>Profesional</span>
+                                <User className="mr-2 h-4 w-4 " />
+                                <span>Profesional</span>
                             </div>
                             <span>{selectedTurno.Profesional}</span>
                         </div>

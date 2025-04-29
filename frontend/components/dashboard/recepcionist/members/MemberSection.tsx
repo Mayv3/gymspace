@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { TabsContent } from "@radix-ui/react-tabs"
 import { MembersTab } from "./MembersTab"
 
@@ -18,15 +18,35 @@ export default function MembersSection({
   setSearchTerm,
   onAddMember,
   onEdit,
-  onDelete
+  onDelete,
 }: MembersSectionProps) {
+  const [localMembers, setLocalMembers] = useState(members)
+
+  useEffect(() => {
+    setLocalMembers(members)
+  }, [members])
+
+  const handleAddMember = (newMember: any) => {
+    setLocalMembers(prev => [newMember, ...prev])
+  }
+
+  const handleEditMember = (updatedMember: any) => {
+    setLocalMembers(prev =>
+      prev.map(m => (m.DNI === updatedMember.DNI ? updatedMember : m))
+    )
+  }
+
+  const handleDeleteMember = (deletedMember: any) => {
+    setLocalMembers(prev => prev.filter(m => m.DNI !== deletedMember.DNI))
+  }
+
   return (
     <TabsContent value="members" className="space-y-4">
       <MembersTab
-        members={members}
+        members={localMembers}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        onAddMember={onAddMember}
+        onAddMember={() => onAddMember()}
         onEdit={onEdit}
         onDelete={onDelete}
       />

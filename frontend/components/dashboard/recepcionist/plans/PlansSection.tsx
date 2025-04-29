@@ -10,10 +10,11 @@ import { PlusCircle, Trash, Edit, Tag, Box, DollarSign, CalendarDays, FileText }
 import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@radix-ui/react-dropdown-menu"
+import { useAppData } from "@/context/AppDataContext"
 
 export default function PlansSection() {
-    const [planes, setPlanes] = useState<any[]>([])
-
+    const { planes, setPlanes } = useAppData();
+    
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [createForm, setCreateForm] = useState({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" })
 
@@ -28,21 +29,12 @@ export default function PlansSection() {
     const [aumentos, setAumentos] = useState<any[]>([])
     const [planSeleccionado, setPlanSeleccionado] = useState<any | null>(null)
 
-    const fetchPlanes = async () => {
-        try {
-            const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`)
-            setPlanes(res.data)
-        } catch (error) {
-            console.error("Error al obtener planes:", error)
-        }
-    }
-
     const handleConfirmCreate = async () => {
         try {
-            await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`, createForm)
+            const { data: nuevoPlan } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`, createForm)
+            setPlanes(prev => [...prev, nuevoPlan])
             setShowCreateDialog(false)
             setCreateForm({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" })
-            fetchPlanes()
         } catch (error) {
             console.error("Error al crear el plan:", error)
             alert("Error al crear el plan.")
@@ -52,26 +44,34 @@ export default function PlansSection() {
     const handleConfirmEdit = async () => {
         if (!editingPlan) return
         try {
-            await axios.patch(
+            const { data: planActualizado } = await axios.patch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/${editingPlan.ID}`,
                 editForm
             )
+    
+            setPlanes(prev =>
+                prev.map(plan => plan.ID === editingPlan.ID ? planActualizado : plan)
+            )
+    
             setShowEditDialog(false)
             setEditingPlan(null)
-            fetchPlanes()
         } catch (error) {
             console.error("Error al actualizar el plan:", error)
             alert("Hubo un problema al actualizar el plan.")
         }
     }
-
+    
     const handleConfirmDelete = async () => {
         if (!selectedPlan) return
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/${selectedPlan.ID}`)
+    
+            setPlanes(prev =>
+                prev.filter(plan => plan.ID !== selectedPlan.ID)
+            )
+    
             setShowDeleteDialog(false)
             setSelectedPlan(null)
-            fetchPlanes()
         } catch (error) {
             console.error("Error al eliminar el plan:", error)
             alert("Error al eliminar el plan.")
@@ -89,10 +89,6 @@ export default function PlansSection() {
             alert('Error al cargar aumentos.')
         }
     }
-
-    useEffect(() => {
-        fetchPlanes()
-    }, [])
 
     return (
         <TabsContent value="plans" className="space-y-4">

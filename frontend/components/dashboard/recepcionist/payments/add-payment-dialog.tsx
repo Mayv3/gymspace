@@ -31,7 +31,6 @@ interface AddPaymentDialogProps {
 
 export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberUpdated }: AddPaymentDialogProps) {
 
-
   const [dniError, setDniError] = useState("")
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
@@ -71,7 +70,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Enviando datos del formulario:", formData)
+
     const fields = Object.values(formData)
     if (fields.some(f => f.trim() === "")) {
       alert("Todos los campos son obligatorios")
@@ -92,27 +91,13 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
           "Responsable": user?.nombre,
           "Turno": formData.turno,
           "Tipo": tipoSeleccionado,
-        })
+        }),
       })
+
+      if (!res.ok) throw new Error("Error al registrar el pago")
 
       const parsedDate = parse(formData.expirationDate, "yyyy-MM-dd", new Date())
       const expirationDateFormatted = format(parsedDate, "dd/MM/yyyy")
-
-      console.log("Se actualiza el miembro con:", {
-        dni: formData.dni,
-        expirationDate: expirationDateFormatted,
-        plan: planSeleccionado?.["Plan o Producto"],
-        numeroClases: parseInt(planSeleccionado?.numero_Clases || "0")
-      })
-
-      onMemberUpdated(
-        formData.dni,
-        expirationDateFormatted,
-        planSeleccionado?.["Plan o Producto"],
-        parseInt(planSeleccionado?.numero_Clases || "0")
-      )
-
-      if (!res.ok) throw new Error("Error al registrar el pago")
 
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`, {
         method: "PUT",
@@ -124,6 +109,16 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
           Clases_realizadas: "0"
         })
       })
+
+      onMemberUpdated(
+        formData.dni,
+        expirationDateFormatted,
+        planSeleccionado?.["Plan o Producto"] || "",
+        parseInt(planSeleccionado?.numero_Clases || "0")
+      )
+
+      onPaymentAdded()
+      onOpenChange(false)
 
       setFormData({
         dni: "",
@@ -139,10 +134,9 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       setTipoSeleccionado("")
       setPlanSeleccionado(null)
 
-      onPaymentAdded()
-      onOpenChange(false)
     } catch (error) {
       console.error("Error al enviar el pago:", error)
+      alert("Error al registrar el pago")
     }
   }
 

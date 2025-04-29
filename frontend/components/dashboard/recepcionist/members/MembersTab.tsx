@@ -34,6 +34,7 @@ interface MembersTabProps {
   onEdit: (member: Member) => void
   onDelete: (member: Member) => void
   onAddMember: () => void
+  
 }
 
 export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelete, onAddMember }: MembersTabProps) {

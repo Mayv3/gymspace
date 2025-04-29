@@ -22,6 +22,9 @@ interface ShiftPaymentsTabProps {
   formatDate: (date: Date) => string
   setSelectedPaymentToDelete: (payment: any) => void
   setShowDeletePaymentDialog: (show: boolean) => void
+  onMemberUpdated: (dni: string, nuevaFecha: string, nuevoPlan: string, clasesPagadas: number) => void
+  refreshPayments: () => void
+  cashOpen: boolean
 }
 
 export function ShiftPaymentsTab({
@@ -34,6 +37,9 @@ export function ShiftPaymentsTab({
   formatDate,
   setSelectedPaymentToDelete,
   setShowDeletePaymentDialog,
+  onMemberUpdated,
+  refreshPayments,
+  cashOpen
 }: ShiftPaymentsTabProps) {
   const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: number }>({})
   const [totalesPorMetodo, setTotalesPorMetodo] = useState({ efectivo: 0, tarjeta: 0 })
@@ -43,7 +49,9 @@ export function ShiftPaymentsTab({
     let totalEfectivo = 0
     let totalTarjeta = 0
 
-    currentShiftPayments.forEach((pago: any) => {
+    const pagosDelTurno = currentShiftPayments.filter(p => p.Turno === selectedShift)
+
+    pagosDelTurno.forEach((pago: any) => {
       const tipo = pago.Tipo || "Sin tipo"
       const metodo = pago.Metodo_de_Pago || "Sin método"
       const monto = parseFloat(pago.Monto || "0")
@@ -66,8 +74,7 @@ export function ShiftPaymentsTab({
 
     setResumenPorTipo(totales)
     setTotalesPorMetodo({ efectivo: totalEfectivo, tarjeta: totalTarjeta })
-  }, [currentShiftPayments])
-
+  }, [currentShiftPayments, selectedShift])
   return (
     <>
       <Card>
@@ -85,11 +92,19 @@ export function ShiftPaymentsTab({
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="flex-1">
               <Label>Fecha</Label>
-              <DatePicker date={selectedDate} setDate={setSelectedDate} />
+              <DatePicker
+                date={selectedDate}
+                setDate={setSelectedDate}
+                disabled={cashOpen}
+              />
             </div>
             <div className="flex-1">
               <Label>Turno</Label>
-              <Select value={selectedShift} onValueChange={setSelectedShift}>
+              <Select
+                value={selectedShift}
+                onValueChange={setSelectedShift}
+                disabled={cashOpen}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -181,8 +196,8 @@ export function ShiftPaymentsTab({
                 </h3>
                 <div
                   className={`grid grid-cols-1 ${Object.keys(resumenPorTipo).length === 1
-                      ? "md:grid-cols-2"
-                      : "md:grid-cols-3"
+                    ? "md:grid-cols-2"
+                    : "md:grid-cols-3"
                     } gap-4`}
                 >
                   {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (

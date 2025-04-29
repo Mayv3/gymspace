@@ -1,182 +1,74 @@
 "use client"
-import { useEffect, useState } from "react"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useEffect } from "react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { formatDate } from "@/utils/dateUtils"
-import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add-member-dialog"
-import { AddPaymentDialog } from "@/components/dashboard/recepcionist/payments/add-payment-dialog"
-import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
-import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/delete-member-dialog"
-import { DeletePaymentDialog } from "@/components/dashboard/recepcionist/payments/delete-payment-dialog"
-import CashRegisterSection from "@/components/dashboard/recepcionist/cashRegister/CashRegisterSection"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+
 import MembersSection from "@/components/dashboard/recepcionist/members/MemberSection"
 import PaymentsSection from "@/components/dashboard/recepcionist/payments/PaymentSection"
-import { Member, Payment } from "@/models/dashboard"
-import io from "socket.io-client"
-import dayjs from "dayjs"
 import AssistsSection from "@/components/dashboard/recepcionist/assists/AssistsClases"
-import { TabsContent } from "@radix-ui/react-tabs"
-import { useUser } from "@/context/UserContext"
-import { useRouter } from "next/navigation"
 import PlansSection from "@/components/dashboard/recepcionist/plans/PlansSection"
 import ShiftsSection from "@/components/dashboard/recepcionist/shifts/ShiftSection"
+import CashRegisterSection from "@/components/dashboard/recepcionist/cashRegister/CashRegisterSection"
+
+import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add-member-dialog"
+import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
+import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/delete-member-dialog"
+import { AddPaymentDialog } from "@/components/dashboard/recepcionist/payments/add-payment-dialog"
+import { DeletePaymentDialog } from "@/components/dashboard/recepcionist/payments/delete-payment-dialog"
+
+import { useUser } from "@/context/UserContext"
+import { useRouter } from "next/navigation"
+
+import { useMembers } from "@/hooks/useMember"
+import { usePayments } from "@/hooks/usePayments"
+import { useCashRegister } from "@/hooks/useCashRegister"
+import { useDialogManager } from "@/hooks/useDialogManager"
+import { useAppData } from "@/context/AppDataContext"
+
+import { Member } from "@/models/dashboard";
 
 export default function ReceptionistDashboard() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [cashRegisterOpen, setCashRegisterOpen] = useState(false)
-  const [initialAmount, setInitialAmount] = useState("0")
-  const [cashRegisterId, setCashRegisterId] = useState<string | null>(null)
-  const [isCajaCerrada, setIsCajaCerrada] = useState(false)
-  const [members, setMembers] = useState<Member[]>([])
-  const [showAddMember, setShowAddMember] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [selectedMemberToDelete, setSelectedMemberToDelete] = useState<Member | null>(null)
-  const [payments, setPayments] = useState<Payment[]>([])
-  const [showAddPayment, setShowAddPayment] = useState(false)
-  const [showDeletePaymentDialog, setShowDeletePaymentDialog] = useState(false)
-  const [selectedPaymentToDelete, setSelectedPaymentToDelete] = useState<Payment | null>(null)
-  const currentShiftPayments = payments
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [selectedShift, setSelectedShift] = useState("mañana")
-  const [cashRegisterError, setCashRegisterError] = useState<string | null>(null);
-  const [showCashRegisterCard, setShowCashRegisterCard] = useState(false)
-  const [cajaExiste, setCajaExiste] = useState(true)
-
   const { user, loading } = useUser()
   const router = useRouter()
 
-  const fetchMembers = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
-      const data = await res.json()
-      setMembers(data)
-    } catch (error) {
-      console.error("Error al cargar los alumnos", error)
-    }
-  }
-  const updateMemberAttendance = (dni: string, nuevasClases: number) => {
-    setMembers(prev =>
-      prev.map(member =>
-        member.DNI === dni ? { ...member, Clases_realizadas: nuevasClases } : member
-      )
-    )
-  }
-  const fetchPaymentsByDateAndShift = async () => {
-    try {
-      const dateStr = dayjs(selectedDate).format("DD-MM-YYYY")
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos/fecha/${dateStr}/${selectedShift}`)
-      const data = await res.json()
-      setPayments(data)
-    } catch (error) {
-      console.error("Error al cargar pagos por turno", error)
-    }
-  }
-  const handleUpdateMemberExpiration = (
-    dni: string,
-    nuevaFecha: string,
-    nuevoPlan: string,
-    clasesPagadas: number
-  ) => {
+  const { fetchMembers, updateAttendance } = useMembers()
+  const { alumnos } = useAppData();
+  const [members, setMembers] = useState<Member[]>([]);
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedShift, setSelectedShift] = useState("mañana")
+  const { payments, refreshPayments } = usePayments(selectedDate, selectedShift)
+
+  const { open: cashOpen, initialAmount, error: cashError, cerrada, existe, openCash, closeCash, setInitialAmount } = useCashRegister({ selectedShift, payments, userName: user?.nombre, })
+  const { dialogs, selection, openDialog, closeDialog, onEditMember, onDeleteMember, onDeletePayment, onShowAddPayment } = useDialogManager(cashOpen)
+
+  const handleMemberUpdated = (dni: string, nuevaFecha: string, nuevoPlan: string, clasesPagadas: number) => {
     setMembers(prev =>
       prev.map(m =>
         m.DNI === dni
           ? { ...m, Fecha_vencimiento: nuevaFecha, Plan: nuevoPlan, Clases_pagadas: clasesPagadas, Clases_realizadas: 0 }
           : m
       )
-    )
-  }
-  const handleOpenCashRegister = async () => {
-    try {
-      const requestBody: any = { turno: selectedShift, responsable: user?.nombre }
-      if (selectedShift === "mañana") {
-        requestBody.saldoInicial = initialAmount
-      }
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody)
-      })
-      if (!response.ok) {
-        const errorData = await response.json();
-        setCashRegisterError(errorData.message);
-
-        setTimeout(() => {
-          setCashRegisterError(null);
-        }, 5000);
-
-        return;
-      }
-
-      const data = await response.json()
-      setInitialAmount(data.saldoInicial)
-      setCashRegisterId(data.id)
-      setCashRegisterOpen(true)
-      setIsCajaCerrada(false)
-      setCashRegisterError(null)
-
-      localStorage.setItem("cajaAbierta", "true")
-      localStorage.setItem("initialAmount", data.saldoInicial)
-      localStorage.setItem("cashRegisterId", data.id)
-      localStorage.removeItem("cajaCerrada")
-
-    } catch (error) {
-      console.error("Error al abrir caja:", error)
-    }
-  }
-  const handleCloseCashRegister = async () => {
-    try {
-      if (!cashRegisterId) return
-      const horaCierre = dayjs().format("HH:mm")
-      const parsedInitial = parseFloat(initialAmount) || 0
-      const totalPagos = payments.reduce((sum, p) => sum + Number(p.Monto || 0), 0)
-      const totalFinal = parsedInitial + totalPagos
-      const totalEfectivo = payments.filter(p => p.Metodo_de_Pago === "Efectivo")
-        .reduce((sum, p) => sum + Number(p.Monto || 0), 0)
-      const totalTarjeta = payments.filter(p => p.Metodo_de_Pago === "Tarjeta")
-        .reduce((sum, p) => sum + Number(p.Monto || 0), 0)
-      const nuevosDatos = {
-        "Hora Cierre": horaCierre,
-        "Total Efectivo": String(totalEfectivo),
-        "Total Tarjeta": String(totalTarjeta),
-        "Total Final": String(totalFinal)
-      }
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/${cashRegisterId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevosDatos)
-      })
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error("Error al cerrar caja:", errorData.message)
-        return
-      }
-      await response.json()
-      setCashRegisterOpen(false)
-      setInitialAmount("0")
-      setCashRegisterId(null)
-      setPayments([])
-
-      localStorage.removeItem("cajaAbierta")
-      localStorage.removeItem("initialAmount")
-      localStorage.removeItem("cashRegisterId")
-      localStorage.setItem("cajaCerrada", "true")
-    } catch (error) {
-      console.error("Error al cerrar caja:", error)
-    }
-  }
-  const handleEditMember = (member: Member) => {
-    setSelectedMember(member)
-    setShowEditDialog(true)
-  }
-  const handleSaveMember = (updated: Member) => {
-    setMembers(prev => prev.map(m => (m.DNI === updated.DNI ? updated : m)))
-    setShowEditDialog(false)
-  }
-  const handleShowAddPayment = () => {
-    if (cashRegisterOpen) setShowAddPayment(true)
-  }
+    );
+  };
+  const onMemberAdded = (newMember: Member) => {
+    setMembers(prev => [...prev, newMember]);
+    closeDialog("addMember");
+  };
+  const onMemberEdited = (edited: Member) => {
+    setMembers(prev =>
+      prev.map(m => m.DNI === edited.DNI ? edited : m)
+    );
+    closeDialog("editMember");
+  };
+  const onMemberDeleted = (dni: string) => {
+    setMembers(prev =>
+      prev.filter(m => m.DNI !== dni)
+    );
+    closeDialog("deleteMember");
+  };
 
   useEffect(() => {
     if (!loading && (!user?.dni || !user?.rol)) {
@@ -185,153 +77,96 @@ export default function ReceptionistDashboard() {
   }, [user, loading, router])
 
   useEffect(() => {
-    const inicializarCaja = async () => {
-      try {
-        await fetchMembers()
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/abierta/${selectedShift}`)
-        const data = await res.json()
-
-        if (!data.existe) {
-          setCajaExiste(false)
-          setCashRegisterOpen(false)
-          setIsCajaCerrada(false)
-          setCashRegisterId(null)
-          setShowCashRegisterCard(false)
-          return
-        }
-
-        setCajaExiste(true)
-
-        if (data.abierta) {
-          setCashRegisterOpen(true)
-          setInitialAmount(data.saldoInicial)
-          setCashRegisterId(data.id)
-          setIsCajaCerrada(false)
-          setShowCashRegisterCard(true)
-        } else {
-          setCashRegisterOpen(false)
-          setCashRegisterId(null)
-          setInitialAmount("0")
-          setIsCajaCerrada(true)
-          setShowCashRegisterCard(false)
-        }
-      } catch (error) {
-        console.error("Error al verificar caja abierta:", error)
-      }
-    }
-
-    inicializarCaja()
-  }, [selectedShift])
-
+    fetchMembers();
+  }, []);
 
   useEffect(() => {
-    fetchPaymentsByDateAndShift()
+    const formattedMembers: Member[] = alumnos.map(alumno => ({
+      id: alumno.ID,
+      Nombre: alumno.Nombre,
+      DNI: alumno.DNI,
+      Email: alumno.Email,
+      Telefono: alumno.Telefono,
+      Clases_pagadas: Number(alumno.Clases_pagadas),
+      Clases_realizadas: Number(alumno.Clases_realizadas),
+      Fecha_inicio: alumno.Fecha_inicio,
+      Fecha_vencimiento: alumno.Fecha_vencimiento,
+      Fecha_nacimiento: alumno.Fecha_nacimiento,
+      Plan: alumno.Plan,
+      Profesor_asignado: alumno.Profesor_asignado,
+    }));
+
+    setMembers(formattedMembers);
+  }, [alumnos]);
+
+  useEffect(() => {
+    refreshPayments()
   }, [selectedDate, selectedShift])
-
-  useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001")
-
-    socket.on("nuevo-pago", data => {
-      if (cashRegisterOpen) {
-        setPayments(prev => [...prev, data])
-      }
-    })
-
-    socket.on("asistencia-registrada", data => {
-      if (data?.dni && data?.clasesRealizadas !== undefined) {
-        updateMemberAttendance(data.dni, data.clasesRealizadas)
-      }
-    })
-
-    socket.on("asistencia-actualizada", data => {
-      if (data?.dni && data?.clasesRealizadas !== undefined) {
-        updateMemberAttendance(data.dni, data.clasesRealizadas)
-      }
-    })
-
-    return () => {
-      socket.off("nuevo-pago")
-      socket.off("asistencia-registrada")
-      socket.off("asistencia-actualizada")
-      socket.disconnect()
-    }
-  }, [cashRegisterOpen])
-
 
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader role="Recepcionista" />
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-
-        {!cashRegisterOpen && isCajaCerrada && cajaExiste && (
+        {!cashOpen && cerrada && existe && (
           <div className="text-center text-xl font-bold text-gray-600">
             La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
           </div>
         )}
 
-        {(!isCajaCerrada || !cajaExiste) && (
+        {(!cerrada || !existe) && (
           <CashRegisterSection
-            cashRegisterOpen={cashRegisterOpen}
+            cashRegisterOpen={cashOpen}
             initialAmount={initialAmount}
             selectedShift={selectedShift}
-            currentShiftPayments={currentShiftPayments}
-            onOpenCashRegister={handleOpenCashRegister}
-            onCloseCashRegister={handleCloseCashRegister}
+            currentShiftPayments={payments}
+            onOpenCashRegister={openCash}
+            onCloseCashRegister={closeCash}
             setInitialAmount={setInitialAmount}
-            errorMessage={cashRegisterError}
+            errorMessage={cashError}
           />
         )}
- 
+
         <Tabs defaultValue="members" className="space-y-4">
           <TabsList className="grid w-full grid-cols-5 md:w-auto">
-            <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              Miembros
-            </TabsTrigger>
-            <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              Pagos por Turno
-            </TabsTrigger>
-            <TabsTrigger value="assists" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              Asistencias
-            </TabsTrigger>
-            <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              Planes
-            </TabsTrigger>
-            <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              Turnos
-            </TabsTrigger>
+            <TabsTrigger value="members">Miembros</TabsTrigger>
+            <TabsTrigger value="shift-payments">Pagos por Turno</TabsTrigger>
+            <TabsTrigger value="assists">Asistencias</TabsTrigger>
+            <TabsTrigger value="plans">Planes</TabsTrigger>
+            <TabsTrigger value="shifts">Turnos</TabsTrigger>
           </TabsList>
 
-          <MembersSection
-            members={members}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            onAddMember={() => setShowAddMember(true)}
-            onEdit={handleEditMember}
-            onDelete={(member) => {
-              setSelectedMemberToDelete(member)
-              setShowDeleteDialog(true)
-            }}
-          />
+          <TabsContent value="members" className="space-y-4">
+            <MembersSection
+              members={members}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onAddMember={() => openDialog("addMember")}
+              onEdit={onEditMember}
+              onDelete={onDeleteMember}
+            />
+          </TabsContent>
 
-          <PaymentsSection
-            currentShiftPayments={currentShiftPayments}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            selectedShift={selectedShift}
-            setSelectedShift={setSelectedShift}
-            onShowAddPayment={handleShowAddPayment}
-            formatDate={formatDate}
-            setSelectedPaymentToDelete={setSelectedPaymentToDelete}
-            setShowDeletePaymentDialog={setShowDeletePaymentDialog}
-            onMemberUpdated={handleUpdateMemberExpiration}
-            refreshPayments={fetchPaymentsByDateAndShift}
-          />
+          <TabsContent value="shift-payments" className="space-y-4">
+            <PaymentsSection
+              currentShiftPayments={payments}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedShift={selectedShift}
+              setSelectedShift={setSelectedShift}
+              onShowAddPayment={onShowAddPayment}
+              formatDate={formatDate}
+              setSelectedPaymentToDelete={onDeletePayment}
+              setShowDeletePaymentDialog={() => { }}
+              onMemberUpdated={handleMemberUpdated}
+              refreshPayments={refreshPayments}
+              cashOpen={cashOpen}
+            />
+          </TabsContent>
 
           <TabsContent value="assists" className="space-y-4">
             <AssistsSection />
           </TabsContent>
-          
+
           <TabsContent value="plans" className="space-y-4">
             <PlansSection />
           </TabsContent>
@@ -339,36 +174,50 @@ export default function ReceptionistDashboard() {
           <TabsContent value="shifts" className="space-y-4">
             <ShiftsSection />
           </TabsContent>
-
         </Tabs>
       </div>
-      <AddMemberDialog open={showAddMember} onOpenChange={setShowAddMember} onMemberAdded={fetchMembers} />
-      <AddPaymentDialog
-        open={showAddPayment}
-        onOpenChange={setShowAddPayment}
-        onPaymentAdded={fetchPaymentsByDateAndShift}
-        onMemberUpdated={handleUpdateMemberExpiration}
-      />
-      <EditMemberDialog open={showEditDialog} onOpenChange={setShowEditDialog} member={selectedMember} onSave={handleSaveMember} />
 
-      {showDeleteDialog && selectedMemberToDelete && (
-        <DeleteMemberDialog
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          member={selectedMemberToDelete}
-          onDelete={(deletedDNI) => {
-            setMembers(prev => prev.filter(m => m.DNI !== deletedDNI))
-          }}
-        />
-      )}
-      {showDeletePaymentDialog && selectedPaymentToDelete && (
-        <DeletePaymentDialog
-          open={showDeletePaymentDialog}
-          onOpenChange={setShowDeletePaymentDialog}
-          payment={selectedPaymentToDelete}
-          onDelete={() => { fetchPaymentsByDateAndShift() }}
-        />
-      )}
+      <AddMemberDialog
+        open={dialogs.addMember}
+        onOpenChange={() => closeDialog("addMember")}
+        onMemberAdded={onMemberAdded}
+      />
+
+      <EditMemberDialog
+        open={dialogs.editMember}
+        onOpenChange={() => closeDialog("editMember")}
+        member={selection.memberToEdit}
+        onSave={(m: Member) => {
+          updateAttendance(m.DNI, m.Clases_realizadas);
+          onMemberEdited(m);
+        }}
+      />
+
+      <DeleteMemberDialog
+        open={dialogs.deleteMember}
+        onOpenChange={() => closeDialog("deleteMember")}
+        member={selection.memberToDelete!}
+        onDelete={dni => {
+          onMemberDeleted(dni);
+        }}
+      />
+
+      <AddPaymentDialog
+        open={dialogs.addPayment}
+        onOpenChange={() => closeDialog("addPayment")}
+        onPaymentAdded={refreshPayments}
+        onMemberUpdated={handleMemberUpdated}
+      />
+
+      <DeletePaymentDialog
+        open={dialogs.deletePayment}
+        onOpenChange={() => closeDialog("deletePayment")}
+        payment={selection.paymentToDelete!}
+        onDelete={() => {
+          refreshPayments()
+          closeDialog("deletePayment")
+        }}
+      />
     </div>
   )
 }

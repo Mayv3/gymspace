@@ -11,6 +11,7 @@ import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add
 import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
 import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/delete-member-dialog"
 import { useAppData } from "@/context/AppDataContext"
+import { Member } from "@/models/dashboard"
 
 interface Alumno {
   ID: string
@@ -28,7 +29,12 @@ interface Alumno {
   Profesor_asignado: string
 }
 
-export function MembersStatsTab() {
+interface MembersStatsTabProps {
+  members: Member[];
+  onMemberAdded: (newMember: Member) => void;
+}
+
+export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
   const { alumnos, setAlumnos } = useAppData()
   const total = alumnos.length;
 

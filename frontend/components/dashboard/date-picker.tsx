@@ -13,9 +13,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 interface DatePickerProps {
   date?: Date
   setDate?: (date: Date) => void
+  disabled?: boolean
 }
 
-export function DatePicker({ date, setDate }: DatePickerProps) {
+export function DatePicker({ date, setDate, disabled = false }: DatePickerProps) {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(date)
 
   const handleSelect = (newDate: Date | undefined) => {
@@ -33,6 +34,7 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
         <Button
           variant="outline"
           className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
+          disabled={disabled} 
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
           {isValidDate
@@ -49,6 +51,7 @@ export function DatePicker({ date, setDate }: DatePickerProps) {
           onSelect={handleSelect}
           initialFocus
           locale={es}
+          disabled={disabled ? () => true : undefined}
         />
       </PopoverContent>
     </Popover>

@@ -23,7 +23,6 @@ interface Alumno {
   Fecha_vencimiento: string
   Profesor_asignado: string
 }
-
 interface Asistencia {
   ID: string
   Fecha: string
@@ -31,10 +30,18 @@ interface Asistencia {
   ["Cantidad de presentes"]: string
   Responsable: string
 }
+interface Turno {
+  ID: string
+  Tipo: string
+  Fecha_turno: string
+  Profesional: string
+  Responsable: string
+}
 
 interface AppDataContextProps {
   planes: Plan[]
   assists: Asistencia[]
+  turnos: Turno[]
   fetchPlanes: () => Promise<void>
   fetchAssists: (options: { selectedDate: Date; selectedType: string }) => Promise<void>
   setAssists: React.Dispatch<React.SetStateAction<Asistencia[]>>
@@ -43,18 +50,24 @@ interface AppDataContextProps {
   alumnos: Alumno[]
   fetchAlumnos: () => Promise<void>
   setAlumnos: React.Dispatch<React.SetStateAction<Alumno[]>>
-
+  setPlanes: React.Dispatch<React.SetStateAction<Plan[]>>
+  setTurnos: React.Dispatch<React.SetStateAction<Turno[]>>
+  fetchTurnos: (selectedDate?: Date) => Promise<void>
 }
 
 const AppDataContext = createContext<AppDataContextProps>({
   planes: [],
   assists: [],
   alumnos: [],
+  turnos: [],
   fetchPlanes: async () => { },
   fetchAssists: async () => { },
   fetchAlumnos: async () => { },
+  fetchTurnos: async () => { },
+  setPlanes: () => { },
   setAssists: () => { },
   setAlumnos: () => { },
+  setTurnos: () => { },
   deleteAsistencia: async () => { },
   editAsistencia: async () => { },
 })
@@ -63,6 +76,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [planes, setPlanes] = useState<Plan[]>([])
   const [assists, setAssists] = useState<Asistencia[]>([])
   const [alumnos, setAlumnos] = useState<Alumno[]>([])
+  const [turnos, setTurnos] = useState<Turno[]>([])
 
   const fetchAlumnos = async () => {
     try {
@@ -86,7 +100,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const fetchAssists = async ({ selectedDate, selectedType }: { selectedDate: Date; selectedType: string }) => {
     try {
-      const fechaFormateada = dayjs(selectedDate).format("YYYY-MM-DD")
+
+      const fechaFormateada = selectedDate ? dayjs(selectedDate).format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD");
       const params = new URLSearchParams({ fecha: fechaFormateada })
 
       if (selectedType !== "todas") {
@@ -104,6 +119,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       setAssists(formateadas)
     } catch (error) {
       console.error("Error al obtener clases diarias", error)
+    }
+  }
+
+  const fetchTurnos = async (selectedDate?: Date) => {
+    try {
+      const fechaFormateada = selectedDate ? dayjs(selectedDate).format("DD/MM/YYYY") : dayjs().format("DD/MM/YYYY");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos?fecha=${fechaFormateada}`)
+      const data = await res.json()
+      console.log(data)
+      setTurnos(data)
+    } catch (error) {
+      console.error("Error al obtener turnos:", error)
     }
   }
 
@@ -152,16 +179,30 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    fetchAlumnos()
-  }, [])
-
-  useEffect(() => {
-    fetchPlanes()
+    fetchAlumnos();
+    fetchPlanes();
+    fetchAssists({ selectedDate: new Date(), selectedType: "todas" });
+    fetchTurnos()
   }, [])
 
   return (
     <AppDataContext.Provider
-      value={{ planes, assists,  alumnos,  fetchPlanes, fetchAlumnos, fetchAssists, setAlumnos, setAssists, deleteAsistencia, editAsistencia }}
+      value={{
+        planes,
+        assists,
+        alumnos,
+        turnos,
+        fetchPlanes,
+        fetchAssists,
+        fetchAlumnos,
+        fetchTurnos,
+        setPlanes,
+        setAssists,
+        setAlumnos,
+        setTurnos,
+        deleteAsistencia,
+        editAsistencia
+      }}
     >
       {children}
     </AppDataContext.Provider>

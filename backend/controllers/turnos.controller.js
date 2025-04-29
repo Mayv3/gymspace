@@ -58,8 +58,7 @@ export const createTurno = async (req, res) => {
             Responsable: responsable,
         };
 
-        await appendTurnoToSheet(nuevoTurno);
-        res.status(201).json({ message: 'Turno creado exitosamente' });
+        res.status(201).json(nuevoTurno);
     } catch (error) {
         console.error('Error al crear turno:', error);
         res.status(500).json({ message: 'Error al crear turno' });
@@ -68,21 +67,24 @@ export const createTurno = async (req, res) => {
 
 export const updateTurno = async (req, res) => {
     try {
-        const { id } = req.params;
-        const nuevosDatos = req.body;
-
-        const actualizado = await updateTurnoByID(id, nuevosDatos);
-
-        if (!actualizado) {
-            return res.status(404).json({ message: 'Turno no encontrado' });
-        }
-
-        res.json({ message: 'Turno actualizado exitosamente' });
+      const { id } = req.params;
+      const nuevosDatos = req.body;
+  
+      const actualizado = await updateTurnoByID(id, nuevosDatos);
+  
+      if (!actualizado) {
+        return res.status(404).json({ message: 'Turno no encontrado' });
+      }
+  
+      const turnos = await getTurnosFromSheet();
+      const turnoActualizado = turnos.find(t => t.ID === id);
+      console.log(turnoActualizado)
+      res.json(turnoActualizado);
     } catch (error) {
-        console.error('Error al actualizar turno:', error);
-        res.status(500).json({ message: 'Error al actualizar turno' });
+      console.error('Error al actualizar turno:', error);
+      res.status(500).json({ message: 'Error al actualizar turno' });
     }
-};
+  };
 
 export const deleteTurno = async (req, res) => {
     try {

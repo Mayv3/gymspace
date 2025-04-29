@@ -570,12 +570,21 @@ export async function appendPlanToSheet(data) {
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A:E',       // <— aquí el cambio clave
+    range: 'PlanesYprecios!A:E',
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values }
   })
+
+  return {
+    ID: nuevoID,
+    Tipo: data.Tipo,
+    'Plan o Producto': data['Plan o Producto'],
+    Precio: data.Precio,
+    numero_Clases: data.numero_Clases,
+  }
 }
+
 
 export async function updatePlanInSheet(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
