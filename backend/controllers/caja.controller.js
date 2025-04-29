@@ -2,7 +2,8 @@ import {
   appendCajaToSheet,
   updateCajaByID,
   deleteCajaByID,
-  getCajasFromSheet
+  getCajasFromSheet,
+  getPagosFromSheet
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
@@ -171,24 +172,42 @@ export const obtenerCajaAbiertaPorTurno = async (req, res) => {
 
 export const getCajasPorMes = async (req, res) => {
   try {
-    const { mes, anio } = req.query;
-
-    if (!mes || !anio) {
-      return res.status(400).json({ message: "Se requiere mes y año" });
-    }
-
     const cajas = await getCajasFromSheet();
+    const pagos = await getPagosFromSheet();
 
-    const cajasFiltradas = cajas.filter(caja => {
-      const fecha = dayjs(caja.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
-      return fecha.isValid() &&
-        fecha.month() + 1 === parseInt(mes) &&
-        fecha.year() === parseInt(anio);
+    const cajasConTotales = cajas.map(caja => {
+      const fechaCaja = dayjs(caja.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
+      const horaApertura = dayjs(`${caja.Fecha} ${caja["Hora Apertura"]}`, "D/M/YYYY HH:mm");
+      const horaCierre = dayjs(`${caja.Fecha} ${caja["Hora Cierre"]}`, "D/M/YYYY HH:mm");
+
+      let totalGimnasio = 0;
+      let totalClases = 0;
+
+      pagos.forEach(pago => {
+        const fechaPago = dayjs(pago.Fecha_de_Pago, ["D/M/YYYY", "DD/MM/YYYY"]);
+        const horaPago = dayjs(`${pago.Fecha_de_Pago} ${pago.Hora}`, "D/M/YYYY HH:mm");
+        const tipo = pago.Tipo?.toUpperCase();
+        const monto = parseFloat(pago.Monto) || 0;
+
+        const mismaFecha = fechaCaja.isSame(fechaPago, 'day');
+        const enRango = horaPago.isAfter(horaApertura.subtract(1, 'minute')) && horaPago.isBefore(horaCierre.add(1, 'minute'));
+
+        if (mismaFecha && enRango) {
+          if (tipo === "GIMNASIO") totalGimnasio += monto;
+          if (tipo === "CLASES") totalClases += monto;
+        }
+      });
+
+      return {
+        ...caja,
+        TotalGimnasio: totalGimnasio,
+        TotalClases: totalClases
+      };
     });
 
-    res.json(cajasFiltradas);
+    res.json(cajasConTotales);
   } catch (error) {
-    console.error("Error al obtener cajas por mes:", error);
-    res.status(500).json({ message: "Error al filtrar cajas" });
+    console.error("Error al calcular cajas detalladas:", error);
+    res.status(500).json({ message: "Error interno" });
   }
 };

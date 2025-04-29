@@ -125,14 +125,15 @@ const CustomTooltip: React.FC<TooltipProps<number, string> & {
   }
   return null;
 };
-
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
 
-  const montoManiana = data["mañana_monto"] || 0;
   const montoTarde = data["tarde_monto"] || 0;
-  const totalDia = montoManiana + montoTarde;
+  const totalDia = montoTarde;
+
+  const montoGimnasio = data["tarde_gimnasio"] ?? data["mañana_gimnasio"] ?? 0;
+  const montoClase = data["tarde_clases"] ?? data["mañana_clases"] ?? 0;
 
   return (
     <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
@@ -152,8 +153,16 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
         )
       ))}
 
+      <div className="border-t mt-2 pt-2 text-sm">
+        <p className="font-semibold">🔍 Desglose por tipo:</p>
+        <ul className="ml-2 text-xs">
+          <li>🏋️ Gimnasio: ${montoGimnasio}</li>
+          <li>🤸 Clase:    ${montoClase}</li>
+        </ul>
+      </div>
+
       <div className="border-t mt-2 pt-2 text-sm font-semibold">
-        🧾 Total del día: ${totalDia}
+        🧾 Total del día (fin turno tarde): ${totalDia}
       </div>
     </div>
   );
@@ -284,12 +293,15 @@ export default function AdminOverviewCharts({
   };
 
   const cajasTransformadas = cajasDelMes.reduce((acc: any[], caja: any) => {
+    const limpiarNumero = (valor: any) =>
+      Number(String(valor).replace(/\./g, "").replace(",", ".")) || 0;
+
     const fecha = dayjs(caja.Fecha, "D/M/YYYY", true).isValid()
       ? dayjs(caja.Fecha, "D/M/YYYY").format("D/M/YYYY")
       : caja.Fecha;
 
     const turno = caja.Turno?.toLowerCase();
-    const monto = Number(caja["Total Final"]?.replace(/\./g, "").replace(",", ".")) || 0;
+    const monto = limpiarNumero(caja["Total Final"]);
 
     let existente = acc.find((item) => item.fecha === fecha);
 
@@ -304,18 +316,23 @@ export default function AdminOverviewCharts({
         tarde_efectivo: 0,
         mañana_tarjeta: 0,
         tarde_tarjeta: 0,
+        mañana_gimnasio: 0,
+        tarde_gimnasio: 0,
+        mañana_clases: 0,
+        tarde_clases: 0,
       };
       acc.push(existente);
     }
 
     existente[`${turno}_monto`] = monto;
-    existente[`${turno}_saldoInicial`] = Number(caja["Saldo Inicial"]) || 0;
-    existente[`${turno}_efectivo`] = Number(caja["Total Efectivo"]) || 0;
-    existente[`${turno}_tarjeta`] = Number(caja["Total Tarjeta"]) || 0;
+    existente[`${turno}_saldoInicial`] = limpiarNumero(caja["Saldo Inicial"]);
+    existente[`${turno}_efectivo`] = limpiarNumero(caja["Total Efectivo"]);
+    existente[`${turno}_tarjeta`] = limpiarNumero(caja["Total Tarjeta"]);
+    existente[`${turno}_gimnasio`] = limpiarNumero(caja["TotalGimnasio"]);
+    existente[`${turno}_clases`] = limpiarNumero(caja["TotalClases"]);
 
     return acc;
   }, []);
-
 
   useEffect(() => {
     fetchPlanesPersonalizados();
@@ -360,7 +377,7 @@ export default function AdminOverviewCharts({
   const planesFiltrados = planes.filter((p) =>
     tipoPlan === "TODOS" ? true : p.tipo === tipoPlan
   );
-  
+
   return (
     <div
       className={
@@ -743,7 +760,7 @@ export default function AdminOverviewCharts({
               <LineChart data={cajasTransformadas}>
                 <XAxis dataKey="fecha" />
                 <YAxis />
-                <Tooltip content={<CustomTooltipCajas  />} />
+                <Tooltip content={<CustomTooltipCajas />} />
                 <Line
                   type="monotone"
                   dataKey="tarde_monto"
