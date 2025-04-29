@@ -76,7 +76,7 @@ interface Promedio {
   promedio: number;
 }
 
-interface PersonalizadosPorProfesor {
+interface planesPorProfesor {
   profesor: string;
   cantidad: number;
   alumnos: string[];
@@ -88,10 +88,9 @@ interface DashboardData {
   planes: Plan[];
   asistenciasPorHora: Record<string, number>;
   facturacion: Factura[];
-  personalizadosPorProfesor: PersonalizadosPorProfesor[];
+  planesPorProfesor: planesPorProfesor[];
   cajasDelMes: { turno: string; monto: number }[];
 }
-
 
 const CustomTooltip: React.FC<TooltipProps<number, string> & {
   explicaciones?: Record<string, string>;
@@ -100,50 +99,24 @@ const CustomTooltip: React.FC<TooltipProps<number, string> & {
     const isDark = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
 
     return (
-      <div
-        className="p-2 rounded-md shadow text-sm border w-max max-w-[240px]"
+      <div className="p-2 rounded-md shadow text-sm border w-max max-w-[240px]"
         style={{
           backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
           color: isDark ? "hsl(0, 0%, 95%)" : "#000",
-        }}
-      >
-        {/* Si es facturación o tiene múltiples payloads */}
+        }}>
         {payload.length > 1 ? (
           payload.map((entry, index) => (
             <div key={index} className="mb-1">
-              <p
-                className="font-semibold"
-                style={{
-                  color: isDark ? "hsl(30, 100%, 70%)" : "#000",
-                }}
-              >
+              <p className="font-semibold" style={{ color: isDark ? "hsl(30, 100%, 70%)" : "#000" }}>
                 {entry.name} : ${entry.value}
               </p>
             </div>
           ))
         ) : (
           <>
-            {payload[0] && (
-              <>
-                <p
-                  className="font-semibold mb-1"
-                  style={{
-                    color: isDark ? "hsl(30, 100%, 70%)" : "#000",
-                  }}
-                >
-                  {(payload[0].payload.rango ?? payload[0].payload.estado ?? payload[0].payload.plan ?? payload[0].payload.hora ?? payload[0].payload.profesor) ?? ""}
-                  : {payload[0].value}
-                </p>
-                {explicaciones[payload[0].payload.estado ?? ""] && (
-                  <p
-                    style={{
-                      color: isDark ? "hsl(0, 0%, 85%)" : "#666",
-                    }}
-                  >
-                    {explicaciones[payload[0].payload.estado]}
-                  </p>
-                )}
-              </>
+            <p className="font-semibold mb-1">{payload[0].name}: {payload[0].value}</p>
+            {explicaciones[payload[0].payload.estado ?? ""] && (
+              <p className="text-muted-foreground">{explicaciones[payload[0].payload.estado]}</p>
             )}
           </>
         )}
@@ -151,6 +124,39 @@ const CustomTooltip: React.FC<TooltipProps<number, string> & {
     );
   }
   return null;
+};
+
+const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0].payload;
+
+  const montoManiana = data["mañana_monto"] || 0;
+  const montoTarde = data["tarde_monto"] || 0;
+  const totalDia = montoManiana + montoTarde;
+
+  return (
+    <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
+      <p className="font-bold mb-1">📅 {data.fecha}</p>
+
+      {["mañana", "tarde"].map((turno) => (
+        data[`${turno}_monto`] !== undefined && (
+          <div key={turno} className="mb-2">
+            <p className="font-semibold capitalize">{turno}</p>
+            <ul className="ml-2 text-xs">
+              <li>🔹 Inicial: ${data[`${turno}_saldoInicial`] ?? 0}</li>
+              <li>💵 Efectivo: ${data[`${turno}_efectivo`] ?? 0}</li>
+              <li>💳 Tarjeta: ${data[`${turno}_tarjeta`] ?? 0}</li>
+              <li>💰 Final: ${data[`${turno}_monto`] ?? 0}</li>
+            </ul>
+          </div>
+        )
+      ))}
+
+      <div className="border-t mt-2 pt-2 text-sm font-semibold">
+        🧾 Total del día: ${totalDia}
+      </div>
+    </div>
+  );
 };
 
 
@@ -168,16 +174,17 @@ export default function AdminOverviewCharts({
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
   const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState<string>("");
-  const cajasDelMes = dashboardData?.cajasDelMes || [];
+
   const [selectedMonthCajas, setSelectedMonthCajas] = useState<string>("");
   const [selectedYearPersonalizados, setSelectedYearPersonalizados] = useState<number>(new Date().getFullYear());
   const [asistenciasPorHora, setAsistenciasPorHora] = useState<{ hora: string; cantidad: number }[]>([]);
-
   const [promedios, setPromedios] = useState<Promedio[]>([
     { rango: "Mañana (7-12hs)", promedio: 0 },
     { rango: "Tarde (15-18hs)", promedio: 0 },
     { rango: "Noche (18-22hs)", promedio: 0 },
   ]);
+  const [cajasDelMes, setCajasDelMes] = useState([]);
+  const [planesPorProfesor, setPlanesPorProfesor] = useState<planesPorProfesor[]>([]);
 
   const fetchDashboard = async () => {
     try {
@@ -231,9 +238,9 @@ export default function AdminOverviewCharts({
       const dia = fecha.date();
       const mes = fecha.month() + 1;
       const anio = fecha.year();
-  
+
       const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/por-hora/${dia}/${mes}/${anio}`);
-  
+
       const data = Object.entries(res.data).map(([hora, cantidad]) => ({
         hora,
         cantidad: Number(cantidad),
@@ -244,8 +251,76 @@ export default function AdminOverviewCharts({
       console.error("Error al cargar asistencias por hora:", error);
     }
   };
-  
-  
+
+  const fetchCajasDelMes = async () => {
+    const hoy = dayjs();
+    const mes = selectedMonthCajas || (hoy.month() + 1).toString();
+    const anio = selectedYear || hoy.year();
+
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/mes`, {
+        params: { mes, anio },
+      });
+      console.log("caja:", JSON.stringify(cajasDelMes, null, 2));
+      setCajasDelMes(res.data);
+    } catch (error) {
+      console.error("Error al cargar cajas del mes:", error);
+    }
+  };
+
+  const fetchPlanesPersonalizados = async () => {
+    const hoy = dayjs();
+    const mes = selectedMonthPersonalizados || (hoy.month() + 1).toString();
+    const anio = selectedYearPersonalizados || hoy.year();
+
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/personalizados`, {
+        params: { mes, anio },
+      });
+      setPlanesPorProfesor(res.data);
+    } catch (error) {
+      console.error("Error al cargar planes personalizados por profesor:", error);
+    }
+  };
+
+  const cajasTransformadas = cajasDelMes.reduce((acc: any[], caja: any) => {
+    const fecha = dayjs(caja.Fecha, "D/M/YYYY", true).isValid()
+      ? dayjs(caja.Fecha, "D/M/YYYY").format("D/M/YYYY")
+      : caja.Fecha;
+
+    const turno = caja.Turno?.toLowerCase();
+    const monto = Number(caja["Total Final"]?.replace(/\./g, "").replace(",", ".")) || 0;
+
+    let existente = acc.find((item) => item.fecha === fecha);
+
+    if (!existente) {
+      existente = {
+        fecha,
+        mañana_monto: 0,
+        tarde_monto: 0,
+        mañana_saldoInicial: 0,
+        tarde_saldoInicial: 0,
+        mañana_efectivo: 0,
+        tarde_efectivo: 0,
+        mañana_tarjeta: 0,
+        tarde_tarjeta: 0,
+      };
+      acc.push(existente);
+    }
+
+    existente[`${turno}_monto`] = monto;
+    existente[`${turno}_saldoInicial`] = Number(caja["Saldo Inicial"]) || 0;
+    existente[`${turno}_efectivo`] = Number(caja["Total Efectivo"]) || 0;
+    existente[`${turno}_tarjeta`] = Number(caja["Total Tarjeta"]) || 0;
+
+    return acc;
+  }, []);
+
+
+  useEffect(() => {
+    fetchPlanesPersonalizados();
+  }, [selectedMonthPersonalizados, selectedYearPersonalizados]);
+
   useEffect(() => {
     fetchAsistenciasPorHora();
   }, [selectedDate]);
@@ -258,9 +333,12 @@ export default function AdminOverviewCharts({
     fetchDashboard();
   }, [selectedDate, selectedMonthPersonalizados, selectedYearPersonalizados, selectedMonthCajas, selectedYear]);
 
+  useEffect(() => {
+    fetchCajasDelMes();
+  }, [selectedMonthCajas, selectedYear]);
   if (!dashboardData) return null;
 
-  const { estado, edades, planes, facturacion, personalizadosPorProfesor } = dashboardData;
+  const { estado, edades, planes, facturacion } = dashboardData;
 
   const estadoArray = [
     { estado: "Activos", cantidad: estado.activos },
@@ -282,21 +360,13 @@ export default function AdminOverviewCharts({
   const planesFiltrados = planes.filter((p) =>
     tipoPlan === "TODOS" ? true : p.tipo === tipoPlan
   );
-
-  const asistenciasHoraData = Object.entries(asistenciasPorHora).map(
-    ([hora, cantidad]) => ({
-      hora,
-      cantidad,
-    })
-  );
-
+  
   return (
     <div
       className={
         isVisible ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" : "hidden"
       }
     >
-      {/* 1. Activos vs Vencidos vs Abandonos */}
       <Card className="shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="flex items-center gap-2">
           <Users className="text-orange-500" />
@@ -597,18 +667,18 @@ export default function AdminOverviewCharts({
         </CardHeader>
 
         <CardContent>
-          {personalizadosPorProfesor.length === 0 ? (
+          {!planesPorProfesor ? (
             <p className="text-sm text-muted-foreground text-center mt-8">
               No hay planes personalizados para esta fecha.
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={personalizadosPorProfesor}>
+              <BarChart data={planesPorProfesor}>
                 <XAxis dataKey="profesor" />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                  {personalizadosPorProfesor.map((_, i) => (
+                  {planesPorProfesor.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Bar>
@@ -663,33 +733,32 @@ export default function AdminOverviewCharts({
             </div>
           </div>
         </CardHeader>
-
         <CardContent>
-          {cajasDelMes.length === 0 ? (
+          {cajasTransformadas.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center mt-8">
               No hay datos disponibles para el mes seleccionado.
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={cajasDelMes}>
+              <LineChart data={cajasTransformadas}>
                 <XAxis dataKey="fecha" />
                 <YAxis />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltipCajas  />} />
                 <Line
                   type="monotone"
-                  dataKey="mañana"
-                  name="Mañana"
-                  stroke={COLORS[0]}
+                  dataKey="tarde_monto"
+                  name="Tarde"
+                  stroke={COLORS[4]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
                 <Line
                   type="monotone"
-                  dataKey="tarde"
-                  name="Tarde"
-                  stroke={COLORS[1]}
+                  dataKey="mañana_monto"
+                  name="Mañana"
+                  stroke={COLORS[0]}
                   strokeWidth={2}
-                  dot={{ r: 4 }}
+                  dot={{ r: 4 }} p
                 />
               </LineChart>
             </ResponsiveContainer>

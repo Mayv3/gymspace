@@ -5,7 +5,9 @@ import {
   updatePlanInSheet,
   deletePlanInSheet,
   appendAumentoToSheet,
-  getAumentosPlanesFromSheet
+  getAumentosPlanesFromSheet,
+  getAlumnosFromSheet,
+  getPagosFromSheet
 } from '../services/googleSheets.js';
 
 export const getPlanes = async (req, res) => {
@@ -126,5 +128,76 @@ export const getAumentosPlanes = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener aumentos:', error);
     res.status(500).json({ message: 'Error al obtener aumentos' });
+  }
+};
+
+export const getPlanesPersonalizadosPorProfesor = async (req, res) => {
+  try {
+    const mes = Number(req.query.mes);
+    const anio = Number(req.query.anio);
+
+    if (!mes || !anio) {
+      return res.status(400).json({ error: "Mes y año requeridos" });
+    }
+
+    const alumnos = await getAlumnosFromSheet();
+    const pagos = await getPagosFromSheet();
+
+    console.log("Pagos crudos:", pagos);
+
+    const pagosFiltrados = pagos.filter((pago) => {
+      // depuración
+      console.log({
+        Fecha_de_Pago: pago.Fecha_de_Pago,
+        SocioDNI: pago["Socio DNI"],
+        Tipo: pago.Tipo
+      });
+
+      if (!pago.Fecha_de_Pago || !pago["Socio DNI"] || !pago.Tipo) return false;
+
+      const fecha = dayjs(
+        pago.Fecha_de_Pago.trim(),
+        ["D/M/YYYY", "DD/MM/YYYY"],
+        true
+      );
+      const tipo = pago.Tipo.toUpperCase().trim();
+
+      return (
+        fecha.isValid() &&
+        fecha.month() + 1 === mes &&
+        fecha.year() === anio &&
+        tipo === "GIMNASIO"
+      );
+    });
+
+    console.log("Pagos filtrados:", pagosFiltrados);
+
+    const resultado = pagosFiltrados.reduce((acc, pago) => {
+      const dni = pago["Socio DNI"];
+      const alumno = alumnos.find((a) => a.DNI === dni);
+      if (!alumno) return acc;
+
+      const plan = (alumno.Plan || "").toLowerCase();
+      if (!plan.includes("personalizado")) return acc;
+
+      const profesor = alumno.Profesor_asignado || "Sin profesor";
+      const nombre = alumno.Nombre || "Alumno sin nombre";
+
+      const existente = acc.find((p) => p.profesor === profesor);
+      if (existente) {
+        if (!existente.alumnos.includes(nombre)) {
+          existente.alumnos.push(nombre);
+          existente.cantidad += 1;
+        }
+      } else {
+        acc.push({ profesor, cantidad: 1, alumnos: [nombre] });
+      }
+      return acc;
+    }, []);
+
+    res.json(resultado);
+  } catch (error) {
+    console.error("Error al obtener planes personalizados:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
