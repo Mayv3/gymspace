@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useAppData } from "@/context/AppDataContext"
-import { parse, format } from "date-fns"
+import { parse, format, addMonths } from "date-fns"
 import { useUser } from "@/context/UserContext"
 
 import {
@@ -166,6 +166,15 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     }
   }, [user])
 
+  useEffect(() => {
+    if (open) {
+      setFormData(prev => ({
+        ...prev,
+        expirationDate: prev.expirationDate || format(addMonths(new Date(), 1), "yyyy-MM-dd"),
+      }))
+    }
+  }, [open])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[500px] overflow-y-auto max-h-[90vh]">
@@ -236,16 +245,19 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
               <div className="space-y-2">
                 <Label htmlFor="paymentDate">Fecha de Pago</Label>
                 <DatePicker
-                  date={formData.paymentDate ? new Date(formData.paymentDate) : undefined}
+                  date={formData.paymentDate ? parse(formData.paymentDate, "yyyy-MM-dd", new Date()) : new Date()}
                   setDate={(date) => handleDateChange("paymentDate", date)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="expirationDate">Fecha de Vencimiento</Label>
                 <DatePicker
-                  date={formData.expirationDate ? new Date(formData.expirationDate) : undefined}
+                  date={formData.expirationDate
+                    ? parse(formData.expirationDate, "yyyy-MM-dd", new Date())
+                    : addMonths(new Date(), 1)}
                   setDate={(date) => handleDateChange("expirationDate", date)}
-                />              </div>
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="turno">Turno</Label>
