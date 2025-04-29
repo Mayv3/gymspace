@@ -141,7 +141,7 @@ export const getAsistenciasPorDNI = async (req, res) => {
 export const getAsistenciasPorHora = async (req, res) => {
   try {
     const { dia, mes, anio } = req.params;
-    const fechaFormateada = `${dia}/${mes}/${anio}`;
+    const fechaFormateada = dayjs(`${anio}-${mes}-${dia}`, "YYYY-M-D").format("DD/MM/YYYY");
 
     const asistencias = await getAsistenciasFromSheet();
     const conteoHoras = {};

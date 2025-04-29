@@ -48,7 +48,7 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
   const [openAdd, setOpenAdd] = useState(false)
   const [openEdit, setOpenEdit] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
-  const [planesUnicos, setPlanesUnicos] = useState<string[]>([])
+  const { planes } = useAppData();
 
   const filteredAlumnos = useMemo(() => {
     return alumnos.filter((a) => {
@@ -79,19 +79,6 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
 
     return edad
   }
-
-  useEffect(() => {
-    const fetchPlanesUnicos = async () => {
-      try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`)
-        setPlanesUnicos(res.data.map((p: any) => p["Plan o Producto"]))
-      } catch (error) {
-        console.error("Error al obtener planes únicos:", error)
-      }
-    }
-
-    fetchPlanesUnicos()
-  }, [])
 
   return (
     <Card>
@@ -134,9 +121,9 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos</SelectItem>
-                {planesUnicos.map((nombre, index) => (
-                  <SelectItem key={index} value={nombre}>
-                    {nombre}
+                {planes.map((plan, index) => (
+                  <SelectItem key={index} value={plan["Plan o Producto"]}>
+                    {plan["Plan o Producto"]}
                   </SelectItem>
                 ))}
               </SelectContent>

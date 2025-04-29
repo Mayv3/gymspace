@@ -121,7 +121,7 @@ export default function PlansSection() {
                                 <TableBody>
                                     {planes.length > 0 ? (
                                         planes.map((plan, i) => (
-                                            <TableRow key={plan.ID || i} className="grid grid-cols-6 hover:bg-accent">
+                                            <TableRow key={ i} className="grid grid-cols-6 hover:bg-accent">
                                                 <TableCell className="flex items-center justify-center">{plan.Tipo}</TableCell>
                                                 <TableCell className="flex items-center justify-center col-span-2">{plan['Plan o Producto']}</TableCell>
                                                 <TableCell className="flex items-center justify-center">{plan.Precio}</TableCell>

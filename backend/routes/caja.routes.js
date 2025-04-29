@@ -5,7 +5,8 @@ import {
   eliminarCaja,
   obtenerCaja,
   obtenerCajaPorID,
-  obtenerCajaAbiertaPorTurno
+  obtenerCajaAbiertaPorTurno,
+  getCajasPorMes
 } from '../controllers/caja.controller.js';
 
 const router = Router();
@@ -16,4 +17,6 @@ router.delete('/:id', eliminarCaja);
 router.get('/', obtenerCaja);           
 router.get('/:id', obtenerCajaPorID);  
 router.get('/abierta/:turno', obtenerCajaAbiertaPorTurno);
+router.get("/mes", getCajasPorMes);
+
 export default router;

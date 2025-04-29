@@ -43,26 +43,28 @@ export const getTurnos = async (req, res) => {
 };
 
 export const createTurno = async (req, res) => {
-    try {
-        const { tipo, fecha_turno, profesional, responsable } = req.body;
+  try {
+    const { tipo, fecha_turno, profesional, responsable } = req.body;
 
-        if (!tipo || !fecha_turno || !profesional || !responsable) {
-            return res.status(400).json({ message: 'Faltan campos obligatorios' });
-        }
-
-        const nuevoTurno = {
-            Fecha: dayjs().format('DD/MM/YYYY'),
-            Tipo: tipo,
-            Fecha_turno: fecha_turno,
-            Profesional: profesional,
-            Responsable: responsable,
-        };
-
-        res.status(201).json(nuevoTurno);
-    } catch (error) {
-        console.error('Error al crear turno:', error);
-        res.status(500).json({ message: 'Error al crear turno' });
+    if (!tipo || !fecha_turno || !profesional || !responsable) {
+      return res.status(400).json({ message: 'Faltan campos obligatorios' });
     }
+
+    const nuevoTurno = {
+      Tipo: tipo,
+      Fecha_turno: fecha_turno,
+      Profesional: profesional,
+      Responsable: responsable,
+      Fecha: dayjs().format('DD/MM/YYYY'),
+    };
+
+    await appendTurnoToSheet(nuevoTurno);
+
+    res.status(201).json(nuevoTurno);
+  } catch (error) {
+    console.error('Error al crear turno:', error);
+    res.status(500).json({ message: 'Error al crear turno' });
+  }
 };
 
 export const updateTurno = async (req, res) => {

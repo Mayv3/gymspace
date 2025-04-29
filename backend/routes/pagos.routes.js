@@ -13,6 +13,7 @@ import {
     getPagosFiltrados,
     getFacturacionPorTipoYMes,
     getFacturacionAnual,
+    getPagosUltimaSemana,
 } from '../controllers/pagos.controller.js';
 
 const router = Router();
@@ -27,6 +28,7 @@ router.get('/fecha/:dia-:mes-:anio/:turno', getPagosPorFechaYTurno);
 router.get('/', getPagosFiltrados);
 router.get('/facturacion/tipo/:mes/:anio', getFacturacionPorTipoYMes);
 router.get('/facturacion/anual', getFacturacionAnual)
+router.get("/ultima-semana", getPagosUltimaSemana);
 
 router.post('/', addPago);
 router.put('/:id', updatePago);

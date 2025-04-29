@@ -11,9 +11,21 @@ import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter.js'
 dayjs.extend(isSameOrAfter)
 
+let cachedAlumnos = null;
+let lastFetchTime = 0;
+const CACHE_DURATION_MS = 60 * 1000;
+
 export const getAlumnos = async (req, res) => {
+  const ahora = Date.now();
+  if (cachedAlumnos && ahora - lastFetchTime < CACHE_DURATION_MS) {
+    console.log("🧠 Alumnos desde caché");
+    return res.json(cachedAlumnos);
+  }
   try {
+    console.log("📥 Alumnos desde Google Sheets");
     const alumnos = await getAlumnosFromSheet();
+    cachedAlumnos = alumnos;
+    lastFetchTime = ahora;
     res.json(alumnos);
   } catch (error) {
     console.error('Error al obtener alumnos:', error);
@@ -24,7 +36,6 @@ export const getAlumnos = async (req, res) => {
 export const addAlumno = async (req, res) => {
   try {
     const alumno = req.body;
-    console.log('Alumno recibido:', alumno);
     if (!alumno.DNI || !alumno['Nombre'] || !alumno.Plan) {
       return res.status(400).json({ message: 'Faltan campos obligatorios' });
     }

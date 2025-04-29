@@ -61,30 +61,30 @@ export default function ShiftsSection() {
         }
     }
 
-    const handleConfirmEdit = async () => {
+    const handleConfirmEdit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (!editingTurno) return;
         try {
-          const { data: turnoActualizado } = await axios.put(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${editingTurno.ID}`,
-            editForm
-          );
-      
-          setTurnos(prev =>
-            prev.map(turno =>
-              turno.ID === editingTurno.ID
-                ? { ...turno, ...turnoActualizado } // 
-                : turno
-            )
-          );
-      
-          setShowEditDialog(false);
-          setEditingTurno(null);
+            const { data: turnoActualizado } = await axios.put(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${editingTurno.ID}`,
+                editForm
+            );
+
+            setTurnos(prev =>
+                prev.map(turno =>
+                    turno.ID === editingTurno.ID
+                        ? { ...turno, ...turnoActualizado } // 
+                        : turno
+                )
+            );
+
+            setShowEditDialog(false);
+            setEditingTurno(null);
         } catch (error) {
-          console.error("Error al actualizar turno:", error);
-          alert("Error al actualizar el turno.");
+            console.error("Error al actualizar turno:", error);
+            alert("Error al actualizar el turno.");
         }
-      };
-      
+    };
 
     const handleConfirmDelete = async () => {
         if (!selectedTurno) return;
@@ -99,6 +99,20 @@ export default function ShiftsSection() {
             console.error("Error al eliminar turno:", error);
         }
     }
+
+    useEffect(() => {
+        const fetchTurnosPorFecha = async () => {
+            try {
+                const fechaFormateada = dayjs(selectedDate).format("DD/MM/YYYY");
+                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos?fecha=${fechaFormateada}`);
+                setTurnos(data);
+            } catch (error) {
+                console.error("Error al cargar turnos por fecha:", error);
+            }
+        };
+
+        fetchTurnosPorFecha();
+    }, [selectedDate]);
 
     return (
         <TabsContent value="shifts" className="space-y-4">

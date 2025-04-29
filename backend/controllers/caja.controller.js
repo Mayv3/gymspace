@@ -28,7 +28,6 @@ export const crearCaja = async (req, res) => {
 
     const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format("YYYY-MM-DD")
     const cajas = await getCajasFromSheet();
-    console.log("Cajas existentes:", cajas);
 
     const yaExiste = cajas.find(c => {
       const fechaCaja = dayjs(c.Fecha, "D/M/YYYY").format("YYYY-MM-DD");
@@ -170,3 +169,26 @@ export const obtenerCajaAbiertaPorTurno = async (req, res) => {
   }
 };
 
+export const getCajasPorMes = async (req, res) => {
+  try {
+    const { mes, anio } = req.query;
+
+    if (!mes || !anio) {
+      return res.status(400).json({ message: "Se requiere mes y año" });
+    }
+
+    const cajas = await getCajasFromSheet();
+
+    const cajasFiltradas = cajas.filter(caja => {
+      const fecha = dayjs(caja.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
+      return fecha.isValid() &&
+        fecha.month() + 1 === parseInt(mes) &&
+        fecha.year() === parseInt(anio);
+    });
+
+    res.json(cajasFiltradas);
+  } catch (error) {
+    console.error("Error al obtener cajas por mes:", error);
+    res.status(500).json({ message: "Error al filtrar cajas" });
+  }
+};

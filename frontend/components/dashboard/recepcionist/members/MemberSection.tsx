@@ -26,20 +26,6 @@ export default function MembersSection({
     setLocalMembers(members)
   }, [members])
 
-  const handleAddMember = (newMember: any) => {
-    setLocalMembers(prev => [newMember, ...prev])
-  }
-
-  const handleEditMember = (updatedMember: any) => {
-    setLocalMembers(prev =>
-      prev.map(m => (m.DNI === updatedMember.DNI ? updatedMember : m))
-    )
-  }
-
-  const handleDeleteMember = (deletedMember: any) => {
-    setLocalMembers(prev => prev.filter(m => m.DNI !== deletedMember.DNI))
-  }
-
   return (
     <TabsContent value="members" className="space-y-4">
       <MembersTab

@@ -3,11 +3,25 @@ import {
   getAlumnosFromSheet,
   getPlanesFromSheet,
   getAsistenciasFromSheet,
-  getPagosFromSheet
+  getPagosFromSheet,
+  getCajasFromSheet
 } from '../services/googleSheets.js';
+
+let cachedDashboard = null;
+let lastFetchTime = 0;
+const CACHE_DURATION_MS = 60 * 1000;
 
 export const getDashboardCompleto = async (req, res) => {
   try {
+    const ahora = Date.now();
+
+    if (cachedDashboard && ahora - lastFetchTime < CACHE_DURATION_MS) {
+      console.log("➡️ Sirviendo dashboard desde caché");
+      return res.json(cachedDashboard);
+    }
+  
+    console.log("♻️ Generando nuevo dashboard desde Google Sheets");
+
     const hoy = dayjs();
     const { fecha, mesPersonalizados } = req.query;
 
@@ -17,6 +31,39 @@ export const getDashboardCompleto = async (req, res) => {
       getAsistenciasFromSheet(),
       getPagosFromSheet()
     ]);
+
+    const cajas = await getCajasFromSheet();
+
+    const mesConsultado = parseInt(req.query.mesCajas || hoy.month() + 1);
+    const anioConsultado = parseInt(req.query.anioCajas || hoy.year());
+
+    const cajasFiltradas = cajas.filter(caja => {
+      const fechaCaja = dayjs(caja.Fecha, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+      return fechaCaja.isValid() &&
+        fechaCaja.month() + 1 === mesConsultado &&
+        fechaCaja.year() === anioConsultado;
+    });
+
+    const cajasAgrupadas = {};
+
+    for (const caja of cajasFiltradas) {
+      const fecha = caja.Fecha; // Formato 'D/M/YYYY'
+      const turno = (caja.Turno || "").toLowerCase().trim();
+      const monto = parseFloat(caja["Total Final"] || "0");
+
+      if (!cajasAgrupadas[fecha]) {
+        cajasAgrupadas[fecha] = { fecha };
+      }
+
+      cajasAgrupadas[fecha][turno] = monto;
+    }
+
+    // Convertir a array para Recharts
+    const cajasDelMes = Object.values(cajasAgrupadas).map(({ fecha, mañana = 0, tarde = 0 }) => ({
+      fecha,
+      mañana,
+      tarde
+    }));
 
     // ---- Alumnos ----
     let activos = 0, vencidos = 0, abandonos = 0;
@@ -152,7 +199,7 @@ export const getDashboardCompleto = async (req, res) => {
     for (const alumno of alumnos) {
       const plan = (alumno.Plan || "").toUpperCase();
       const profesor = (alumno.Profesor_asignado || "").trim();
-      const dni = String(alumno.DNI); // <--- CONVIERTE ALUMNO DNI A STRING TAMBIÉN
+      const dni = String(alumno.DNI);
 
       const esPersonalizado = plan.includes("PERSONALIZADO");
 
@@ -170,15 +217,21 @@ export const getDashboardCompleto = async (req, res) => {
       alumnos,
     }));
 
-    res.json({
+    const dashboardData = {
       estado: { activos, vencidos, abandonos },
       edades,
       planes,
       asistenciasPorHora,
       promedios,
       facturacion: meses,
-      personalizadosPorProfesor
-    });
+      personalizadosPorProfesor,
+      cajasDelMes
+    };
+
+    cachedDashboard = dashboardData;
+    lastFetchTime = ahora;
+
+    res.json(dashboardData);
 
   } catch (error) {
     console.error('Error en getDashboardCompleto:', error);

@@ -138,7 +138,6 @@ export const getFacturacionPorMetodoYMes = async (req, res) => {
 export const getPagosPorFechaYTurno = async (req, res) => {
     try {
         const { dia, mes, anio, turno } = req.params;
-        console.log('Día:', dia, 'Mes:', mes, 'Año:', anio, 'Turno:', turno);
         const fechaBuscada = `${parseInt(dia)}/${parseInt(mes)}/${anio}`;
         const turnoBuscado = turno.toLowerCase();
 
@@ -146,9 +145,9 @@ export const getPagosPorFechaYTurno = async (req, res) => {
 
         const pagosFiltrados = pagos.filter(pago => {
             const fechaPago = dayjs(pago['Fecha_de_Pago'], 'D/M/YYYY').format('D/M/YYYY');
-            
-            return fechaPago === fechaBuscada && 
-                   pago.Turno?.toLowerCase() === turnoBuscado;
+
+            return fechaPago === fechaBuscada &&
+                pago.Turno?.toLowerCase() === turnoBuscado;
         });
 
         res.json(pagosFiltrados);
@@ -160,100 +159,124 @@ export const getPagosPorFechaYTurno = async (req, res) => {
 
 export const getPagosFiltrados = async (req, res) => {
     try {
-      const { fecha, tipo } = req.query;
-  
-      const pagos = await getPagosFromSheet();
-  
-      const filtrados = pagos.filter(pago => {
-        const coincideFecha = fecha ? pago['Fecha de Pago'] === fecha : true;
-        const coincideTipo = tipo ? (pago.Tipo || '').toLowerCase() === tipo.toLowerCase() : true;
-        return coincideFecha && coincideTipo;
-      });
-  
-      res.json(filtrados);
+        const { fecha, tipo } = req.query;
+
+        const pagos = await getPagosFromSheet();
+
+        const filtrados = pagos.filter(pago => {
+            const coincideFecha = fecha ? pago['Fecha de Pago'] === fecha : true;
+            const coincideTipo = tipo ? (pago.Tipo || '').toLowerCase() === tipo.toLowerCase() : true;
+            return coincideFecha && coincideTipo;
+        });
+
+        res.json(filtrados);
     } catch (error) {
-      console.error('Error al filtrar pagos:', error);
-      res.status(500).json({ message: 'Error al filtrar pagos' });
+        console.error('Error al filtrar pagos:', error);
+        res.status(500).json({ message: 'Error al filtrar pagos' });
     }
 };
-  
+
 export const getFacturacionPorTipoYMes = async (req, res) => {
     try {
-      const { mes, anio } = req.params;
-      const pagos = await getPagosFromSheet();
-  
-      const totalesPorTipo = {};
-      let totalGeneral = 0;
-  
-      for (const pago of pagos) {
-        const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true);
-        if (!fecha.isValid()) continue;
-  
-        if (fecha.month() + 1 !== parseInt(mes) || fecha.year() !== parseInt(anio)) continue;
-  
-        const tipo = pago.Tipo?.trim().toUpperCase() || "OTRO";
-        const monto = parseFloat(pago.Monto) || 0;
-  
-        if (!totalesPorTipo[tipo]) {
-          totalesPorTipo[tipo] = 0;
-        }
-  
-        totalesPorTipo[tipo] += monto;
-        totalGeneral += monto;
-      }
-      const nombreMes = dayjs(`${anio}-${mes}-01`).format('MMMM');
+        const { mes, anio } = req.params;
+        const pagos = await getPagosFromSheet();
 
-      res.json({
-        mes: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
-        anio: parseInt(anio),
-        totales: totalesPorTipo,
-        totalGeneral: +totalGeneral.toFixed(2)
-      });
+        const totalesPorTipo = {};
+        let totalGeneral = 0;
+
+        for (const pago of pagos) {
+            const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+            if (!fecha.isValid()) continue;
+
+            if (fecha.month() + 1 !== parseInt(mes) || fecha.year() !== parseInt(anio)) continue;
+
+            const tipo = pago.Tipo?.trim().toUpperCase() || "OTRO";
+            const monto = parseFloat(pago.Monto) || 0;
+
+            if (!totalesPorTipo[tipo]) {
+                totalesPorTipo[tipo] = 0;
+            }
+
+            totalesPorTipo[tipo] += monto;
+            totalGeneral += monto;
+        }
+        const nombreMes = dayjs(`${anio}-${mes}-01`).format('MMMM');
+
+        res.json({
+            mes: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
+            anio: parseInt(anio),
+            totales: totalesPorTipo,
+            totalGeneral: +totalGeneral.toFixed(2)
+        });
     } catch (error) {
-      console.error("Error al calcular facturación por tipo:", error);
-      res.status(500).json({ message: "Error interno del servidor" });
+        console.error("Error al calcular facturación por tipo:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
     }
 };
 
 export const getFacturacionAnual = async (req, res) => {
     try {
-      const anio = parseInt(req.query.anio)
-  
-      if (isNaN(anio)) {
-        return res.status(400).json({ message: 'Año inválido' })
-      }
-  
-      const pagos = await getPagosFromSheet()
-  
-      const meses = Array.from({ length: 12 }, (_, i) => ({
-        mes: dayjs(`${anio}-${i + 1}-01`).format('MMMM'),
-        gimnasio: 0,
-        clase: 0,
-      }))
-  
-      for (const pago of pagos) {
-        const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true)
-        if (!fecha.isValid()) continue
-  
-        if (fecha.year() !== anio) continue
-  
-        const mesIndex = fecha.month();
-        const tipo = (pago.Tipo || "").toUpperCase()
-        const monto = parseFloat(pago.Monto) || 0
-  
-        if (tipo === "GIMNASIO") {
-          meses[mesIndex].gimnasio += monto
-        } else if (tipo === "CLASE") {
-          meses[mesIndex].clase += monto
+        const anio = parseInt(req.query.anio)
+
+        if (isNaN(anio)) {
+            return res.status(400).json({ message: 'Año inválido' })
         }
-      }
-  
-      res.json(meses)
+
+        const pagos = await getPagosFromSheet()
+
+        const meses = Array.from({ length: 12 }, (_, i) => ({
+            mes: dayjs(`${anio}-${i + 1}-01`).format('MMMM'),
+            gimnasio: 0,
+            clase: 0,
+        }))
+
+        for (const pago of pagos) {
+            const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true)
+            if (!fecha.isValid()) continue
+
+            if (fecha.year() !== anio) continue
+
+            const mesIndex = fecha.month();
+            const tipo = (pago.Tipo || "").toUpperCase()
+            const monto = parseFloat(pago.Monto) || 0
+
+            if (tipo === "GIMNASIO") {
+                meses[mesIndex].gimnasio += monto
+            } else if (tipo === "CLASE") {
+                meses[mesIndex].clase += monto
+            }
+        }
+
+        res.json(meses)
     } catch (error) {
-      console.error('Error en facturación anual:', error)
-      res.status(500).json({ message: 'Error interno del servidor' })
+        console.error('Error en facturación anual:', error)
+        res.status(500).json({ message: 'Error interno del servidor' })
     }
-  }
+}
+
+export const getPagosUltimaSemana = async (req, res) => {
+    try {
+        const { fecha } = req.query;
+        if (!fecha) return res.status(400).json({ message: "Fecha requerida" });
+
+        const fechaFin = dayjs(fecha);
+        const fechaInicio = fechaFin.subtract(7, "day");
+
+        const pagos = await getPagosFromSheet();
+
+        const filtrados = pagos.filter(pago => {
+            const fechaPago = dayjs(pago['Fecha_de_Pago'], ['D/M/YYYY', 'DD/MM/YYYY']);
+            return fechaPago.isValid() &&
+                fechaPago.isAfter(fechaInicio) &&
+                fechaPago.isBefore(fechaFin.add(1, "day"));
+        });
+
+        res.json(filtrados);
+    } catch (error) {
+        console.error("Error al obtener pagos de la última semana:", error);
+        res.status(500).json({ message: "Error interno del servidor" });
+    }
+};
 
 // POST
 

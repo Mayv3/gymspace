@@ -69,7 +69,6 @@ interface Factura {
   clase: number;
 }
 
-
 type TipoPlan = "TODOS" | "GIMNASIO" | "CLASE";
 
 interface Promedio {
@@ -90,6 +89,7 @@ interface DashboardData {
   asistenciasPorHora: Record<string, number>;
   facturacion: Factura[];
   personalizadosPorProfesor: PersonalizadosPorProfesor[];
+  cajasDelMes: { turno: string; monto: number }[];
 }
 
 
@@ -168,6 +168,10 @@ export default function AdminOverviewCharts({
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
   const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState<string>("");
+  const cajasDelMes = dashboardData?.cajasDelMes || [];
+  const [selectedMonthCajas, setSelectedMonthCajas] = useState<string>("");
+  const [selectedYearPersonalizados, setSelectedYearPersonalizados] = useState<number>(new Date().getFullYear());
+  const [asistenciasPorHora, setAsistenciasPorHora] = useState<{ hora: string; cantidad: number }[]>([]);
 
   const [promedios, setPromedios] = useState<Promedio[]>([
     { rango: "Mañana (7-12hs)", promedio: 0 },
@@ -175,20 +179,21 @@ export default function AdminOverviewCharts({
     { rango: "Noche (18-22hs)", promedio: 0 },
   ]);
 
-  // Fetch general
   const fetchDashboard = async () => {
     try {
       const params: any = {
         fecha: dayjs(selectedDate).format("YYYY-MM-DD"),
+        mesCajas: selectedMonthCajas,
+        anioCajas: selectedYear,
       };
       if (selectedMonthPersonalizados) {
         params.mesPersonalizados = selectedMonthPersonalizados;
       }
+      if (selectedYearPersonalizados) {
+        params.anioPersonalizados = selectedYearPersonalizados;
+      }
 
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`, {
-        params,
-      });
-
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`, { params });
       setDashboardData(res.data);
     } catch (error) {
       console.error("Error al cargar dashboard:", error);
@@ -220,17 +225,42 @@ export default function AdminOverviewCharts({
     }
   };
 
+  const fetchAsistenciasPorHora = async () => {
+    try {
+      const fecha = dayjs(selectedDate);
+      const dia = fecha.date();
+      const mes = fecha.month() + 1;
+      const anio = fecha.year();
+  
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/por-hora/${dia}/${mes}/${anio}`);
+  
+      const data = Object.entries(res.data).map(([hora, cantidad]) => ({
+        hora,
+        cantidad: Number(cantidad),
+      }));
+      console.log(`${dia}/${mes}/${anio}`, data)
+      setAsistenciasPorHora(data);
+    } catch (error) {
+      console.error("Error al cargar asistencias por hora:", error);
+    }
+  };
+  
+  
   useEffect(() => {
-    fetchDashboard();
-  }, [selectedDate, selectedMonthPersonalizados]);
+    fetchAsistenciasPorHora();
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchPromedios();
   }, [selectedYear, selectedMonth, selectedFecha]);
 
+  useEffect(() => {
+    fetchDashboard();
+  }, [selectedDate, selectedMonthPersonalizados, selectedYearPersonalizados, selectedMonthCajas, selectedYear]);
+
   if (!dashboardData) return null;
 
-  const { estado, edades, planes, asistenciasPorHora, facturacion, personalizadosPorProfesor } = dashboardData;
+  const { estado, edades, planes, facturacion, personalizadosPorProfesor } = dashboardData;
 
   const estadoArray = [
     { estado: "Activos", cantidad: estado.activos },
@@ -273,42 +303,53 @@ export default function AdminOverviewCharts({
           <CardTitle>Alumnos Activos vs Vencidos vs Abandonos</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={estadoArray}>
-              <XAxis dataKey="estado" />
-              <YAxis />
-              <Tooltip
-                content={<CustomTooltip explicaciones={estadoExplicaciones} />}
-              />
-              <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                {estadoArray.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {estadoArray.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center mt-8">
+              No hay datos disponibles.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={estadoArray}>
+                <XAxis dataKey="estado" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip explicaciones={estadoExplicaciones} />} />
+                <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
+                  {estadoArray.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
       {/* 2. Distribución por Edad */}
+
       <Card className="shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="flex items-center gap-2">
           <CalendarCheck className="text-orange-500" />
           <CardTitle>Distribución por Edad</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={edadDistribucion}>
-              <XAxis dataKey="edad" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                {edadDistribucion.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {edadDistribucion.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center mt-8">
+              No hay datos disponibles.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={edadDistribucion}>
+                <XAxis dataKey="edad" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
+                  {edadDistribucion.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -324,22 +365,28 @@ export default function AdminOverviewCharts({
               <PlanSelect tipoPlan={tipoPlan} setTipoPlan={setTipoPlan} />
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={planesFiltrados}
-                dataKey="cantidad"
-                nameKey="plan"
-                outerRadius={80}
-                label
-              >
-                {planesFiltrados.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
+          {planesFiltrados.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center mt-8">
+              No hay datos disponibles.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={planesFiltrados}
+                  dataKey="cantidad"
+                  nameKey="plan"
+                  outerRadius={80}
+                  label
+                >
+                  {planesFiltrados.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -351,15 +398,14 @@ export default function AdminOverviewCharts({
             <CardTitle>Asistencias por Hora</CardTitle>
           </div>
           <div className="flex justify-end w-full">
-            <div>
+            <div className="w-auto">
               <DatePicker date={selectedDate} setDate={setSelectedDate} />
             </div>
           </div>
         </CardHeader>
-
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={asistenciasHoraData}>
+            <LineChart data={asistenciasPorHora}>
               <XAxis dataKey="hora" />
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
@@ -463,81 +509,191 @@ export default function AdminOverviewCharts({
           <CardTitle>Facturación Mensual: Gimnasio y Clases</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={facturacion}>
-              <XAxis dataKey="mes" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="gimnasio" name="Gimnasio" radius={[10, 10, 0, 0]}>
-                {facturacion.map((_, i) => (
-                  <Cell key={i} fill={COLORS[0]} />
-                ))}
-              </Bar>
-              <Bar dataKey="clase" name="Clases" radius={[10, 10, 0, 0]}>
-                {facturacion.map((_, i) => (
-                  <Cell key={i} fill={COLORS[2]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {facturacion.every(f => f.gimnasio === 0 && f.clase === 0) ? (
+            <p className="text-sm text-muted-foreground text-center mt-8">
+              No hay datos de facturación para este año.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={facturacion}>
+                <XAxis dataKey="mes" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="gimnasio" name="Gimnasio" radius={[10, 10, 0, 0]}>
+                  {facturacion.map((_, i) => (
+                    <Cell key={i} fill={COLORS[0]} />
+                  ))}
+                </Bar>
+                <Bar dataKey="clase" name="Clases" radius={[10, 10, 0, 0]}>
+                  {facturacion.map((_, i) => (
+                    <Cell key={i} fill={COLORS[2]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
-      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
+      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
         <CardHeader className="flex flex-col">
           <div className="flex items-center flex-col pb-4">
             <CalendarCheck className="text-orange-500" />
             <CardTitle>Planes Personalizados por Profesor</CardTitle>
           </div>
-          <TooltipProvider>
-            <div className="flex items-center gap-2">
-              <div className="flex justify-end w-full">
-                <div className="w-[120px]">
-                  <Select
-                    value={selectedMonthPersonalizados}
-                    onValueChange={(val) => setSelectedMonthPersonalizados(val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Mes" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background dark:bg-card text-foreground dark:text-foreground">
-                      {Array.from({ length: 12 }, (_, i) => (
-                        <SelectItem key={i} value={(i + 1).toString()}>
-                          {dayjs().month(i).locale("es").format("MMMM")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>                  <TooltipUI>
-                <TooltipTrigger asChild>
-                  <Info className="text-muted-foreground cursor-pointer w-4 h-4" />
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p className="text-sm max-w-[220px] text-center">
-                    Se muestran la cantidad de alumnos que son de tipo GIMNASIO, que pagaron en el mes seleccionado y tienen plan PERSONALIZADO con cada profesor.
-                  </p>
-                </TooltipContent>
-              </TooltipUI>
+
+          <div className="flex justify-end gap-4 w-full">
+            <div className="w-[100px]">
+              <Select
+                value={selectedYearPersonalizados.toString()}
+                onValueChange={(val) => setSelectedYearPersonalizados(Number(val))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["2024", "2025", "2026"].map((anio) => (
+                    <SelectItem key={anio} value={anio}>
+                      {anio}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </TooltipProvider>
+
+            <div className="w-[120px] flex items-center gap-2">
+              <Select
+                value={selectedMonthPersonalizados}
+                onValueChange={(val) => setSelectedMonthPersonalizados(val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <SelectItem key={i} value={(i + 1).toString()}>
+                      {dayjs().month(i).locale("es").format("MMMM")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <TooltipProvider>
+                <TooltipUI>
+                  <TooltipTrigger asChild>
+                    <Info className="text-muted-foreground cursor-pointer w-4 h-4" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p className="text-sm max-w-[220px] text-center">
+                      Se muestran la cantidad de alumnos de tipo GIMNASIO con plan PERSONALIZADO
+                      que pagaron en el mes y año seleccionado con cada profesor.
+                    </p>
+                  </TooltipContent>
+                </TooltipUI>
+              </TooltipProvider>
+            </div>
+
+
+          </div>
         </CardHeader>
+
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={personalizadosPorProfesor}>
-              <XAxis dataKey="profesor" />
-              <YAxis />
-              <Tooltip
-                content={<CustomTooltip />}
-                formatter={(value: number, name: string) => [`$${value}`, name]}
-              />
-              <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                {personalizadosPorProfesor.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {personalizadosPorProfesor.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center mt-8">
+              No hay planes personalizados para esta fecha.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={personalizadosPorProfesor}>
+                <XAxis dataKey="profesor" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
+                  {personalizadosPorProfesor.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
+        <CardHeader className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 flex-col">
+            <DollarSign className="text-orange-500" />
+            <CardTitle>Cajas registradas por año y mes </CardTitle>
+          </div>
+
+          <div className="flex justify-end gap-4 w-full">
+            <div className="w-[100px]">
+              <Select
+                value={selectedYear.toString()}
+                onValueChange={(val) => setSelectedYear(Number(val))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["2024", "2025", "2026"].map((anio) => (
+                    <SelectItem key={anio} value={anio}>
+                      {anio}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-[120px]">
+              <Select
+                value={selectedMonthCajas}
+                onValueChange={(val) => setSelectedMonthCajas(val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <SelectItem key={i} value={(i + 1).toString()}>
+                      {dayjs().month(i).locale("es").format("MMMM")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          {cajasDelMes.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center mt-8">
+              No hay datos disponibles para el mes seleccionado.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={cajasDelMes}>
+                <XAxis dataKey="fecha" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Line
+                  type="monotone"
+                  dataKey="mañana"
+                  name="Mañana"
+                  stroke={COLORS[0]}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="tarde"
+                  name="Tarde"
+                  stroke={COLORS[1]}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
