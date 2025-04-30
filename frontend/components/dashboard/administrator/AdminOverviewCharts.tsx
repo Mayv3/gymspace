@@ -168,7 +168,6 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
   );
 };
 
-
 export default function AdminOverviewCharts({
   isVisible,
 }: {

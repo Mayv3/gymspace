@@ -8,6 +8,11 @@ import {
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
+
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -190,11 +195,11 @@ export const getCajasPorMes = async (req, res) => {
         const monto = parseFloat(pago.Monto) || 0;
 
         const mismaFecha = fechaCaja.isSame(fechaPago, 'day');
-        const enRango = horaPago.isAfter(horaApertura.subtract(1, 'minute')) && horaPago.isBefore(horaCierre.add(1, 'minute'));
+        const enRango = horaPago.isSameOrAfter(horaApertura) && horaPago.isSameOrBefore(horaCierre);
 
         if (mismaFecha && enRango) {
           if (tipo === "GIMNASIO") totalGimnasio += monto;
-          if (tipo === "CLASES") totalClases += monto;
+          if (tipo === "CLASE") totalClases += monto;
         }
       });
 
