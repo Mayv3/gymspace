@@ -37,8 +37,6 @@ export function ShiftPaymentsTab({
   formatDate,
   setSelectedPaymentToDelete,
   setShowDeletePaymentDialog,
-  onMemberUpdated,
-  refreshPayments,
   cashOpen
 }: ShiftPaymentsTabProps) {
   const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: number }>({})

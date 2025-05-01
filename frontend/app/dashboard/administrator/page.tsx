@@ -31,6 +31,7 @@ import { useDialogManager } from "@/hooks/useDialogManager"
 import { useAppData } from "@/context/AppDataContext"
 
 import { Member } from "@/models/dashboard";
+import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
 
 
 export default function AdministratorDashboard() {
@@ -41,7 +42,7 @@ export default function AdministratorDashboard() {
   const router = useRouter()
 
   const { fetchMembers, updateAttendance } = useMembers()
-  const { alumnos, setAlumnos, fetchAssists} = useAppData();
+  const { alumnos, setAlumnos, fetchAssists } = useAppData();
   const [members, setMembers] = useState<Member[]>([]);
 
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -165,7 +166,7 @@ export default function AdministratorDashboard() {
         )}
 
         <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6 md:w-auto">
+          <TabsList className="grid w-full grid-cols-7 md:w-auto">
             <TabsTrigger value="overview" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               <TrendingUp className="mr-2 h-4 w-4" />
               Resumen
@@ -178,6 +179,7 @@ export default function AdministratorDashboard() {
             <TabsTrigger value="assists">Asistencias</TabsTrigger>
             <TabsTrigger value="plans">Planes</TabsTrigger>
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
+            <TabsTrigger value="egresos">Egresos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" forceMount>
@@ -218,6 +220,10 @@ export default function AdministratorDashboard() {
 
           <TabsContent value="shifts" className="space-y-4">
             <ShiftsSection />
+          </TabsContent>
+
+          <TabsContent value="egresos" className="space-y-4">
+            <EgresosSection />
           </TabsContent>
         </Tabs>
 

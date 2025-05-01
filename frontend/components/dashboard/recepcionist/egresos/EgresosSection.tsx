@@ -9,7 +9,10 @@ import { DatePicker } from "@/components/dashboard/date-picker"
 import dayjs from "dayjs"
 import axios from "axios"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
-import { Trash } from "lucide-react"
+import { PlusCircle, Trash } from "lucide-react"
+import { useUser } from "@/context/UserContext";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 interface Egreso {
     ID: string
@@ -26,6 +29,16 @@ export default function EgresosSection() {
     const [selectedType, setSelectedType] = useState("todos")
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [egresoAEliminar, setEgresoAEliminar] = useState<Egreso | null>(null)
+    const [showCreateDialog, setShowCreateDialog] = useState(false)
+    const { user } = useUser()
+
+    const [form, setForm] = useState({
+        Fecha: dayjs().format("DD/MM/YYYY"),
+        Motivo: "",
+        Monto: "",
+        Responsable: user?.nombre,
+        Tipo: "GIMNASIO"
+    })
 
     const fetchEgresos = async () => {
         const anio = dayjs(selectedDate).year()
@@ -37,6 +50,24 @@ export default function EgresosSection() {
             setEgresos(data)
         } catch (err) {
             console.error("Error al cargar egresos", err)
+        }
+    }
+
+    const handleCreateEgreso = async () => {
+        try {
+            const payload = { ...form }
+            const { data: nuevo } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/egresos`, payload)
+            setEgresos(prev => [...prev, nuevo])
+            setShowCreateDialog(false)
+            setForm({
+                Fecha: dayjs().format("DD/MM/YYYY"),
+                Motivo: "",
+                Monto: "",
+                Responsable: "",
+                Tipo: "GIMNASIO"
+            })
+        } catch (error) {
+            console.error("Error al crear egreso:", error)
         }
     }
 
@@ -59,15 +90,24 @@ export default function EgresosSection() {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Egresos</CardTitle>
-                <CardDescription>Listado de egresos filtrado por fecha y tipo</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Egresos</CardTitle>
+                    <CardDescription>Listado de egresos filtrado por fecha y tipo</CardDescription>
+                </div>
+                <Button onClick={() => setShowCreateDialog(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Añadir Egreso
+                </Button>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
                     <div className="flex-1">
                         <Label>Fecha</Label>
-                        <DatePicker date={selectedDate} setDate={setSelectedDate} />
+                        <DatePicker
+                            date={selectedDate}
+                            setDate={setSelectedDate}
+                        />
                     </div>
                     <div className="flex-1">
                         <Label>Tipo</Label>
@@ -89,24 +129,28 @@ export default function EgresosSection() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="text-center">Fecha</TableHead>
-                                    <TableHead className="text-center">Motivo</TableHead>
-                                    <TableHead className="text-center">Monto</TableHead>
-                                    <TableHead className="text-center">Responsable</TableHead>
-                                    <TableHead className="text-center">Tipo</TableHead>
-                                    <TableHead className="text-center">Acciones</TableHead>
+                                    <TableHead className="text-center w-1/6">Fecha</TableHead>
+                                    <TableHead className="text-center w-1/6">Motivo</TableHead>
+                                    <TableHead className="text-center w-1/6">Monto</TableHead>
+                                    <TableHead className="text-center w-1/6">Responsable</TableHead>
+                                    <TableHead className="text-center w-1/6">Tipo</TableHead>
+                                    <TableHead className="text-center w-1/6">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {egresos.length > 0 ? (
                                     egresos.map((e, i) => (
                                         <TableRow key={i}>
-                                            <TableCell className="text-center">{e.Fecha}</TableCell>
-                                            <TableCell className="text-center">{e.Motivo}</TableCell>
-                                            <TableCell className="text-center">${e.Monto}</TableCell>
-                                            <TableCell className="text-center">{e.Responsable}</TableCell>
-                                            <TableCell className="text-center">{e.Tipo}</TableCell>
-                                            <TableCell className="text-center">
+                                            <TableCell className="text-center w-1/6">{e.Fecha}</TableCell>
+                                            <TableCell className="text-center w-1/6">
+                                                <div className="truncate overflow-hidden whitespace-nowrap max-w-[160px] mx-auto">
+                                                    {e.Motivo}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center w-1/6">${e.Monto}</TableCell>
+                                            <TableCell className="text-center w-1/6">{e.Responsable}</TableCell>
+                                            <TableCell className="text-center w-1/6">{e.Tipo}</TableCell>
+                                            <TableCell className="text-center w-1/6">
                                                 <button
                                                     onClick={() => {
                                                         setEgresoAEliminar(e)
@@ -122,7 +166,7 @@ export default function EgresosSection() {
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
-                                            No hay egresos para este mes (seleciona una fecha con el mes que quieres filtrar).
+                                            No hay egresos para este mes (selecciona una fecha con el mes que quieres filtrar).
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -143,10 +187,69 @@ export default function EgresosSection() {
                     {egresoAEliminar && (
                         <div className="space-y-2 text-sm p-4">
                             <p><strong>Fecha:</strong> {egresoAEliminar.Fecha}</p>
-                            <p><strong>Motivo:</strong> {egresoAEliminar.Motivo}</p>
+                            <p className="max-w-xs overflow-hidden text-ellipsis break-words line-clamp-3">
+                                <strong>Motivo:</strong> {egresoAEliminar.Motivo}
+                            </p>
                             <p><strong>Monto:</strong> ${egresoAEliminar.Monto}</p>
                         </div>
                     )}
+                </ConfirmDialog>
+                <ConfirmDialog
+                    open={showCreateDialog}
+                    onOpenChange={setShowCreateDialog}
+                    title="Registrar Egreso"
+                    description="Completa los datos para registrar un egreso"
+                    confirmText="Registrar"
+                    cancelText="Cancelar"
+                    onConfirm={handleCreateEgreso}
+                >
+                    <div className="space-y-4 text-sm bg-background text-foreground">
+                        <div className="flex flex-col">
+                            <Label>Fecha</Label>
+                            <DatePicker
+                                date={selectedDate}
+                                setDate={setSelectedDate}
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Motivo</Label>
+                            <Input
+                                className="border border-input bg-background text-foreground px-2 py-1 rounded"
+                                value={form.Motivo}
+                                onChange={(e) => setForm(prev => ({ ...prev, Motivo: e.target.value }))}
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Monto</Label>
+                            <Input
+                                type="number"
+                                className="border border-input bg-background text-foreground px-2 py-1 rounded"
+                                value={form.Monto}
+                                onChange={(e) => setForm(prev => ({ ...prev, Monto: e.target.value }))}
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Responsable</Label>
+                            <Input
+                                className="border border-input bg-background text-foreground px-2 py-1 rounded cursor-disabled"
+                                value={user?.nombre}
+                                disabled
+                                onChange={(e) => setForm(prev => ({ ...prev, Responsable: e.target.value }))}
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Tipo</Label>
+                            <Select value={form.Tipo} onValueChange={(val) => setForm(prev => ({ ...prev, Tipo: val }))}>
+                                <SelectTrigger className="bg-background text-foreground border-input">
+                                    <SelectValue placeholder="Seleccionar tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="GIMNASIO">Gimnasio</SelectItem>
+                                    <SelectItem value="CLASE">Clase</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </ConfirmDialog>
             </CardContent>
         </Card>
