@@ -63,7 +63,8 @@ export default function ShiftsSection() {
 
     const handleConfirmEdit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        if (!editingTurno) return;
+        if (!editingTurno) return console.log('No se encuentra el turno');
+        
         try {
             const { data: turnoActualizado } = await axios.put(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${editingTurno.ID}`,

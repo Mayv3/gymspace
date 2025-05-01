@@ -120,7 +120,7 @@ export default function AssistsSection() {
                   {displayedAssists.length > 0 ? (
                     displayedAssists.map((asistencia, index) => (
                       <motion.tr
-                        key={asistencia.ID || index}
+                        key={index}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: index * 0.05 }}
@@ -179,10 +179,15 @@ export default function AssistsSection() {
         </CardContent>
       </Card>
 
-      <RegisterClassDialog open={showAddDialog}
+      <RegisterClassDialog
+        open={showAddDialog}
         onOpenChange={async (open) => {
           setShowAddDialog(open)
-        }} />
+          if (!open) {
+            await fetchAssists({ selectedDate, selectedType })
+          }
+        }}
+      />
 
       <ConfirmDialog
         open={showDeleteDialog}
