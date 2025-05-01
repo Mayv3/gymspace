@@ -43,6 +43,8 @@ interface AppDataContextProps {
   planes: Plan[]
   assists: Asistencia[]
   turnos: Turno[]
+  egresos: any[]
+  setEgresos: React.Dispatch<React.SetStateAction<any[]>>
   fetchPlanes: () => Promise<void>
   fetchAssists: (options: { selectedDate: Date; selectedType: string }) => Promise<void>
   setAssists: React.Dispatch<React.SetStateAction<Asistencia[]>>
@@ -61,6 +63,7 @@ const AppDataContext = createContext<AppDataContextProps>({
   assists: [],
   alumnos: [],
   turnos: [],
+  egresos: [],
   fetchPlanes: async () => { },
   fetchAssists: async () => { },
   fetchAlumnos: async () => { },
@@ -69,6 +72,7 @@ const AppDataContext = createContext<AppDataContextProps>({
   setAssists: () => { },
   setAlumnos: () => { },
   setTurnos: () => { },
+  setEgresos: () => { },
   deleteAsistencia: async () => { },
   editAsistencia: async () => { },
 })
@@ -78,6 +82,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [assists, setAssists] = useState<Asistencia[]>([])
   const [alumnos, setAlumnos] = useState<Alumno[]>([])
   const [turnos, setTurnos] = useState<Turno[]>([])
+  const [egresos, setEgresos] = useState<any[]>([])
+
   const pathname = usePathname();
   const esLogin = pathname === "/login";
   const esAdmin = pathname === "/dashboard/administrator"
@@ -183,16 +189,24 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const fetchDashboardCompleto = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/datosBase`)
+    const data = await res.json()
+    setAlumnos(data.alumnos)
+    setPlanes(data.planes)
+    setTurnos(data.turnos)
+    setAssists(data.asistencias)
+    setEgresos(data.egresos)
+  }
+
   useEffect(() => {
-    if (esLogin || esUser ) return;
+    if (esLogin || esUser) return;
+
     if (esAdmin) {
-      fetchAlumnos()
-      return
+      fetchAlumnos();
+    } else {
+      fetchDashboardCompleto();
     }
-    fetchAlumnos();
-    fetchPlanes();
-    fetchAssists({ selectedDate: new Date(), selectedType: "todas" });
-    fetchTurnos()
   }, [esLogin, esAdmin])
 
   return (
@@ -202,6 +216,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         assists,
         alumnos,
         turnos,
+        egresos,
         fetchPlanes,
         fetchAssists,
         fetchAlumnos,
@@ -210,6 +225,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         setAssists,
         setAlumnos,
         setTurnos,
+        setEgresos,
         deleteAsistencia,
         editAsistencia
       }}

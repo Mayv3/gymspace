@@ -1093,3 +1093,11 @@ export async function deleteEgresoByID(id) {
   return true;
 }
 
+export async function getEgresosByMesYAnio(anio, mes) {
+  const todos = await getEgresosFromSheet()
+
+  return todos.filter(e => {
+    const fecha = dayjs(e.Fecha, ["D/M/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"], true)
+    return fecha.isValid() && fecha.month() + 1 === mes && fecha.year() === anio
+  })
+}
