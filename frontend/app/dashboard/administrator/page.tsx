@@ -41,7 +41,7 @@ export default function AdministratorDashboard() {
   const router = useRouter()
 
   const { fetchMembers, updateAttendance } = useMembers()
-  const { alumnos, setAlumnos } = useAppData();
+  const { alumnos, setAlumnos, fetchAssists} = useAppData();
   const [members, setMembers] = useState<Member[]>([]);
 
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -103,12 +103,6 @@ export default function AdministratorDashboard() {
     );
     closeDialog("deleteMember");
   };
-
-  useEffect(() => {
-    if (!loading && (!user?.dni || !user?.rol)) {
-      router.push("/login")
-    }
-  }, [user, loading, router])
 
   useEffect(() => {
     if (!loading && (!user?.dni || !user?.rol)) {
