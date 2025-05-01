@@ -27,6 +27,7 @@ import { useDialogManager } from "@/hooks/useDialogManager"
 import { useAppData } from "@/context/AppDataContext"
 
 import { Member } from "@/models/dashboard";
+import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
 
 export default function ReceptionistDashboard() {
   const { user, loading } = useUser()
@@ -127,12 +128,13 @@ export default function ReceptionistDashboard() {
         )}
 
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5 md:w-auto">
+          <TabsList className="grid w-full grid-cols-6 md:w-auto">
             <TabsTrigger value="members">Miembros</TabsTrigger>
             <TabsTrigger value="shift-payments">Pagos por Turno</TabsTrigger>
             <TabsTrigger value="assists">Asistencias</TabsTrigger>
             <TabsTrigger value="plans">Planes</TabsTrigger>
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
+            <TabsTrigger value="egresos">Egresos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="space-y-4">
@@ -173,6 +175,10 @@ export default function ReceptionistDashboard() {
 
           <TabsContent value="shifts" className="space-y-4">
             <ShiftsSection />
+          </TabsContent>
+
+          <TabsContent value="egresos" className="space-y-4">
+            <EgresosSection />
           </TabsContent>
         </Tabs>
       </div>

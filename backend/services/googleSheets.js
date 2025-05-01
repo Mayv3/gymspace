@@ -1017,4 +1017,79 @@ export async function deleteTurnoByID(id) {
   return true;
 }
 
+// Egresos
+
+export async function getEgresosFromSheet() {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Egresos!A1:F',
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+  return rows.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] || '');
+    return obj;
+  });
+}
+
+export async function appendEgresoToSheet(data) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Egresos!A2:A',
+  });
+
+  const nuevoID = (res.data.values?.length || 0) + 1;
+
+  const values = [[
+    String(nuevoID),
+    data.Fecha || '',
+    data.Motivo || '',
+    data.Monto || '',
+    data.Responsable || '',
+    data.Tipo || ''
+  ]];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Egresos!A1:F1',
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    resource: { values },
+  });
+
+  return { id: nuevoID, ...data };
+}
+
+export async function deleteEgresoByID(id) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Egresos!A1:E',
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+  const rowIndex = rows.findIndex(row => row[0] === id);
+
+  if (rowIndex === -1) return false;
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId: 590711251,
+              dimension: 'ROWS',
+              startIndex: rowIndex + 1,
+              endIndex: rowIndex + 2
+            }
+          }
+        }
+      ]
+    }
+  });
+
+  return true;
+}
 

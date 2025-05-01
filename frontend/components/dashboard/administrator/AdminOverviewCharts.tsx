@@ -67,7 +67,12 @@ interface Factura {
   mes: string;
   gimnasio: number;
   clase: number;
+  egresosGimnasio: number;
+  egresosClase: number;
+  netoGimnasio: number;
+  netoClase: number;
 }
+
 
 type TipoPlan = "TODOS" | "GIMNASIO" | "CLASE";
 
@@ -125,6 +130,39 @@ const CustomTooltip: React.FC<TooltipProps<number, string> & {
   }
   return null;
 };
+
+const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0]?.payload;
+
+    const gimnasio = data.gimnasio || 0;
+    const clases = data.clase || 0;
+    const egresosGimnasio = data.egresosGimnasio || 0;
+    const egresosClases = data.egresosClase || 0;
+    const netoGimnasio = data.netoGimnasio || 0;
+    const netoClase = data.netoClase || 0;
+    const netoTotal = netoGimnasio + netoClase;
+
+    return (
+      <div className="p-2 rounded-md shadow text-sm border w-max max-w-[240px] bg-white dark:bg-gray-800 dark:text-white">
+        <p className="font-semibold mb-1">💵 Ingreso Gimnasio: ${gimnasio}</p>
+        <p>📉 Egreso Gimnasio: ${egresosGimnasio}</p>
+        <p className="mb-1 text-green-500">📈 Neto Gimnasio: ${netoGimnasio}</p>
+
+        <p className="font-semibold mt-2">💵 Ingreso Clases: ${clases}</p>
+        <p>📉 Egreso Clases: ${egresosClases}</p>
+        <p className="mb-1 text-green-500">📈 Neto Clases: ${netoClase}</p>
+
+        <hr className="my-2" />
+        <p className="font-bold text-orange-500">🧮 Neto Total: ${netoTotal}</p>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+
 
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
@@ -599,34 +637,53 @@ export default function AdminOverviewCharts({
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-3">
         <CardHeader className="flex items-center gap-2">
           <DollarSign className="text-orange-500" />
-          <CardTitle>Facturación Mensual: Gimnasio y Clases</CardTitle>
+          <CardTitle>Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
         </CardHeader>
         <CardContent>
-          {facturacion.every(f => f.gimnasio === 0 && f.clase === 0) ? (
+          {facturacion.every(f => f.gimnasio === 0 && f.clase === 0 && f.egresosGimnasio === 0 && f.egresosClase === 0) ? (
             <p className="text-sm text-muted-foreground text-center mt-8">
               No hay datos de facturación para este año.
             </p>
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <BarChart data={facturacion}>
                 <XAxis dataKey="mes" />
                 <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="gimnasio" name="Gimnasio" radius={[10, 10, 0, 0]}>
+                <Tooltip content={<CustomTooltipFacturacion />} />
+
+                <Bar dataKey="gimnasio" name="Ingreso Gimnasio" stackId="a">
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill={COLORS[0]} />
                   ))}
                 </Bar>
-                <Bar dataKey="clase" name="Clases" radius={[10, 10, 0, 0]}>
+
+                <Bar dataKey="egresosGimnasio" name="Egreso Gimnasio" stackId="a">
+                  {facturacion.map((_, i) => (
+                    <Cell key={i} fill="#ef4444" /> // rojo claro
+                  ))}
+                </Bar>
+
+                <Bar dataKey="clase" name="Ingreso Clases" stackId="b">
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill={COLORS[2]} />
                   ))}
                 </Bar>
+
+                <Bar dataKey="egresosClase" name="Egreso Clases" stackId="b">
+                  {facturacion.map((_, i) => (
+                    <Cell key={i} fill="#f87171" /> // rojo más claro
+                  ))}
+                </Bar>
+
+                {/* Líneas de neto (superpuestas) */}
+                <Line type="monotone" dataKey="netoGimnasio" name="Neto Gimnasio" stroke="#22c55e" strokeWidth={2} />
+                <Line type="monotone" dataKey="netoClase" name="Neto Clases" stroke="#3b82f6" strokeWidth={2} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </CardContent>
       </Card>
+
 
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
         <CardHeader className="flex flex-col">

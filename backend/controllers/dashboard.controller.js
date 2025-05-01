@@ -4,7 +4,8 @@ import {
   getPlanesFromSheet,
   getAsistenciasFromSheet,
   getPagosFromSheet,
-  getCajasFromSheet
+  getCajasFromSheet,
+  getEgresosFromSheet
 } from '../services/googleSheets.js';
 
 let cachedDashboard = null;
@@ -19,17 +20,18 @@ export const getDashboardCompleto = async (req, res) => {
       console.log("➡️ Sirviendo dashboard desde caché");
       return res.json(cachedDashboard);
     }
-  
+
     console.log("♻️ Generando nuevo dashboard desde Google Sheets");
 
     const hoy = dayjs();
     const { fecha, mesPersonalizados } = req.query;
 
-    const [alumnos, planesBD, asistencias, pagos] = await Promise.all([
+    const [alumnos, planesBD, asistencias, pagos, egresos] = await Promise.all([
       getAlumnosFromSheet(),
       getPlanesFromSheet(),
       getAsistenciasFromSheet(),
-      getPagosFromSheet()
+      getPagosFromSheet(),
+      getEgresosFromSheet()
     ]);
 
     const cajas = await getCajasFromSheet();
@@ -149,14 +151,34 @@ export const getDashboardCompleto = async (req, res) => {
       noche: { total: rangos.noche, promedio: +(rangos.noche / 31).toFixed(2) }
     };
 
-    // ---- Facturación Anual ----
+    // ---- Facturación Anual (Ingresos - Egresos) ----
     const anioActual = hoy.year();
     const meses = Array.from({ length: 12 }, (_, i) => ({
       mes: dayjs().month(i).locale('es').format('MMMM'),
       gimnasio: 0,
-      clase: 0
+      clase: 0,
+      egresosGimnasio: 0,
+      egresosClase: 0,
+      netoGimnasio: 0,
+      netoClase: 0,
     }));
 
+    // 📌 Procesar EGRESOS por mes y tipo
+    for (const e of egresos) {
+      const fechaEgreso = dayjs(e.Fecha, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+      if (!fechaEgreso.isValid()) continue;
+
+      if (fechaEgreso.year() === anioActual) {
+        const mesIndex = fechaEgreso.month();
+        const tipo = (e.Tipo || "").trim().toUpperCase();
+        const monto = parseFloat(e.Monto || "0");
+
+        if (tipo === "GIMNASIO") meses[mesIndex].egresosGimnasio += monto;
+        else if (tipo === "CLASE") meses[mesIndex].egresosClase += monto;
+      }
+    }
+
+    // 📌 Procesar INGRESOS por mes y tipo
     for (const p of pagos) {
       const fechaPagoStr = p.Fecha_pago || p.Fecha_de_Pago || p["Fecha de Pago"] || "";
       const fechaPago = dayjs(fechaPagoStr, ['D/M/YYYY', 'DD/MM/YYYY'], true);
@@ -174,6 +196,12 @@ export const getDashboardCompleto = async (req, res) => {
         if (tipo === "GIMNASIO") meses[mesIndex].gimnasio += monto;
         else if (tipo === "CLASE") meses[mesIndex].clase += monto;
       }
+    }
+
+    // 📌 Calcular TOTALES NETOS
+    for (const mes of meses) {
+      mes.netoGimnasio = mes.gimnasio - mes.egresosGimnasio;
+      mes.netoClase = mes.clase - mes.egresosClase;
     }
 
     // --- Personalizados por Profesor ---
