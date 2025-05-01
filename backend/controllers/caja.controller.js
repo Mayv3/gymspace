@@ -177,38 +177,53 @@ export const obtenerCajaAbiertaPorTurno = async (req, res) => {
 
 export const getCajasPorMes = async (req, res) => {
   try {
+    const { mes, anio } = req.query;
+
     const cajas = await getCajasFromSheet();
     const pagos = await getPagosFromSheet();
 
-    const cajasConTotales = cajas.map(caja => {
-      const fechaCaja = dayjs(caja.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
-      const horaApertura = dayjs(`${caja.Fecha} ${caja["Hora Apertura"]}`, "D/M/YYYY HH:mm");
-      const horaCierre = dayjs(`${caja.Fecha} ${caja["Hora Cierre"]}`, "D/M/YYYY HH:mm");
+    const cajasConTotales = cajas
+      .map(caja => {
+        const fechaCaja = dayjs(caja.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
+        const horaApertura = dayjs(`${caja.Fecha} ${caja["Hora Apertura"]}`, "D/M/YYYY HH:mm");
+        const horaCierre = dayjs(`${caja.Fecha} ${caja["Hora Cierre"]}`, "D/M/YYYY HH:mm");
 
-      let totalGimnasio = 0;
-      let totalClases = 0;
+        let totalGimnasio = 0;
+        let totalClases = 0;
 
-      pagos.forEach(pago => {
-        const fechaPago = dayjs(pago.Fecha_de_Pago, ["D/M/YYYY", "DD/MM/YYYY"]);
-        const horaPago = dayjs(`${pago.Fecha_de_Pago} ${pago.Hora}`, "D/M/YYYY HH:mm");
-        const tipo = pago.Tipo?.toUpperCase();
-        const monto = parseFloat(pago.Monto) || 0;
+        pagos.forEach(pago => {
+          const fechaPago = dayjs(pago.Fecha_de_Pago, ["D/M/YYYY", "DD/MM/YYYY"]);
+          const horaPago = dayjs(`${pago.Fecha_de_Pago} ${pago.Hora}`, "D/M/YYYY HH:mm");
+          const tipo = pago.Tipo?.toUpperCase();
+          const monto = parseFloat(pago.Monto) || 0;
 
-        const mismaFecha = fechaCaja.isSame(fechaPago, 'day');
-        const enRango = horaPago.isSameOrAfter(horaApertura) && horaPago.isSameOrBefore(horaCierre);
+          const mismaFecha = fechaCaja.isSame(fechaPago, 'day');
+          const enRango = horaPago.isSameOrAfter(horaApertura) && horaPago.isSameOrBefore(horaCierre);
 
-        if (mismaFecha && enRango) {
-          if (tipo === "GIMNASIO") totalGimnasio += monto;
-          if (tipo === "CLASE") totalClases += monto;
-        }
+          if (mismaFecha && enRango) {
+            if (tipo === "GIMNASIO") totalGimnasio += monto;
+            if (tipo === "CLASE") totalClases += monto;
+          }
+        });
+
+        return {
+          ...caja,
+          TotalGimnasio: totalGimnasio,
+          TotalClases: totalClases,
+          _fechaCaja: fechaCaja 
+        };
+      })
+      .filter(caja => {
+        if (!mes || !anio) return true;
+        return (
+          caja._fechaCaja.month() + 1 === Number(mes) &&
+          caja._fechaCaja.year() === Number(anio)
+        );
+      })
+      .map(caja => {
+        const { _fechaCaja, ...resto } = caja;
+        return resto;
       });
-
-      return {
-        ...caja,
-        TotalGimnasio: totalGimnasio,
-        TotalClases: totalClases
-      };
-    });
 
     res.json(cajasConTotales);
   } catch (error) {
@@ -216,3 +231,4 @@ export const getCajasPorMes = async (req, res) => {
     res.status(500).json({ message: "Error interno" });
   }
 };
+

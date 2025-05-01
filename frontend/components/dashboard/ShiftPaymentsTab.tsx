@@ -190,7 +190,7 @@ export function ShiftPaymentsTab({
             </div>
 
             {Object.keys(resumenPorTipo).length > 0 && (
-              <div className="bg-muted rounded-xl p-5 border border-border">
+              <div className="bg-muted dark:bg-zinc-900 rounded-xl p-5 border ">
                 <h3 className="flex items-center text-muted-foreground font-medium mb-4">
                   Recaudación por tipo de pago
                 </h3>
@@ -203,7 +203,7 @@ export function ShiftPaymentsTab({
                   {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
                     <div
                       key={tipo}
-                      className="bg-muted rounded-xl p-5 border border-orange-500"
+                      className="bg-muted rounded-xl p-5 border border-orange-500 dark:border-none"
                     >
                       <h4 className="text-lg font-semibold text-foreground mb-4 text-start">
                         {tipo}
@@ -222,7 +222,7 @@ export function ShiftPaymentsTab({
                   ))}
 
                   {/* Box de totales finales */}
-                  <div className="bg-muted rounded-xl p-4 space-y-4 border border-orange-500">
+                  <div className="bg-muted rounded-xl p-4 space-y-4 border border-orange-500 dark:border-none">
                     <div className="flex justify-between items-center">
                       <span className="text-lg text-foreground">Total en Tarjeta:</span>
                       <span className="text-xl font-semibold text-green-500">

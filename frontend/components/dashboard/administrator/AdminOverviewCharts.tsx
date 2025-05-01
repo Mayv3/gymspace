@@ -125,15 +125,18 @@ const CustomTooltip: React.FC<TooltipProps<number, string> & {
   }
   return null;
 };
+
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
 
+  const montoManana = data["mañana_monto"] || 0;
   const montoTarde = data["tarde_monto"] || 0;
-  const totalDia = montoTarde;
 
-  const montoGimnasio = data["tarde_gimnasio"] ?? data["mañana_gimnasio"] ?? 0;
-  const montoClase = data["tarde_clases"] ?? data["mañana_clases"] ?? 0;
+  const totalDia = montoTarde ? montoTarde : montoManana;
+
+  const montoGimnasio = data["tarde_gimnasio"] ? data["tarde_gimnasio"] : data["mañana_gimnasio"];
+  const montoClase = data["tarde_clases"] ? data["tarde_clases"] : data["mañana_clases"];
 
   return (
     <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
@@ -162,7 +165,7 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
       </div>
 
       <div className="border-t mt-2 pt-2 text-sm font-semibold">
-        🧾 Total del día (fin turno tarde): ${totalDia}
+        🧾 Total del día: ${totalDia}
       </div>
     </div>
   );
@@ -179,11 +182,12 @@ export default function AdminOverviewCharts({
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear()
   );
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
-  const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState<string>("");
 
-  const [selectedMonthCajas, setSelectedMonthCajas] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState(() => (dayjs().month() + 1).toString());
+  const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
+  const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState(() => (dayjs().month() + 1).toString());
+
+  const [selectedMonthCajas, setSelectedMonthCajas] = useState(() => (dayjs().month() + 1).toString());
   const [selectedYearPersonalizados, setSelectedYearPersonalizados] = useState<number>(new Date().getFullYear());
   const [asistenciasPorHora, setAsistenciasPorHora] = useState<{ hora: string; cantidad: number }[]>([]);
   const [promedios, setPromedios] = useState<Promedio[]>([
@@ -235,6 +239,8 @@ export default function AdminOverviewCharts({
         { rango: "Tarde (15-18hs)", promedio: Number(res.data.tarde.promedio) },
         { rango: "Noche (18-22hs)", promedio: Number(res.data.noche.promedio) },
       ]);
+
+      console.log('Promedios:', res.data)
     } catch (error) {
       console.error("Error al cargar promedios:", error);
     }
@@ -462,8 +468,9 @@ export default function AdminOverviewCharts({
                   data={planesFiltrados}
                   dataKey="cantidad"
                   nameKey="plan"
-                  outerRadius={80}
+                  outerRadius={100}
                   label
+                  stroke="none"
                 >
                   {planesFiltrados.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
