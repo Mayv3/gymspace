@@ -31,7 +31,6 @@ export default function EgresosSection() {
     const [egresoAEliminar, setEgresoAEliminar] = useState<Egreso | null>(null)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const { user } = useUser()
-    const hasFetched = useRef(false)
 
     const [form, setForm] = useState({
         Fecha: dayjs().format("DD/MM/YYYY"),
@@ -87,11 +86,6 @@ export default function EgresosSection() {
     }
 
     useEffect(() => {
-        if (!hasFetched.current) {
-            hasFetched.current = true
-            return 
-        }
-    
         fetchEgresos()
     }, [selectedDate, selectedType])
 
