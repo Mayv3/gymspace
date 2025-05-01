@@ -41,8 +41,8 @@ export default function AdministratorDashboard() {
   const [tabValue, setTabValue] = useState("overview")
   const router = useRouter()
 
-  const { fetchMembers, updateAttendance } = useMembers()
-  const { alumnos, setAlumnos, fetchAssists } = useAppData();
+  const { updateAttendance } = useMembers()
+  const { alumnos, setAlumnos } = useAppData();
   const [members, setMembers] = useState<Member[]>([]);
 
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -111,9 +111,6 @@ export default function AdministratorDashboard() {
     }
   }, [user, loading, router])
 
-  useEffect(() => {
-    fetchMembers();
-  }, []);
 
   useEffect(() => {
     const formattedMembers: Member[] = alumnos.map(alumno => ({
@@ -175,11 +172,11 @@ export default function AdministratorDashboard() {
               <Users className="mr-2 h-4 w-4" />
               Miembros
             </TabsTrigger>
-            <TabsTrigger value="shift-payments">Pagos por Turno</TabsTrigger>
-            <TabsTrigger value="assists">Asistencias</TabsTrigger>
-            <TabsTrigger value="plans">Planes</TabsTrigger>
-            <TabsTrigger value="shifts">Turnos</TabsTrigger>
-            <TabsTrigger value="egresos">Egresos</TabsTrigger>
+            <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Pagos por Turno</TabsTrigger>
+            <TabsTrigger value="assists" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Asistencias</TabsTrigger>
+            <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Planes</TabsTrigger>
+            <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Turnos</TabsTrigger>
+            <TabsTrigger value="egresos" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Egresos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" forceMount>

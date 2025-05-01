@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
@@ -28,6 +28,8 @@ export default function ShiftsSection() {
 
     const [selectedDate, setSelectedDate] = useState(new Date())
     const [selectedType, setSelectedType] = useState("todas")
+    const [fechaError, setFechaError] = useState(false);
+    const isFirstLoad = useRef(true);
 
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [createForm, setCreateForm] = useState({ Tipo: "", Fecha_turno: "", Profesional: "", Responsable: "" })
@@ -46,16 +48,31 @@ export default function ShiftsSection() {
         return turno.Tipo === selectedType
     })
 
-    const handleConfirmCreate = async () => {
+    const fetchTurnosPorFecha = async () => {
         try {
-            const fechaNormalizada = dayjs(createForm.Fecha_turno, "DD/MM/YYYY").format("D/M/YYYY");
+            const fechaFormateada = dayjs(selectedDate).format("DD/MM/YYYY");
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos?fecha=${fechaFormateada}`);
+            setTurnos(data);
+        } catch (error) {
+            console.error("Error al cargar turnos por fecha:", error);
+        }
+    };
+
+    const handleConfirmCreate = async () => {
+        if (!createForm.Fecha_turno) {
+            setFechaError(true);
+            return;
+        }
+        setFechaError(false);
+
+        try {
             const payload = {
                 tipo: createForm.Tipo,
-                fecha_turno: fechaNormalizada,
+                fecha_turno: createForm.Fecha_turno,
                 profesional: createForm.Profesional,
                 responsable: user?.nombre,
             };
-
+            console.log(payload)
             const { data: nuevoTurno } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos`, payload);
 
             const fechaDelTurno = dayjs(nuevoTurno.Fecha_turno, ["D/M/YYYY", "DD/MM/YYYY"]);
@@ -65,7 +82,7 @@ export default function ShiftsSection() {
             if (dentroDe7Dias) {
                 setTurnos(prev => [...prev, nuevoTurno]);
             }
-
+            fetchTurnosPorFecha()
             setShowCreateDialog(false);
             setCreateForm({ Tipo: "", Fecha_turno: "", Profesional: "", Responsable: "" });
         } catch (error) {
@@ -113,17 +130,12 @@ export default function ShiftsSection() {
         }
     }
 
-    useEffect(() => {
-        const fetchTurnosPorFecha = async () => {
-            try {
-                const fechaFormateada = dayjs(selectedDate).format("DD/MM/YYYY");
-                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos?fecha=${fechaFormateada}`);
-                setTurnos(data);
-            } catch (error) {
-                console.error("Error al cargar turnos por fecha:", error);
-            }
-        };
 
+    useEffect(() => {
+        if (isFirstLoad.current) {
+            isFirstLoad.current = false;
+            return; 
+        }
         fetchTurnosPorFecha();
     }, [selectedDate]);
 
@@ -248,16 +260,25 @@ export default function ShiftsSection() {
                         </Select>
                     </div>
                     <div className="flex flex-col">
-                        <Label>Fecha Turno</Label>
-                        <DatePicker
-                            date={createForm.Fecha_turno ? dayjs(createForm.Fecha_turno, "DD/MM/YYYY").toDate() : undefined}
-                            setDate={(date) =>
-                                setCreateForm(prev => ({
-                                    ...prev,
-                                    Fecha_turno: dayjs(date).format("DD/MM/YYYY")
-                                }))
-                            }
-                        />
+                        <div className="flex flex-col">
+                            <Label>Fecha Turno</Label>
+                            <DatePicker
+                                date={createForm.Fecha_turno ? dayjs(createForm.Fecha_turno, "DD/MM/YYYY").toDate() : undefined}
+                                setDate={(date) => {
+                                    const parsed = dayjs(date);
+                                    const fechaFormateada = parsed.locale("es").format("DD/MM/YYYY");
+                                    setCreateForm(prev => ({
+                                        ...prev,
+                                        Fecha_turno: fechaFormateada
+                                    }));
+                                    setFechaError(false);
+                                }}
+                            />
+                            {fechaError && (
+                                <span className="text-sm text-red-500 mt-1">La fecha del turno es obligatoria.</span>
+                            )}
+                        </div>
+
                     </div>
                     <div className="flex flex-col">
                         <Label>Profesional</Label>

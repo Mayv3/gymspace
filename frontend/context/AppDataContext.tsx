@@ -1,6 +1,7 @@
 "use client"
 import React, { createContext, useContext, useEffect, useState } from "react"
 import dayjs from "dayjs"
+import { usePathname } from "next/navigation";
 
 interface Plan {
   ID: string
@@ -77,6 +78,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [assists, setAssists] = useState<Asistencia[]>([])
   const [alumnos, setAlumnos] = useState<Alumno[]>([])
   const [turnos, setTurnos] = useState<Turno[]>([])
+  const pathname = usePathname();
+  const esLogin = pathname === "/login";
+  const esAdmin = pathname === "/dashboard/administrator"
+  const esUser = pathname === "/dashboard/member"
 
   const fetchAlumnos = async () => {
     try {
@@ -179,11 +184,16 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    if (esLogin || esUser ) return;
+    if (esAdmin) {
+      fetchAlumnos()
+      return
+    }
     fetchAlumnos();
     fetchPlanes();
     fetchAssists({ selectedDate: new Date(), selectedType: "todas" });
     fetchTurnos()
-  }, [])
+  }, [esLogin, esAdmin])
 
   return (
     <AppDataContext.Provider

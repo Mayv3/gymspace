@@ -78,10 +78,6 @@ export default function ReceptionistDashboard() {
   }, [user, loading, router])
 
   useEffect(() => {
-    fetchMembers();
-  }, []);
-
-  useEffect(() => {
     const formattedMembers: Member[] = alumnos.map(alumno => ({
       id: alumno.ID,
       Nombre: alumno.Nombre,

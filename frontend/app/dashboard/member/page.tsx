@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Award, Dumbbell, TrendingUp } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { motion, AnimatePresence } from "framer-motion"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useUser } from "@/context/UserContext";
@@ -54,7 +54,7 @@ interface Clase {
   Hora: string
   'Cupo maximo': string
   Inscriptos: string
-  ProximaFecha?: string 
+  ProximaFecha?: string
 }
 
 export default function MemberDashboard() {
@@ -64,6 +64,7 @@ export default function MemberDashboard() {
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success")
   const [showFeedback, setShowFeedback] = useState(false)
+  const hasFetched = useRef(false)
 
   const { user: contextUser, loading } = useUser()
   const router = useRouter()
@@ -75,10 +76,11 @@ export default function MemberDashboard() {
   }, [loading, contextUser, router])
 
   useEffect(() => {
-    if (contextUser) {
-      fetchUser()
-      fetchClases()
-    }
+    if (!contextUser || hasFetched.current) return
+    hasFetched.current = true
+
+    fetchUser()
+    fetchClases()
   }, [contextUser])
 
   const fetchUser = async () => {
@@ -105,7 +107,7 @@ export default function MemberDashboard() {
     try {
       setLoadingClases(true)
       const res = await axios.get<Clase[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/clases-el-club`)
-        console.log(res)
+      console.log(res)
       setClases(res.data)
     } catch (err) {
       console.error("Error al cargar clases:", err)
@@ -452,7 +454,7 @@ export default function MemberDashboard() {
                             <div className="flex justify-between items-center mb-4 w-full">
                               <CardTitle className="text-xl font-bold">{clase['Nombre de clase']}</CardTitle>
                               <Badge variant="outline" className="text-sm font-semibold bg-background text-foreground">
-                              {clase.Dia} - {clase.ProximaFecha}
+                                {clase.Dia} - {clase.ProximaFecha}
                               </Badge>
                             </div>
                             <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>

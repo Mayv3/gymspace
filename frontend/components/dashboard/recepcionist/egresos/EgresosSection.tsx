@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
@@ -31,6 +31,7 @@ export default function EgresosSection() {
     const [egresoAEliminar, setEgresoAEliminar] = useState<Egreso | null>(null)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const { user } = useUser()
+    const hasFetched = useRef(false)
 
     const [form, setForm] = useState({
         Fecha: dayjs().format("DD/MM/YYYY"),
@@ -43,6 +44,7 @@ export default function EgresosSection() {
     const fetchEgresos = async () => {
         const anio = dayjs(selectedDate).year()
         const mes = dayjs(selectedDate).month() + 1
+        console.log("Llamando fetchEgresos", { selectedDate, selectedType })
 
         try {
             const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/egresos?anio=${anio}&mes=${mes}${selectedType !== "todos" ? `&tipo=${selectedType}` : ""}`
@@ -85,6 +87,11 @@ export default function EgresosSection() {
     }
 
     useEffect(() => {
+        if (!hasFetched.current) {
+            hasFetched.current = true
+            return 
+        }
+    
         fetchEgresos()
     }, [selectedDate, selectedType])
 
