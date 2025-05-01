@@ -931,13 +931,18 @@ export async function appendTurnoToSheet(turno) {
 
   const nuevoID = (res.data.values?.length || 0) + 1;
 
+  const turnoConID = {
+    ID: String(nuevoID),
+    ...turno
+  };
+
   const values = [[
-    String(nuevoID),
-    turno.Fecha,
-    turno.Tipo,
-    turno.Fecha_turno,
-    turno.Profesional,
-    turno.Responsable
+    turnoConID.ID,
+    turnoConID.Fecha,
+    turnoConID.Tipo,
+    turnoConID.Fecha_turno,
+    turnoConID.Profesional,
+    turnoConID.Responsable
   ]];
 
   await sheets.spreadsheets.values.append({
@@ -947,6 +952,8 @@ export async function appendTurnoToSheet(turno) {
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
   });
+
+  return turnoConID;
 }
 
 export async function updateTurnoByID(id, nuevosDatos) {

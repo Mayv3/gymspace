@@ -10,12 +10,18 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Label } from "@/components/ui/label"
 import { PlusCircle, Edit, Trash, CalendarDays, User, ClipboardList } from "lucide-react"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
-import axios from "axios"
-import dayjs from "dayjs"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
 import { useUser } from "@/context/UserContext";
 import { useAppData } from "@/context/AppDataContext"
+
+import axios from "axios"
+import dayjs from "dayjs"
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js";
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 export default function ShiftsSection() {
     const { turnos, setTurnos } = useAppData()
@@ -52,19 +58,25 @@ export default function ShiftsSection() {
 
             const { data: nuevoTurno } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos`, payload);
 
-            setTurnos(prev => [...prev, nuevoTurno]);
+            const fechaDelTurno = dayjs(nuevoTurno.Fecha_turno, ["D/M/YYYY", "DD/MM/YYYY"]);
+            const hoy = dayjs();
+            const dentroDe7Dias = fechaDelTurno.isSameOrAfter(hoy, 'day') && fechaDelTurno.isSameOrBefore(hoy.add(7, 'day'), 'day');
+
+            if (dentroDe7Dias) {
+                setTurnos(prev => [...prev, nuevoTurno]);
+            }
 
             setShowCreateDialog(false);
             setCreateForm({ Tipo: "", Fecha_turno: "", Profesional: "", Responsable: "" });
         } catch (error) {
             console.error("Error al crear turno:", error);
         }
-    }
+    };
 
     const handleConfirmEdit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (!editingTurno) return console.log('No se encuentra el turno');
-        
+
         try {
             const { data: turnoActualizado } = await axios.put(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${editingTurno.ID}`,

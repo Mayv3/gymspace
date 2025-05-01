@@ -58,9 +58,9 @@ export const createTurno = async (req, res) => {
       Fecha: dayjs().format('DD/MM/YYYY'),
     };
 
-    await appendTurnoToSheet(nuevoTurno);
+    const nuevoTurnoGeneradoEnSheet = await appendTurnoToSheet(nuevoTurno);
 
-    res.status(201).json(nuevoTurno);
+    res.status(201).json(nuevoTurnoGeneradoEnSheet);
   } catch (error) {
     console.error('Error al crear turno:', error);
     res.status(500).json({ message: 'Error al crear turno' });
