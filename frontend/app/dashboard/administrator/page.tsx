@@ -143,6 +143,7 @@ export default function AdministratorDashboard() {
     refreshPayments()
   }, [selectedDate, selectedShift])
 
+
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader role="Administrador" />

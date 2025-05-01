@@ -33,6 +33,10 @@ export default function AssistsSection() {
   })
   const { assists, fetchAssists, deleteAsistencia, editAsistencia } = useAppData()
 
+  useEffect(() => {
+    fetchAssists({ selectedDate, selectedType });
+  }, []);
+  
   const handleDateChange = async (date: Date) => {
     setSelectedDate(date)
     await fetchAssists({ selectedDate: date, selectedType })
@@ -61,6 +65,8 @@ export default function AssistsSection() {
       alert("Error al eliminar la clase.")
     }
   }
+
+
 
   return (
     <TabsContent value="assists" className="space-y-4">
