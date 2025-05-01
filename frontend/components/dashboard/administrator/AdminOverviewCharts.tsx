@@ -140,7 +140,7 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
 
   return (
     <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
-      <p className="font-bold mb-1">📅 {data.fecha}</p>
+      <p className="font-bold mb-1">📅 {dayjs(data.fecha).format("DD/MM/YYYY")}</p>
 
       {["mañana", "tarde"].map((turno) => (
         data[`${turno}_monto`] !== undefined && (
