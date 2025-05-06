@@ -50,8 +50,7 @@ async function enviarMensajeDeInicio() {
 async function enviarMensaje(alumno) {
   const numero = alumno.Telefono.replace(/^0/, '').replace(/[^0-9]/g, '')
   const numeroWhatsApp = `549${numero}@c.us`
-  const mensaje = `Hola ${alumno.Nombre}, desde Gymspace te informamos que tu plan de ${alumno.Plan} vence el ${alumno.Fecha_vencimiento} . ¡Renoválo para seguir entrenando duro! 💪❤️
-.`
+  const mensaje = `Hola ${alumno.Nombre}, desde Gymspace te informamos que tu plan de ${alumno.Plan} vence el ${alumno.Fecha_vencimiento} . ¡Renoválo para seguir entrenando duro! 💪❤️`
 
   try {
     await client.sendMessage(numeroWhatsApp, mensaje)
