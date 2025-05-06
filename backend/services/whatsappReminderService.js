@@ -33,7 +33,6 @@ client.on('ready', async () => {
   }
 })
 
-
 client.initialize()
 
 async function enviarMensajeDeInicio() {
@@ -78,7 +77,7 @@ async function iniciarRecordatorios() {
     const fecha = String(a.Fecha_vencimiento).trim()
     const vencimiento = dayjs(fecha, 'D/M/YYYY').startOf('day')
     const hoyNormalizado = dayjs().startOf('day')
-    const diferencia = vencimiento.diff(hoyNormalizado, 'day')
+    const diferencia = vencimientow.diff(hoyNormalizado, 'day')
 
     console.log(`🧪 Comparando: ${fecha} → faltan ${diferencia} días`)
     return diferencia === 4

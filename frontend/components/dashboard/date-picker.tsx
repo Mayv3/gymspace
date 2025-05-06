@@ -19,6 +19,12 @@ interface DatePickerProps {
 export function DatePicker({ date, setDate, disabled = false }: DatePickerProps) {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(date)
 
+  // 🔥 Añade esto para que cada vez que cambie la prop `date`
+  //    actualice también el state interno
+  React.useEffect(() => {
+    setSelectedDate(date)
+  }, [date])
+
   const handleSelect = (newDate: Date | undefined) => {
     setSelectedDate(newDate)
     if (setDate && newDate) {
@@ -34,7 +40,7 @@ export function DatePicker({ date, setDate, disabled = false }: DatePickerProps)
         <Button
           variant="outline"
           className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
-          disabled={disabled} 
+          disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
           {isValidDate
@@ -43,7 +49,6 @@ export function DatePicker({ date, setDate, disabled = false }: DatePickerProps)
           }
         </Button>
       </PopoverTrigger>
-
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"

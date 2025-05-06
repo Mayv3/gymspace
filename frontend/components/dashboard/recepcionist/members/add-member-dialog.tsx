@@ -19,7 +19,12 @@ import { motion } from "framer-motion"
 import { UserPlus } from "lucide-react"
 import axios from "axios"
 import { format } from "date-fns"
-import { useAppData  } from "@/context/AppDataContext" 
+import { useAppData } from "@/context/AppDataContext"
+import dayjs from "dayjs"
+import utc from "dayjs/plugin/utc"
+import timezone from "dayjs/plugin/timezone"
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const formatDate = (date: Date) => format(date, "dd/MM/yyyy")
 
@@ -30,6 +35,12 @@ interface AddMemberDialogProps {
 }
 
 export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMemberDialogProps) {
+
+  const hoy = dayjs()
+    .tz("America/Argentina/Buenos_Aires")
+    .hour(12)
+    .add(1, "day")
+    .toDate()
   const [formData, setFormData] = useState({
     name: "",
     dni: "",
@@ -39,8 +50,8 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
     plan: "",
     clasesPagadas: "0",
     clasesRealizadas: "0",
-    fechaInicio: formatDate(new Date()),
-    fechaVencimiento: formatDate(new Date()),
+    fechaInicio: formatDate(hoy),
+    fechaVencimiento: formatDate(dayjs(hoy).add(1, "month").toDate()),
     fechaNacimiento: "",
     profesorAsignado: "",
   })
@@ -67,10 +78,12 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+
   const convertToISO = (dateStr: string): string => {
     const [day, month, year] = dateStr.split('/')
     return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
   }
+
 
   const resetForm = () => {
     setFormData({
@@ -82,8 +95,8 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       plan: "",
       clasesPagadas: "0",
       clasesRealizadas: "0",
-      fechaInicio: formatDate(new Date()),
-      fechaVencimiento: formatDate(new Date()),
+      fechaInicio: formatDate(hoy),
+      fechaVencimiento: formatDate(dayjs(hoy).add(1, "month").toDate()),
       fechaNacimiento: "",
       profesorAsignado: "",
     })
@@ -128,6 +141,11 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
         setErrorMessage("Error al agregar el alumno")
       }
     }
+  }
+
+  const parseLocal = (str: string): Date => {
+    const [d, m, y] = str.split("/")
+    return new Date(Number(y), Number(m) - 1, Number(d))
   }
 
   return (
@@ -215,11 +233,21 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Fecha de Inicio</Label>
-                <DatePicker date={new Date(formData.fechaInicio.split("/").reverse().join("-"))} setDate={(date) => handleChange("fechaInicio", formatDate(date))}/>
+                <DatePicker
+                  date={parseLocal(formData.fechaInicio)}
+                  setDate={(date) => {
+                    handleChange("fechaInicio", formatDate(date))
+                    const venc = dayjs(date).add(1, "month").toDate()
+                    console.log(venc)
+                    handleChange("fechaVencimiento", formatDate(venc))
+                  }}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Fecha de Fin</Label>
-                <DatePicker date={new Date(formData.fechaVencimiento.split("/").reverse().join("-"))} setDate={(date) => handleChange("fechaVencimiento", formatDate(date))} />
+                <DatePicker 
+                date={parseLocal(formData.fechaVencimiento)}
+                setDate={(date) => handleChange("fechaVencimiento", formatDate(date))} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fechaNacimiento">Fecha de Nacimiento</Label>

@@ -202,11 +202,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (esLogin || esUser) return;
 
-    if (esAdmin) {
-      fetchAlumnos();
-    } else {
-      fetchDashboardCompleto();
-    }
+    fetchDashboardCompleto();
+  
   }, [esLogin, esAdmin])
 
   return (
