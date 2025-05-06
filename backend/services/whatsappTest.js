@@ -1,4 +1,4 @@
-/* import venom from 'venom-bot'
+import venom from 'venom-bot'
 
 async function enviarMensajeDePrueba() {
   try {
@@ -19,4 +19,3 @@ async function enviarMensajeDePrueba() {
 }
 
 enviarMensajeDePrueba()
-*/

@@ -16,11 +16,9 @@ import clasesClubRoutes from './routes/clasesElClub.routes.js';
 import turnosRoutes from './routes/turnos.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js'
 import egresosRoutes from './routes/egresos.routes.js';
-// import { iniciarRecordatorios } from './services/whatsappReminderService.js'
 import './services/recordatorioEmail.js'
 
 dotenv.config();
-// iniciarRecordatorios()
 
 const app = express();
 app.use(cors());

@@ -1,0 +1,4 @@
+2025/05/06-18:38:31.632 4e4 Reusing MANIFEST C:\Users\nicop\OneDrive\Desktop\gymspace\backend\session\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/05/06-18:38:31.640 4e4 Recovering log #118
+2025/05/06-18:38:31.681 4e4 Reusing old log C:\Users\nicop\OneDrive\Desktop\gymspace\backend\session\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000118.log 
+2025/05/06-18:38:35.988 1b18 Manual compaction at level-0 from '\x009\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00:\x00\x00\x00' @ 0 : 0; will stop at (end)

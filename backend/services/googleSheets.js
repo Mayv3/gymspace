@@ -40,7 +40,6 @@ export async function getAlumnosFromSheet() {
     return alumno;
   });
   alumnos.sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-
   return alumnos;
 }
 
