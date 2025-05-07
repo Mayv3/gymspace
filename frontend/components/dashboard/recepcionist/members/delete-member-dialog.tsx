@@ -1,11 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { notify } from '@/lib/toast'
 import axios from "axios"
 
 interface DeleteMemberDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  member: any // El miembro a eliminar, se espera que tenga el campo DNI
+  member: any
   onDelete: (deletedMemberDNI: string) => void
 }
 
@@ -13,10 +14,11 @@ export function DeleteMemberDialog({ open, onOpenChange, member, onDelete }: Del
   const handleDelete = async () => {
     try {
       await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${member.DNI}`)
-      // Se notifica al componente padre que se eliminó el miembro
       onDelete(member.DNI)
       onOpenChange(false)
+      notify.error("¡Alumno eliminado con éxito!")
     } catch (error) {
+      notify.info("¡Alumno eliminado con éxito!")
       console.error("Error al eliminar el miembro", error)
     }
   }

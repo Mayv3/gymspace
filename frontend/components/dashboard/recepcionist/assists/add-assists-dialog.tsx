@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { motion } from "framer-motion"
 import { useUser } from "@/context/UserContext"
+import { notify } from "@/lib/toast"
 
 interface RegisterClassDialogProps {
   open: boolean
@@ -33,9 +34,10 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
       if (!res.ok) throw new Error("Error al registrar clase")
 
       onOpenChange(false)
+      notify.success("Asistencia registrada con éxito!")
       setFormData({ tipoClase: "", cantidadPersonas: "", responsable: user?.nombre || "" })
     } catch (error) {
-      console.error("Error al registrar clase diaria:", error)
+      notify.error("Error al registrar la asistencia")
     }
   }
 

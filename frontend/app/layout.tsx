@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { AppDataProvider } from '@/context/AppDataContext'
 import { UserProvider } from "@/context/UserContext";
+import 'react-toastify/dist/ReactToastify.css'
+import { ToastProvider } from '@/components/ToastProvider'
 
 export const metadata: Metadata = {
   title: 'GYMSPACE',
@@ -23,6 +25,7 @@ export default function RootLayout({
         <UserProvider>
           <AppDataProvider>
             {children}
+            <ToastProvider />
           </AppDataProvider>
         </UserProvider>
       </body>

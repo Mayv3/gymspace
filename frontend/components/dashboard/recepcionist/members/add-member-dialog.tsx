@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -23,6 +23,8 @@ import { useAppData } from "@/context/AppDataContext"
 import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
+import { notify } from '@/lib/toast'
+
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -36,11 +38,8 @@ interface AddMemberDialogProps {
 
 export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMemberDialogProps) {
 
-  const hoy = dayjs()
-    .tz("America/Argentina/Buenos_Aires")
-    .hour(12)
-    .add(1, "day")
-    .toDate()
+  const hoy = dayjs().tz("America/Argentina/Buenos_Aires").toDate()
+
   const [formData, setFormData] = useState({
     name: "",
     dni: "",
@@ -78,12 +77,10 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-
   const convertToISO = (dateStr: string): string => {
     const [day, month, year] = dateStr.split('/')
     return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
   }
-
 
   const resetForm = () => {
     setFormData({
@@ -122,7 +119,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       Fecha_vencimiento: convertToISO(formData.fechaVencimiento),
       Profesor_asignado: formData.profesorAsignado
     }
-    console.log(payload)
+
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`,
@@ -133,8 +130,9 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       resetForm()
       onOpenChange(false)
       onMemberAdded(response.data)
+      notify.success("¡Alumno agregado con éxito!")
     } catch (error: any) {
-      console.error("Error al agregar el alumno:", error)
+      notify.error("Fallo al registrar el alumno")
       if (error.response?.data?.message) {
         setErrorMessage(error.response.data.message)
       } else {
@@ -245,9 +243,9 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
               </div>
               <div className="space-y-2">
                 <Label>Fecha de Fin</Label>
-                <DatePicker 
-                date={parseLocal(formData.fechaVencimiento)}
-                setDate={(date) => handleChange("fechaVencimiento", formatDate(date))} />
+                <DatePicker
+                  date={parseLocal(formData.fechaVencimiento)}
+                  setDate={(date) => handleChange("fechaVencimiento", formatDate(date))} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fechaNacimiento">Fecha de Nacimiento</Label>

@@ -13,6 +13,7 @@ import { PlusCircle, Trash } from "lucide-react"
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { notify } from "@/lib/toast"
 
 interface Egreso {
     ID: string
@@ -57,31 +58,50 @@ export default function EgresosSection() {
     const handleCreateEgreso = async () => {
         try {
             const payload = { ...form }
-            const { data: nuevo } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/egresos`, payload)
-            setEgresos(prev => [...prev, nuevo])
+
+            const { data } = await axios.post(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/egresos`,
+                payload
+            )
+
+            const nuevoEgreso: Egreso = {
+                ID: String(data.id),
+                Fecha: data.Fecha,
+                Motivo: data.Motivo,
+                Monto: data.Monto,
+                Responsable: data.Responsable,
+                Tipo: data.Tipo,
+            }
+
+            setEgresos(prev => [...prev, nuevoEgreso])
+
             setShowCreateDialog(false)
+            notify.success("¡Egreso registrado con éxito!")
+
             setForm({
                 Fecha: dayjs().format("DD/MM/YYYY"),
                 Motivo: "",
                 Monto: "",
-                Responsable: "",
-                Tipo: "GIMNASIO"
+                Responsable: user?.nombre ?? "",
+                Tipo: "GIMNASIO",
             })
         } catch (error) {
-            console.error("Error al crear egreso:", error)
+            console.error(error)
+            notify.error("Error al registrar el egreso")
         }
     }
 
     const handleDeleteEgreso = async () => {
         if (!egresoAEliminar) return
-
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/egresos/${egresoAEliminar.ID}`)
             setEgresos(prev => prev.filter(e => e.ID !== egresoAEliminar.ID))
             setShowDeleteDialog(false)
             setEgresoAEliminar(null)
+            notify.info("¡Egreso eliminado con éxito!")
         } catch (error) {
-            console.error("Error al eliminar egreso:", error)
+            console.log(error)
+            notify.error("Error al eliminar el egreso")
         }
     }
 

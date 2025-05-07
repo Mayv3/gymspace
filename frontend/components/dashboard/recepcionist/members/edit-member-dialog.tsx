@@ -15,7 +15,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DatePicker } from "@/components/dashboard/date-picker"
 import { format } from "date-fns"
-import { useAppData } from "@/context/AppDataContext" 
+import { useAppData } from "@/context/AppDataContext"
+import { notify } from '@/lib/toast'
+
 import axios from "axios"
 
 export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
@@ -74,6 +76,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
       )
       onSave(payload)
       onOpenChange(false)
+      notify.success("¡Alumno editado con éxito!")
     } catch (error) {
       console.error("Error actualizando el miembro", error)
     }

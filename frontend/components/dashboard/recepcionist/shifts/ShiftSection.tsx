@@ -19,6 +19,7 @@ import axios from "axios"
 import dayjs from "dayjs"
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js";
+import { notify } from "@/lib/toast"
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -48,6 +49,10 @@ export default function ShiftsSection() {
         return turno.Tipo === selectedType
     })
 
+    const formatDate = (date: Date): string => {
+        return dayjs(date).format("DD/MM/YYYY");
+    };
+
     const fetchTurnosPorFecha = async () => {
         try {
             const fechaFormateada = dayjs(selectedDate).format("DD/MM/YYYY");
@@ -65,30 +70,42 @@ export default function ShiftsSection() {
         }
         setFechaError(false);
 
+        const fechaFormateada = formatDate(createForm.Fecha_turno as Date);
+
         try {
+
             const payload = {
                 tipo: createForm.Tipo,
-                fecha_turno: createForm.Fecha_turno,
+                fecha_turno: fechaFormateada,
                 profesional: createForm.Profesional,
                 responsable: user?.nombre,
             };
-            console.log(payload)
-            const { data: nuevoTurno } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos`, payload);
+
+            const { data: nuevoTurno } = await axios.post(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos`,
+                payload
+            );
 
             const fechaDelTurno = dayjs(nuevoTurno.Fecha_turno, ["D/M/YYYY", "DD/MM/YYYY"]);
             const hoy = dayjs();
-            const dentroDe7Dias = fechaDelTurno.isSameOrAfter(hoy, 'day') && fechaDelTurno.isSameOrBefore(hoy.add(7, 'day'), 'day');
+            const dentroDe7Dias =
+                fechaDelTurno.isSameOrAfter(hoy, "day") &&
+                fechaDelTurno.isSameOrBefore(hoy.add(7, "day"), "day");
 
             if (dentroDe7Dias) {
-                setTurnos(prev => [...prev, nuevoTurno]);
+                setTurnos((prev) => [...prev, nuevoTurno]);
             }
-            fetchTurnosPorFecha()
+
+            fetchTurnosPorFecha();
             setShowCreateDialog(false);
             setCreateForm({ Tipo: "", Fecha_turno: "", Profesional: "", Responsable: "" });
+            notify.success("¡Turno registrado con éxito!");
         } catch (error) {
-            console.error("Error al crear turno:", error);
+            console.error("Error creando turno:", error);
+            notify.error("Error al registrar el turno");
         }
     };
+
 
     const handleConfirmEdit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -110,9 +127,9 @@ export default function ShiftsSection() {
 
             setShowEditDialog(false);
             setEditingTurno(null);
+            notify.success("¡Turno editado con éxito!")
         } catch (error) {
-            console.error("Error al actualizar turno:", error);
-            alert("Error al actualizar el turno.");
+            notify.error("Error al editar el turno")
         }
     };
 
@@ -125,16 +142,16 @@ export default function ShiftsSection() {
 
             setShowDeleteDialog(false);
             setSelectedTurno(null);
+            notify.info("¡Turno eliminado con éxito!")
         } catch (error) {
-            console.error("Error al eliminar turno:", error);
+            notify.error("Error al eliminar el turno")
         }
     }
-
 
     useEffect(() => {
         if (isFirstLoad.current) {
             isFirstLoad.current = false;
-            return; 
+            return;
         }
         fetchTurnosPorFecha();
     }, [selectedDate]);
@@ -265,11 +282,9 @@ export default function ShiftsSection() {
                             <DatePicker
                                 date={createForm.Fecha_turno ? dayjs(createForm.Fecha_turno, "DD/MM/YYYY").toDate() : undefined}
                                 setDate={(date) => {
-                                    const parsed = dayjs(date);
-                                    const fechaFormateada = parsed.locale("es").format("DD/MM/YYYY");
                                     setCreateForm(prev => ({
                                         ...prev,
-                                        Fecha_turno: fechaFormateada
+                                        Fecha_turno: date
                                     }));
                                     setFechaError(false);
                                 }}

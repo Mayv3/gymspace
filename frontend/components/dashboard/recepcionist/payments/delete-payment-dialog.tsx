@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Trash } from "lucide-react"
+import { notify } from "@/lib/toast"
 
 interface DeletePaymentDialogProps {
   open: boolean
@@ -20,9 +21,9 @@ interface DeletePaymentDialogProps {
 
 export function DeletePaymentDialog({ open, onOpenChange, payment, onDelete }: DeletePaymentDialogProps) {
 
-    useEffect(()=>{
-        console.log("Payment data:", payment)
-    },[])
+  useEffect(() => {
+    console.log("Payment data:", payment)
+  }, [])
   const handleDelete = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos/${payment.ID}`, {
@@ -31,6 +32,7 @@ export function DeletePaymentDialog({ open, onOpenChange, payment, onDelete }: D
       if (!res.ok) throw new Error("Error al eliminar el pago")
       onDelete(payment.ID)
       onOpenChange(false)
+      notify.info("¡Pago eliminado con éxito!")
     } catch (error) {
       console.error("Error deleting payment:", error)
     }

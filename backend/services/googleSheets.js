@@ -1057,6 +1057,7 @@ export async function appendEgresoToSheet(data) {
     resource: { values },
   });
 
+  console.log(nuevoID)
   return { id: nuevoID, ...data };
 }
 

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { useAppData } from "@/context/AppDataContext"
 import { parse, format, addMonths } from "date-fns"
 import { useUser } from "@/context/UserContext"
-
 import {
   Dialog,
   DialogContent,
@@ -21,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { motion } from "framer-motion"
 import { CreditCard, DollarSign } from "lucide-react"
 import { DatePicker } from "../../date-picker"
+import { notify } from '@/lib/toast'
 
 interface AddPaymentDialogProps {
   open: boolean
@@ -119,7 +119,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
       onPaymentAdded()
       onOpenChange(false)
-
+      notify.success("¡Pago cargado con éxito!")
       setFormData({
         dni: "",
         name: "",
@@ -135,8 +135,8 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       setPlanSeleccionado(null)
 
     } catch (error) {
+      notify.error("¡Error al registrar el pago")
       console.error("Error al enviar el pago:", error)
-      alert("Error al registrar el pago")
     }
   }
 
@@ -175,6 +175,20 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     }
   }, [open])
 
+  const parseLocalYMD = (str: string): Date => {
+    const [y, m, d] = str.split("-")
+    return new Date(Number(y), Number(m) - 1, Number(d))
+  }
+
+  useEffect(() => {
+    if (!formData.paymentDate) return
+    const nuevaExp = format(
+      addMonths(parseLocalYMD(formData.paymentDate), 1),
+      "yyyy-MM-dd"
+    )
+    setFormData(prev => ({ ...prev, expirationDate: nuevaExp }))
+  }, [formData.paymentDate])
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[500px] overflow-y-auto max-h-[90vh]">
@@ -245,16 +259,26 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
               <div className="space-y-2">
                 <Label htmlFor="paymentDate">Fecha de Pago</Label>
                 <DatePicker
-                  date={formData.paymentDate ? parse(formData.paymentDate, "yyyy-MM-dd", new Date()) : new Date()}
+                  date={
+                    formData.paymentDate
+                      ? parseLocalYMD(formData.paymentDate)
+                      : new Date()
+                  }
                   setDate={(date) => handleDateChange("paymentDate", date)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="expirationDate">Fecha de Vencimiento</Label>
                 <DatePicker
-                  date={formData.expirationDate
-                    ? parse(formData.expirationDate, "yyyy-MM-dd", new Date())
-                    : addMonths(new Date(), 1)}
+                  date={
+                    formData.expirationDate
+                      ? parseLocalYMD(formData.expirationDate)
+                      : new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() + 1,
+                        new Date().getDate()
+                      )
+                  }
                   setDate={(date) => handleDateChange("expirationDate", date)}
                 />
               </div>

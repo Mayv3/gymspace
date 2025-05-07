@@ -11,10 +11,11 @@ import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@radix-ui/react-dropdown-menu"
 import { useAppData } from "@/context/AppDataContext"
+import { notify } from "@/lib/toast"
 
 export default function PlansSection() {
     const { planes, setPlanes } = useAppData();
-    
+
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [createForm, setCreateForm] = useState({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" })
 
@@ -35,7 +36,9 @@ export default function PlansSection() {
             setPlanes(prev => [...prev, nuevoPlan])
             setShowCreateDialog(false)
             setCreateForm({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" })
+            notify.success("¡Plan registrado con éxito!")
         } catch (error) {
+            notify.error("Error al registrar el plan")
             console.error("Error al crear el plan:", error)
             alert("Error al crear el plan.")
         }
@@ -48,33 +51,33 @@ export default function PlansSection() {
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/${editingPlan.ID}`,
                 editForm
             )
-    
+
             setPlanes(prev =>
                 prev.map(plan => plan.ID === editingPlan.ID ? planActualizado : plan)
             )
-    
+
             setShowEditDialog(false)
             setEditingPlan(null)
+            notify.success("¡Plan editado con éxito!")
         } catch (error) {
-            console.error("Error al actualizar el plan:", error)
-            alert("Hubo un problema al actualizar el plan.")
+            notify.error("Error al editar el plan")
         }
     }
-    
+
     const handleConfirmDelete = async () => {
         if (!selectedPlan) return
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/${selectedPlan.ID}`)
-    
+
             setPlanes(prev =>
                 prev.filter(plan => plan.ID !== selectedPlan.ID)
             )
-    
+
             setShowDeleteDialog(false)
             setSelectedPlan(null)
+            notify.info("¡Plan eliminado con éxito!")
         } catch (error) {
-            console.error("Error al eliminar el plan:", error)
-            alert("Error al eliminar el plan.")
+            notify.error("Error al eliminar el plan")
         }
     }
 
@@ -121,7 +124,7 @@ export default function PlansSection() {
                                 <TableBody>
                                     {planes.length > 0 ? (
                                         planes.map((plan, i) => (
-                                            <TableRow key={ i} className="grid grid-cols-6 hover:bg-accent">
+                                            <TableRow key={i} className="grid grid-cols-6 hover:bg-accent">
                                                 <TableCell className="flex items-center justify-center">{plan.Tipo}</TableCell>
                                                 <TableCell className="flex items-center justify-center col-span-2">{plan['Plan o Producto']}</TableCell>
                                                 <TableCell className="flex items-center justify-center">{plan.Precio}</TableCell>
@@ -326,7 +329,7 @@ export default function PlansSection() {
                 title="Historial de aumentos"
                 description={planSeleccionado?.['Plan o Producto'] || ''}
                 confirmText="Cerrar"
-                onConfirm={() => setShowAumentosDialog(false)}              
+                onConfirm={() => setShowAumentosDialog(false)}
             >
                 <div className="p-2 bg-muted/50 rounded-md text-sm">
                     {aumentos.length > 0 ? (

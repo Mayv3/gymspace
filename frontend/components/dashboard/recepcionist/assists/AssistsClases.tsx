@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
@@ -16,6 +16,7 @@ import RegisterClassDialog from "./add-assists-dialog"
 import { CalendarDays, Users, UserCircle, ClipboardList } from "lucide-react"
 import dayjs from "dayjs"
 import { Input } from "@/components/ui/input"
+import { notify } from "@/lib/toast"
 
 export default function AssistsSection() {
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -57,6 +58,7 @@ export default function AssistsSection() {
       await deleteAsistencia(selectedClass.ID)
       setShowDeleteDialog(false)
       setSelectedClass(null)
+      notify.info("¡Asistencia eliminada con éxito!")
     } catch (error) {
       alert("Error al eliminar la clase.")
     }
@@ -237,9 +239,9 @@ export default function AssistsSection() {
             await editAsistencia(editingClass.ID, editForm)
             await fetchAssists({ selectedDate, selectedType })
             setShowEditDialog(false)
+            notify.success("¡Asistencia editada con éxito!")
           } catch (error) {
-            console.error(error)
-            alert("Hubo un problema al actualizar la clase.")
+            notify.error("Error al editar la asistencia")
           }
         }}
       >
