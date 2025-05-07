@@ -24,10 +24,22 @@ const sheets = google.sheets({ version: 'v4', auth });
 
 // Alumnos
 
+async function getNextId(range) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range,
+  });
+  const existingIds = (res.data.values ?? [])
+    .flat()
+    .map(id => parseInt(id, 10))
+    .filter(n => !isNaN(n));
+  return (existingIds.length ? Math.max(...existingIds) : 0) + 1;
+}
+
 export async function getAlumnosFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Alumnos!A1:M', // Asegurate que el rango cubra todas las columnas
+    range: 'Alumnos!A1:M',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -48,20 +60,14 @@ export async function appendAlumnoToSheet(alumno) {
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: 'Alumnos!B2:B', 
   });
-
+  
   const existingDNIs = dniRes.data.values?.flat() || [];
 
   if (existingDNIs.includes(alumno.DNI)) {
     throw new Error('El DNI ya está registrado');
   }
 
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Alumnos!A2:A',
-  });
-
-  const totalFilas = res.data.values?.length || 0;
-  const nuevoID = totalFilas + 1;
+  const nuevoID = await getNextId('Alumnos!A2:A');
 
   const values = [[
     String(nuevoID),
@@ -169,13 +175,8 @@ export async function getPagosFromSheet() {
 }
 
 export async function appendPagoToSheet(pago) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A2:A', 
-  });
-
-  const nuevoID = (res.data.values?.length || 0) + 1;
-
+  const nuevoID = await getNextId('Pagos!A2:A');
+  
   const horaActual = new Date().toLocaleTimeString("es-AR", {
     timeZone: 'America/Argentina/Buenos_Aires',
     hour: "2-digit",
@@ -287,12 +288,7 @@ export async function deletePagoByID(id) {
 // Asistencias 
 
 export async function appendAsistenciaToSheet(asistencia) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Asistencias!A2:A',
-  });
-
-  const nuevoID = (res.data.values?.length || 0) + 1;
+  const nuevoID = await getNextId('Asistencias!A2:A');
 
   const values = [[
     String(nuevoID),
@@ -335,12 +331,7 @@ export async function getAsistenciasFromSheet() {
 // Clases diarias 
 
 export async function appendClaseDiariaToSheet(clase) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'ClasesDiarias!A2:A',
-  });
-
-  const nuevoID = (res.data.values?.length || 0) + 1;
+  const nuevoID = await getNextId('ClasesDiarias!A2:A');
 
   const values = [[
     String(nuevoID),
@@ -439,7 +430,7 @@ export async function appendCajaToSheet(caja) {
     range: 'Caja!A2:A',
   });
 
-  const nuevoID = (res.data.values?.length || 0) + 1;
+  const nuevoID = await getNextId('Caja!A2:A');
 
   const values = [[
     String(nuevoID),
@@ -554,10 +545,7 @@ export async function getPlanesFromSheet() {
 }
 
 export async function appendPlanToSheet(data) {
-  const planes = await getPlanesFromSheet()
-  const nuevoID = String((planes.length || 0) + 1)
-
-  console.log('>> appendPlanToSheet recibí data:', data);
+  const nuevoID = await getNextId('PlanesYprecios!A2:A');
 
   const values = [[
     nuevoID,
@@ -584,7 +572,6 @@ export async function appendPlanToSheet(data) {
   }
 }
 
-
 export async function updatePlanInSheet(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -608,7 +595,6 @@ export async function updatePlanInSheet(id, nuevosDatos) {
 
   return true;
 }
-
 
 export async function deletePlanInSheet(id) {
   const res = await sheets.spreadsheets.values.get({
@@ -923,12 +909,7 @@ export async function getTurnosFromSheet() {
 }
 
 export async function appendTurnoToSheet(turno) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Turnos!A2:A', // solo ID
-  });
-
-  const nuevoID = (res.data.values?.length || 0) + 1;
+  const nuevoID = await getNextId('Turnos!A2:A');
 
   const turnoConID = {
     ID: String(nuevoID),
@@ -1033,12 +1014,7 @@ export async function getEgresosFromSheet() {
 }
 
 export async function appendEgresoToSheet(data) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Egresos!A2:A',
-  });
-
-  const nuevoID = (res.data.values?.length || 0) + 1;
+  const nuevoID = await getNextId('Egresos!A2:A');
 
   const values = [[
     String(nuevoID),
