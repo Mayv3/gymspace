@@ -195,7 +195,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
             </div>
 
             <div className="flex justify-end">
-              <Button variant="orange" onClick={handleSave}>
+              <Button type="button" variant="orange" onClick={handleSave}>
                 Guardar Cambios
               </Button>
             </div>

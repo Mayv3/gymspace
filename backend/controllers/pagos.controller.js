@@ -157,6 +157,43 @@ export const getPagosPorFechaYTurno = async (req, res) => {
     }
 };
 
+export const getPagos = async (req, res) => {
+    try {
+        const { dia, mes, anio, turno } = req.query;
+        const pagos = await getPagosFromSheet();
+
+        const pagosFiltrados = pagos.filter(pago => {
+            const fecha = dayjs(pago['Fecha_de_Pago'], 'D/M/YYYY');
+
+            if (dia && fecha.date() !== parseInt(dia, 10)) {
+                return false;
+            }
+            if (mes && (fecha.month() + 1) !== parseInt(mes, 10)) {
+                return false;
+            }
+            if (anio && fecha.year() !== parseInt(anio, 10)) {
+                return false;
+            }
+            const turnoParam = turno?.toLowerCase();
+            if (
+                turnoParam &&
+                turnoParam !== 'todos' &&
+                pago.Turno?.toLowerCase() !== turnoParam
+            ) {
+                return false;
+            }
+
+            return true;
+        });
+
+        res.json(pagosFiltrados);
+    } catch (error) {
+        console.error('Error al filtrar pagos:', error);
+        res.status(500).json({ message: 'Error al filtrar pagos' });
+    }
+}
+
+
 export const getPagosFiltrados = async (req, res) => {
     try {
         const { fecha, tipo } = req.query;

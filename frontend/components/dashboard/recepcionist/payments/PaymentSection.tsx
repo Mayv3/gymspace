@@ -1,53 +1,81 @@
 "use client"
-import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import { ShiftPaymentsTab } from "@/components/dashboard/ShiftPaymentsTab"
 
-type PaymentsSectionProps = {
+interface PaymentsSectionProps {
   currentShiftPayments: any[]
+
   selectedDate: Date
   setSelectedDate: (date: Date) => void
+
+  selectedDay?: number
+  setSelectedDay: (n?: number) => void
+  selectedMonth?: number
+  setSelectedMonth: (n?: number) => void
+  selectedYear?: number
+  setSelectedYear: (n?: number) => void
+
   selectedShift: string
   setSelectedShift: (value: string) => void
+
   onShowAddPayment: () => void
-  formatDate: (date: Date) => string
   setSelectedPaymentToDelete: (value: any) => void
   setShowDeletePaymentDialog: (value: boolean) => void
-  onMemberUpdated: (dni: string, nuevaFecha: string, nuevoPlan: string, clasesPagadas: number) => void
+  onMemberUpdated: (
+    dni: string,
+    nuevaFecha: string,
+    nuevoPlan: string,
+    clasesPagadas: number
+  ) => void
   refreshPayments: () => void
+
   cashOpen: boolean
 }
 
 export default function PaymentsSection({
   currentShiftPayments,
-  selectedDate,
-  setSelectedDate,
+
+  selectedDay,
+  setSelectedDay,
+  selectedMonth,
+  setSelectedMonth,
+  selectedYear,
+  setSelectedYear,
+
   selectedShift,
   setSelectedShift,
+
   onShowAddPayment,
-  formatDate,
   setSelectedPaymentToDelete,
   setShowDeletePaymentDialog,
   onMemberUpdated,
   refreshPayments,
-  cashOpen
 
+  cashOpen,
 }: PaymentsSectionProps) {
   return (
-    <TabsContent value="shift-payments" className="space-y-4">
-      <ShiftPaymentsTab
-        cashOpen={cashOpen}
-        currentShiftPayments={currentShiftPayments}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        selectedShift={selectedShift}
-        setSelectedShift={setSelectedShift}
-        setShowAddPayment={onShowAddPayment}
-        formatDate={formatDate}
-        setSelectedPaymentToDelete={setSelectedPaymentToDelete}
-        setShowDeletePaymentDialog={setShowDeletePaymentDialog}
-        onMemberUpdated={onMemberUpdated}
-        refreshPayments={refreshPayments}
-      />
-    </TabsContent>
+    <ShiftPaymentsTab
+      cashOpen={cashOpen}
+      currentShiftPayments={currentShiftPayments}
+
+      // Filtros individuales
+      selectedDay={selectedDay}
+      setSelectedDay={setSelectedDay}
+      selectedMonth={selectedMonth}
+      setSelectedMonth={setSelectedMonth}
+      selectedYear={selectedYear}
+      setSelectedYear={setSelectedYear}
+
+      // Turno
+      selectedShift={selectedShift}
+      setSelectedShift={setSelectedShift}
+
+      // Diálogos y acciones
+      setShowAddPayment={onShowAddPayment}
+      setSelectedPaymentToDelete={setSelectedPaymentToDelete}
+      setShowDeletePaymentDialog={setShowDeletePaymentDialog}
+      onMemberUpdated={onMemberUpdated}
+      refreshPayments={refreshPayments}
+    />
   )
 }

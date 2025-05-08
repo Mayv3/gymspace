@@ -1,27 +1,35 @@
+// hooks/usePayments.ts
 import { useState, useCallback, useEffect } from "react"
 import { Payment } from "@/models/dashboard"
-import dayjs from "dayjs"
 
-export function usePayments(selectedDate: Date, selectedShift: string) {
+export interface PaymentsFilters {
+  dia?: number
+  mes?: number
+  anio?: number
+  turno?: string
+}
+
+export function usePayments(filters: PaymentsFilters) {
   const [payments, setPayments] = useState<Payment[]>([])
 
   const fetchPayments = useCallback(async () => {
+
     try {
-      const dateStr = dayjs(selectedDate).format("DD-MM-YYYY")
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos/fecha/${dateStr}/${selectedShift}`
-      )
+      const params = new URLSearchParams()
+      if (filters.dia != null) params.append("dia", String(filters.dia))
+      if (filters.mes != null) params.append("mes", String(filters.mes))
+      if (filters.anio != null) params.append("anio", String(filters.anio))
+      if (filters.turno) params.append("turno", filters.turno)
+
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos?${params.toString()}`
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data: Payment[] = await res.json()
       setPayments(data)
     } catch (err) {
-      console.error("Error al cargar pagos por turno", err)
+      console.error("Error al cargar pagos:", err)
     }
-  }, [selectedDate, selectedShift])
+  }, [filters.dia, filters.mes, filters.anio, filters.turno])
 
-
-  return {
-    payments,
-    refreshPayments: fetchPayments,
-    setPayments,
-  }
+  return { payments, refreshPayments: fetchPayments }
 }

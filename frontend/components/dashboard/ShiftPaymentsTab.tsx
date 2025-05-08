@@ -1,120 +1,168 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, Edit, Trash } from "lucide-react"
+import { PlusCircle, Trash } from "lucide-react"
 import { Label } from "@/components/ui/label"
-import { DatePicker } from "@/components/dashboard/date-picker"
+import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
-import { useEffect } from "react"
-import dayjs from "dayjs"
 
 interface ShiftPaymentsTabProps {
   currentShiftPayments: any[]
-  selectedDate: Date
-  setSelectedDate: (date: Date) => void
+
+  // filtros separados
+  selectedDay?: number
+  setSelectedDay: (n?: number) => void
+  selectedMonth?: number
+  setSelectedMonth: (n?: number) => void
+  selectedYear?: number
+  setSelectedYear: (n?: number) => void
+
+  // turno
   selectedShift: string
   setSelectedShift: (shift: string) => void
+
+  // acciones
   setShowAddPayment: (show: boolean) => void
-  formatDate: (date: Date) => string
   setSelectedPaymentToDelete: (payment: any) => void
   setShowDeletePaymentDialog: (show: boolean) => void
   onMemberUpdated: (dni: string, nuevaFecha: string, nuevoPlan: string, clasesPagadas: number) => void
   refreshPayments: () => void
+
   cashOpen: boolean
 }
 
 export function ShiftPaymentsTab({
   currentShiftPayments,
-  selectedDate,
-  setSelectedDate,
+  selectedDay,
+  setSelectedDay,
+  selectedMonth,
+  setSelectedMonth,
+  selectedYear,
+  setSelectedYear,
   selectedShift,
   setSelectedShift,
   setShowAddPayment,
-  formatDate,
   setSelectedPaymentToDelete,
   setShowDeletePaymentDialog,
-  cashOpen
+  refreshPayments,
+  cashOpen,
 }: ShiftPaymentsTabProps) {
-  const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: number }>({})
+  const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: { [metodo: string]: number } }>({})
   const [totalesPorMetodo, setTotalesPorMetodo] = useState({ efectivo: 0, tarjeta: 0 })
 
   useEffect(() => {
-    const totales: { [tipo: string]: { [metodo: string]: number } } = {}
+    const totales: Record<string, Record<string, number>> = {}
     let totalEfectivo = 0
     let totalTarjeta = 0
 
-    const pagosDelTurno = currentShiftPayments.filter(p => p.Turno === selectedShift)
-
-    pagosDelTurno.forEach((pago: any) => {
+    currentShiftPayments.forEach((pago: any) => {
       const tipo = pago.Tipo || "Sin tipo"
       const metodo = pago.Metodo_de_Pago || "Sin método"
       const monto = parseFloat(pago.Monto || "0")
 
-      if (!totales[tipo]) {
-        totales[tipo] = {}
-      }
-      if (!totales[tipo][metodo]) {
-        totales[tipo][metodo] = 0
-      }
+      if (!totales[tipo]) totales[tipo] = {}
+      totales[tipo][metodo] = (totales[tipo][metodo] || 0) + monto
 
-      totales[tipo][metodo] += monto
-
-      if (metodo.toLowerCase() === "efectivo") {
-        totalEfectivo += monto
-      } else if (metodo.toLowerCase() === "tarjeta") {
-        totalTarjeta += monto
-      }
+      if (metodo.toLowerCase() === "efectivo") totalEfectivo += monto
+      else if (metodo.toLowerCase() === "tarjeta") totalTarjeta += monto
     })
 
     setResumenPorTipo(totales)
     setTotalesPorMetodo({ efectivo: totalEfectivo, tarjeta: totalTarjeta })
-  }, [currentShiftPayments, selectedShift])
+  }, [currentShiftPayments])
+
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Pagos por Turno</CardTitle>
-            <CardDescription>Visualiza y gestiona los pagos del turno actual.</CardDescription>
+        <CardHeader>
+          <div className="flex justify-between">
+            <div>
+              <CardTitle>Pagos</CardTitle>
+              <CardDescription>Visualiza y gestiona los pagos del turno actual.</CardDescription>
+            </div>
+            <Button variant="orange" onClick={() => setShowAddPayment(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Añadir Pago
+            </Button>
           </div>
-          <Button variant="orange" onClick={() => setShowAddPayment(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Añadir Pago
-          </Button>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <Label>Fecha</Label>
-              <DatePicker
-                date={selectedDate}
-                setDate={setSelectedDate}
-                disabled={cashOpen}
-              />
-            </div>
-            <div className="flex-1">
-              <Label>Turno</Label>
-              <Select
-                value={selectedShift}
-                onValueChange={setSelectedShift}
-                disabled={cashOpen}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mañana">Mañana</SelectItem>
-                  <SelectItem value="tarde">Tarde</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {/* FILTROS */}
+          {!cashOpen && (
+            <div className="flex flex-wrap gap-4 mb-6">
+              <div className="w-24">
+                <Label>Día</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={selectedDay ?? ""}
+                  onChange={e =>
+                    setSelectedDay(e.target.value ? Number(e.target.value) : undefined)
+                  }
+                  disabled={cashOpen}
+                />
+              </div>
 
-          <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
+              <div className="w-24">
+                <Label>Mes</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={selectedMonth ?? ""}
+                  onChange={e =>
+                    setSelectedMonth(e.target.value ? Number(e.target.value) : undefined)
+                  }
+                  disabled={cashOpen}
+                />
+              </div>
+
+              <div className="w-28">
+                <Label>Año</Label>
+                <Input
+                  type="number"
+                  min={2000}
+                  max={2100}
+                  value={selectedYear ?? ""}
+                  onChange={e =>
+                    setSelectedYear(e.target.value ? Number(e.target.value) : undefined)
+                  }
+                  disabled={cashOpen}
+                />
+              </div>
+
+              <div className="w-32">
+                <Label>Turno</Label>
+                <Select
+                  value={selectedShift}
+                  onValueChange={setSelectedShift}
+                  disabled={cashOpen}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="mañana">Mañana</SelectItem>
+                    <SelectItem value="tarde">Tarde</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
+                <Button onClick={refreshPayments} disabled={cashOpen}>
+                  Filtrar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)] mb-6">
             <div className="min-w-[800px]">
               <Table>
                 <TableHeader>
@@ -124,43 +172,44 @@ export function ShiftPaymentsTab({
                     <TableHead className="text-center w-32">Monto</TableHead>
                     <TableHead className="text-center w-32">Método</TableHead>
                     <TableHead className="text-center w-32">Fecha de pago</TableHead>
-                    <TableHead className="text-center w-32">Fecha de vencimiento</TableHead>
+                    <TableHead className="text-center w-32">Fecha de venc.</TableHead>
                     <TableHead className="text-center w-32">Tipo</TableHead>
                     <TableHead className="text-center w-32">Registrado Por</TableHead>
                     <TableHead className="text-center w-32">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {currentShiftPayments.length > 0 ? (
-                    currentShiftPayments.map((payment, index) => (
+                    currentShiftPayments.map((payment, idx) => (
                       <motion.tr
-                        key={index}
+                        key={idx}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2, delay: index * 0.05 }}
+                        transition={{ duration: 0.2, delay: idx * 0.05 }}
                         className="hover:bg-accent"
                       >
-                        <TableCell className="text-center w-32 font-medium">{payment.Nombre}</TableCell>
-                        <TableCell className="text-center w-32">{payment.Hora || "No hay horario"}</TableCell>
-                        <TableCell className="text-center w-32 text-green-600 font-medium">${payment.Monto}</TableCell>
-                        <TableCell className="text-center w-32">{payment.Metodo_de_Pago}</TableCell>
-                        <TableCell className="text-center w-32">{payment.Fecha_de_Pago}</TableCell>
-                        <TableCell className="text-center w-32">{payment.Fecha_de_Vencimiento}</TableCell>
-                        <TableCell className="text-center w-32">{payment.Tipo}</TableCell>
-                        <TableCell className="text-center w-32">{payment.Responsable}</TableCell>
-                        <TableCell className="text-center w-32">
-                          <div className="flex justify-center gap-2">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedPaymentToDelete(payment)
-                                setShowDeletePaymentDialog(true)
-                              }}
-                            >
-                              <Trash className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
+                        <TableCell className="text-center font-medium">{payment.Nombre}</TableCell>
+                        <TableCell className="text-center">{payment.Hora || "—"}</TableCell>
+                        <TableCell className="text-center text-green-600 font-medium">
+                          ${payment.Monto}
+                        </TableCell>
+                        <TableCell className="text-center">{payment.Metodo_de_Pago}</TableCell>
+                        <TableCell className="text-center">{payment.Fecha_de_Pago}</TableCell>
+                        <TableCell className="text-center">{payment.Fecha_de_Vencimiento}</TableCell>
+                        <TableCell className="text-center">{payment.Tipo}</TableCell>
+                        <TableCell className="text-center">{payment.Responsable}</TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setSelectedPaymentToDelete(payment)
+                              setShowDeletePaymentDialog(true)
+                            }}
+                          >
+                            <Trash className="h-4 w-4 text-destructive" />
+                          </Button>
                         </TableCell>
                       </motion.tr>
                     ))
@@ -173,82 +222,47 @@ export function ShiftPaymentsTab({
                   )}
                 </TableBody>
               </Table>
-
             </div>
           </div>
 
           <div className="bg-background rounded-2xl shadow-sm py-6 space-y-6">
-            <div className="flex flex-col md:flex-row md:items-end justify-start gap-2">
-              <h2 className="text-2xl text-foreground">
-                Totales del turno {selectedShift}
-              </h2>
-              <span className="text-lg text-muted-foreground">
-                {formatDate(selectedDate)}
-              </span>
+            <div className="flex flex-col md:flex-row md:items-end gap-2 mb-4">
+              <h2 className="text-2xl">Totales del turno {selectedShift}</h2>
             </div>
 
             {Object.keys(resumenPorTipo).length > 0 && (
-              <div className="bg-muted dark:bg-zinc-900 rounded-xl p-5 border ">
-                <h3 className="flex items-center text-muted-foreground font-medium mb-4">
-                  Recaudación por tipo de pago
-                </h3>
-                <div
-                  className={`grid grid-cols-1 ${Object.keys(resumenPorTipo).length === 1
-                    ? "md:grid-cols-2"
-                    : "md:grid-cols-3"
-                    } gap-4`}
-                >
-                  {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
-                    <div
-                      key={tipo}
-                      className="bg-muted rounded-xl p-5 border border-orange-500 dark:border-none"
-                    >
-                      <h4 className="text-lg font-semibold text-foreground mb-4 text-start">
-                        {tipo}
-                      </h4>
-                      <ul className="space-y-2">
-                        {Object.entries(metodos).map(([metodo, total]) => (
-                          <li key={metodo} className="flex justify-between">
-                            <span className="text-muted-foreground">{metodo}</span>
-                            <span className="font-semibold text-green-600">
-                              ${total.toLocaleString("es-AR")}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+              <div className="grid md:grid-cols-3 gap-4">
+                {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
+                  <div key={tipo} className="bg-muted rounded-xl p-5 border border-orange-500">
+                    <h4 className="font-semibold mb-2">{tipo}</h4>
+                    <ul className="space-y-1">
+                      {Object.entries(metodos).map(([metodo, total]) => (
+                        <li key={metodo} className="flex justify-between">
+                          <span>{metodo}</span>
+                          <span className="font-semibold">${total.toLocaleString("es-AR")}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
 
-                  {/* Box de totales finales */}
-                  <div className="bg-muted rounded-xl p-4 space-y-4 border border-orange-500 dark:border-none">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg text-foreground">Total en Tarjeta:</span>
-                      <span className="text-xl font-semibold text-green-500">
-                        ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg text-foreground">Total en Efectivo:</span>
-                      <span className="text-xl font-semibold text-green-500">
-                        ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium text-foreground">
-                        Total del turno:
-                      </span>
-                      <span className="text-2xl font-bold text-green-600">
-                        $
-                        {currentShiftPayments
-                          .reduce(
-                            (sum, payment) => sum + parseFloat(String(payment.Monto || "0")),
-                            0
-                          )
-                          .toLocaleString("es-AR")}
-                      </span>
-                    </div>
+                <div className="bg-muted rounded-xl p-5 border border-orange-500">
+                  <div className="flex justify-between mb-2">
+                    <span>Total en Tarjeta:</span>
+                    <span className="font-semibold">${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total en Efectivo:</span>
+                    <span className="font-semibold">${totalesPorMetodo.efectivo.toLocaleString("es-AR")}</span>
+                  </div>
+                  <div className="flex justify-between mt-4">
+                    <span className="font-medium">Total del turno:</span>
+                    <span className="text-xl font-bold">
+                      $
+                      {currentShiftPayments
+                        .reduce((sum, p) => sum + parseFloat(p.Monto || "0"), 0)
+                        .toLocaleString("es-AR")}
+                    </span>
                   </div>
                 </div>
               </div>

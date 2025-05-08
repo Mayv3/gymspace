@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Payment } from "@/models/dashboard"
 import dayjs from "dayjs"
+import { notify } from "@/lib/toast"
 
 interface UseCashRegisterProps {
   selectedShift: string
@@ -76,6 +77,8 @@ export function useCashRegister({
       setOpen(true)
       setCerrada(false)
       setError(null)
+
+      notify.success("Caja abierta con éxito")
       localStorage.setItem("cajaAbierta", "true")
       localStorage.setItem("initialAmount", data.saldoInicial)
       localStorage.setItem("cashRegisterId", data.id)
@@ -104,6 +107,7 @@ export function useCashRegister({
         "Total Tarjeta": String(totalTarjeta),
         "Total Final": String(parsedInitial + total),
       }
+      console.log("Cierre de caja → body:", body)
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/${cashId}`,

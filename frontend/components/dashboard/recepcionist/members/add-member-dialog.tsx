@@ -186,7 +186,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Teléfono</Label>
-                <Input id="phone" placeholder="+34 612 345 678" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} required />
+                <Input type="number" id="phone" placeholder="351345678" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sexo">Sexo</Label>

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { useAppData } from "@/context/AppDataContext"
 import { parse, format, addMonths } from "date-fns"
@@ -28,15 +28,17 @@ interface AddPaymentDialogProps {
   onOpenChange: (open: boolean) => void
   onPaymentAdded: () => void
   onMemberUpdated: (dni: string, nuevaFecha: string, plan: string, numeroClases: number) => void
+  currentTurno: string
 }
 
-export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberUpdated }: AddPaymentDialogProps) {
+export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberUpdated, currentTurno, }: AddPaymentDialogProps) {
 
   const [dniError, setDniError] = useState("")
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
   const { planes } = useAppData()
   const { user } = useUser()
+  const { alumnos } = useAppData()
   const [formData, setFormData] = useState({
     dni: "",
     name: "",
@@ -48,7 +50,6 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     responsable: user?.nombre,
     turno: ""
   })
-
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]
   const planesFiltrados = planes.filter(p => p.Tipo === tipoSeleccionado)
 
@@ -63,6 +64,24 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     handleChange("concept", selected?.["Plan o Producto"] || "")
   }
 
+  const dniInputRef = useRef<HTMLInputElement>(null)
+
+  const handleDniBlur = () => {
+    const dni = dniInputRef.current?.value || ""
+    const alumno = alumnos.find(a => a.DNI === dni)
+
+    if (alumno) {
+      setFormData(prev => ({ ...prev, dni, name: alumno.Nombre }))
+      setDniError("")
+    } else if (dni.length >= 6) {
+      setFormData(prev => ({ ...prev, dni, name: "" }))
+      setDniError("No se encontró un alumno con ese DNI")
+    } else {
+      setFormData(prev => ({ ...prev, dni, name: "" }))
+      setDniError("")
+    }
+  }
+
   const handleDateChange = (field: "paymentDate" | "expirationDate", date: Date | undefined) => {
     if (!date) return
     const formattedDate = format(date, "yyyy-MM-dd")
@@ -71,6 +90,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
 
     const fields = Object.values(formData)
     if (fields.some(f => f.trim() === "")) {
@@ -142,26 +162,6 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   }
 
   useEffect(() => {
-    const fetchMember = async () => {
-      if (!formData.dni) return
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`)
-        const data = await res.json()
-        if (data && data.Nombre) {
-          setFormData((prev) => ({ ...prev, name: data.Nombre }))
-          setDniError("")
-        } else {
-          setDniError("No se encontró un alumno con ese DNI")
-        }
-      } catch (err) {
-        setDniError("No se encontró un alumno con ese DNI")
-        setFormData((prev) => ({ ...prev, name: "" }))
-      }
-    }
-    fetchMember()
-  }, [formData.dni])
-
-  useEffect(() => {
     if (user?.nombre) {
       setFormData((prev) => ({ ...prev, responsable: user.nombre }))
     }
@@ -171,15 +171,11 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     if (open) {
       setFormData(prev => ({
         ...prev,
+        turno: currentTurno,
         expirationDate: prev.expirationDate || format(addMonths(new Date(), 1), "yyyy-MM-dd"),
       }))
     }
   }, [open])
-
-  const parseLocalYMD = (str: string): Date => {
-    const [y, m, d] = str.split("-")
-    return new Date(Number(y), Number(m) - 1, Number(d))
-  }
 
   useEffect(() => {
     if (!formData.paymentDate) return
@@ -190,6 +186,10 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     setFormData(prev => ({ ...prev, expirationDate: nuevaExp }))
   }, [formData.paymentDate])
 
+  const parseLocalYMD = (str: string): Date => {
+    const [y, m, d] = str.split("-")
+    return new Date(Number(y), Number(m) - 1, Number(d))
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[500px] overflow-y-auto max-h-[90vh]">
@@ -199,12 +199,20 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
             Registrar Nuevo Pago
           </DialogTitle>
           <DialogDescription>Completa el formulario para registrar un nuevo pago en el sistema.</DialogDescription>
-        </DialogHeader> 
+        </DialogHeader>
         <FormEnterToTab onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="dni">DNI del Miembro</Label>
-              <Input id="dni" placeholder="Ingrese el DNI del socio" value={formData.dni} onChange={(e) => handleChange("dni", e.target.value)} required />
+              <Input
+                id="dni"
+                type="number"
+                placeholder="Ingrese el DNI del socio"
+                ref={dniInputRef}
+                defaultValue={formData.dni}
+                onBlur={handleDniBlur}
+                required
+              />
               {dniError && <p className="text-sm text-red-600">{dniError}</p>}
             </div>
 
@@ -286,15 +294,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
             </div>
             <div className="space-y-2">
               <Label htmlFor="turno">Turno</Label>
-              <Select required value={formData.turno} onValueChange={(value) => handleChange("turno", value)}>
-                <SelectTrigger id="turno">
-                  <SelectValue placeholder="Seleccionar turno" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mañana">Mañana</SelectItem>
-                  <SelectItem value="tarde">Tarde</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input value={formData.turno} disabled />
             </div>
             <div className="space-y-2">
               <Label htmlFor="responsable">Responsable</Label>

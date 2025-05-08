@@ -25,13 +25,14 @@ import { useUser } from "@/context/UserContext"
 import { useRouter } from "next/navigation"
 
 import { useMembers } from "@/hooks/useMember"
-import { usePayments } from "@/hooks/usePayments"
+import { PaymentsFilters, usePayments } from "@/hooks/usePayments"
 import { useCashRegister } from "@/hooks/useCashRegister"
 import { useDialogManager } from "@/hooks/useDialogManager"
 import { useAppData } from "@/context/AppDataContext"
 
 import { Member } from "@/models/dashboard";
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
+import { format } from "date-fns"
 
 
 export default function AdministratorDashboard() {
@@ -46,11 +47,58 @@ export default function AdministratorDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
 
   const [selectedDate, setSelectedDate] = useState(new Date())
-  const [selectedShift, setSelectedShift] = useState("mañana")
-  const { payments, refreshPayments } = usePayments(selectedDate, selectedShift)
+  const [selectedShift, setSelectedShift] = useState("todos")
 
-  const { open: cashOpen, initialAmount, error: cashError, cerrada, existe, openCash, closeCash, setInitialAmount } = useCashRegister({ selectedShift, payments, userName: user?.nombre, })
+  const today = new Date()
+
+  const [selectedDay, setSelectedDay] = useState<number | undefined>(undefined)
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
+
+  const { payments, refreshPayments } = usePayments({
+    dia: today.getDate(),
+    mes: today.getMonth() + 1,
+    anio: today.getFullYear(),
+    turno: selectedShift,
+  })
+
+  const {
+    open: cashOpen,
+    initialAmount,
+    error: cashError,
+    cerrada,
+    existe,
+    openCash,
+    closeCash,
+    setInitialAmount
+  } = useCashRegister({ selectedShift, payments, userName: user?.nombre })
+
+  const filters: PaymentsFilters = cashOpen
+    ? {
+      dia: today.getDate(),
+      mes: today.getMonth() + 1,
+      anio: today.getFullYear(),
+      turno: selectedShift,
+    }
+    : {
+      dia: selectedDay,
+      mes: selectedMonth,
+      anio: selectedYear,
+      turno: selectedShift,
+    }
+
+
+
   const { dialogs, selection, closeDialog, onDeletePayment, onShowAddPayment } = useDialogManager(cashOpen)
+
+
+  const handleOpenCashRegister = () => {
+    const now = new Date()
+    setSelectedDay(now.getDate())
+    setSelectedMonth(now.getMonth() + 1)
+    setSelectedYear(now.getFullYear())
+    openCash()
+  }
 
   const handleMemberUpdated = (
     dni: string,
@@ -133,8 +181,27 @@ export default function AdministratorDashboard() {
 
   useEffect(() => {
     refreshPayments()
-  }, [selectedDate, selectedShift])
+  }, [cashOpen])
 
+  useEffect(() => {
+    async function fetchOpenCaja() {
+      try {
+        const hoy = format(new Date(), "d/M/yyyy")
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja?fecha=${hoy}`
+        )
+        if (!res.ok) return
+        const cajas: any[] = await res.json()
+        const abierta = cajas.find(c => !c["Hora Cierre"])
+        if (abierta) {
+          setSelectedShift(abierta.Turno)
+        }
+      } catch (err) {
+        console.error("No pude recuperar la caja abierta:", err)
+      }
+    }
+    fetchOpenCaja()
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -144,9 +211,12 @@ export default function AdministratorDashboard() {
           <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de administrador</h2>
         </div>
         {!cashOpen && cerrada && existe && (
-          <div className="text-center text-xl font-bold text-gray-600">
-            La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
+          <div className="flex justify-center">
+            <p className="text-lg text-red-600 mt-1 text-center p-4 bg-red-600 text-white rounded-lg">
+              La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
+            </p>
           </div>
+
         )}
 
         {(!cerrada || !existe) && (
@@ -155,7 +225,7 @@ export default function AdministratorDashboard() {
             initialAmount={initialAmount}
             selectedShift={selectedShift}
             currentShiftPayments={payments}
-            onOpenCashRegister={openCash}
+            onOpenCashRegister={handleOpenCashRegister}
             onCloseCashRegister={closeCash}
             setInitialAmount={setInitialAmount}
             errorMessage={cashError}
@@ -172,7 +242,7 @@ export default function AdministratorDashboard() {
               <Users className="mr-2 h-4 w-4" />
               Miembros
             </TabsTrigger>
-            <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Pagos por Turno</TabsTrigger>
+            <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Pagos</TabsTrigger>
             <TabsTrigger value="assists" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Asistencias</TabsTrigger>
             <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Planes</TabsTrigger>
             <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Turnos</TabsTrigger>
@@ -198,12 +268,18 @@ export default function AdministratorDashboard() {
               selectedShift={selectedShift}
               setSelectedShift={setSelectedShift}
               onShowAddPayment={onShowAddPayment}
-              formatDate={formatDate}
               setSelectedPaymentToDelete={onDeletePayment}
               setShowDeletePaymentDialog={() => { }}
               onMemberUpdated={handleMemberUpdated}
               refreshPayments={refreshPayments}
               cashOpen={cashOpen}
+              selectedDay={selectedDay}
+              setSelectedDay={setSelectedDay}
+              selectedMonth={selectedMonth}
+              setSelectedMonth={setSelectedMonth}
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+
             />
           </TabsContent>
 
@@ -256,6 +332,7 @@ export default function AdministratorDashboard() {
         onOpenChange={() => closeDialog("addPayment")}
         onPaymentAdded={refreshPayments}
         onMemberUpdated={handleMemberUpdated}
+        currentTurno={selectedShift}
       />
 
       <DeletePaymentDialog

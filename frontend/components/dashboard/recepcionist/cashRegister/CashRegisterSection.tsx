@@ -40,6 +40,7 @@ export default function CashRegisterSection({
             variant="orange"
             onClick={onOpenCashRegister}
             className="animate-pulse-scale"
+            disabled={selectedShift === "todos"}
           >
             <DollarSign className="mr-2 h-4 w-4" />
             Abrir Caja
@@ -52,6 +53,14 @@ export default function CashRegisterSection({
         )}
       </div>
 
+      {selectedShift === "todos" && (
+        <div className="flex justify-center">
+          <p className="text-lg text-red-600">
+            Por favor selecciona un turno (mañana o tarde) para abrir la caja.
+          </p>
+        </div>
+      )}
+    
       {cashRegisterOpen && (
         <>
           <CashRegisterCard
