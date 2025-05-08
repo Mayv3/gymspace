@@ -130,7 +130,7 @@ export default function AssistsSection() {
                       >
                         <TableCell className="text-center w-1/5">{asistencia["Tipo de Clase"]}</TableCell>
                         <TableCell className="text-center w-1/5">
-                          {dayjs(asistencia.Fecha, "D/M/YYYY").format("DD/MM/YYYY")}
+                          {asistencia.Fecha}
                         </TableCell>
                         <TableCell className="text-center w-1/5">{asistencia["Cantidad de presentes"]}</TableCell>
                         <TableCell className="text-center w-1/5">{asistencia.Responsable}</TableCell>
