@@ -17,6 +17,7 @@ import { CalendarDays, Users, UserCircle, ClipboardList } from "lucide-react"
 import dayjs from "dayjs"
 import { Input } from "@/components/ui/input"
 import { notify } from "@/lib/toast"
+import { FormEnterToTab } from "@/components/FormEnterToTab"
 
 export default function AssistsSection() {
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -245,38 +246,40 @@ export default function AssistsSection() {
           }
         }}
       >
-        <div className="space-y-4 text-sm">
-          <div className="flex flex-col">
-            <Label>Fecha</Label>
-            <Input
-              value={editForm.Fecha}
-              onChange={(e) => setEditForm({ ...editForm, Fecha: e.target.value })}
-            />
+        <FormEnterToTab>
+          <div className="space-y-4 text-sm">
+            <div className="flex flex-col">
+              <Label>Fecha</Label>
+              <Input
+                value={editForm.Fecha}
+                onChange={(e) => setEditForm({ ...editForm, Fecha: e.target.value })}
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label>Tipo de Clase</Label>
+              <Input
+                value={editForm["Tipo de Clase"]}
+                onChange={(e) => setEditForm({ ...editForm, "Tipo de Clase": e.target.value })}
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label>Cantidad de Presentes</Label>
+              <Input
+                type="number"
+                value={editForm["Cantidad de presentes"]}
+                onChange={(e) => setEditForm({ ...editForm, "Cantidad de presentes": e.target.value })}
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label>Responsable</Label>
+              <Input
+                value={editForm.Responsable}
+                disabled
+                onChange={(e) => setEditForm({ ...editForm, Responsable: e.target.value })}
+              />
+            </div>
           </div>
-          <div className="flex flex-col">
-            <Label>Tipo de Clase</Label>
-            <Input
-              value={editForm["Tipo de Clase"]}
-              onChange={(e) => setEditForm({ ...editForm, "Tipo de Clase": e.target.value })}
-            />
-          </div>
-          <div className="flex flex-col">
-            <Label>Cantidad de Presentes</Label>
-            <Input
-              type="number"
-              value={editForm["Cantidad de presentes"]}
-              onChange={(e) => setEditForm({ ...editForm, "Cantidad de presentes": e.target.value })}
-            />
-          </div>
-          <div className="flex flex-col">
-            <Label>Responsable</Label>
-            <Input
-              value={editForm.Responsable}
-              disabled
-              onChange={(e) => setEditForm({ ...editForm, Responsable: e.target.value })}
-            />
-          </div>
-        </div>
+        </FormEnterToTab>
       </ConfirmDialog>
     </TabsContent>
   )

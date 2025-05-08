@@ -44,7 +44,7 @@ export const getTurnos = async (req, res) => {
 
 export const createTurno = async (req, res) => {
   try {
-    const { tipo, fecha_turno, profesional, responsable } = req.body;
+    const { tipo, fecha_turno, profesional, responsable, hora} = req.body;
 
     if (!tipo || !fecha_turno || !profesional || !responsable) {
       return res.status(400).json({ message: 'Faltan campos obligatorios' });
@@ -56,6 +56,7 @@ export const createTurno = async (req, res) => {
       Profesional: profesional,
       Responsable: responsable,
       Fecha: dayjs().format('DD/MM/YYYY'),
+      Hora: hora
     };
 
     const nuevoTurnoGeneradoEnSheet = await appendTurnoToSheet(nuevoTurno);

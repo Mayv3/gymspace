@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import axios from "axios"
 import { TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@radix-ui/react-dropdown-menu"
 import { useAppData } from "@/context/AppDataContext"
 import { notify } from "@/lib/toast"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { FormEnterToTab } from "@/components/FormEnterToTab"
 
 export default function PlansSection() {
     const { planes, setPlanes } = useAppData();
@@ -39,11 +41,8 @@ export default function PlansSection() {
             notify.success("¡Plan registrado con éxito!")
         } catch (error) {
             notify.error("Error al registrar el plan")
-            console.error("Error al crear el plan:", error)
-            alert("Error al crear el plan.")
         }
     }
-
     const handleConfirmEdit = async () => {
         if (!editingPlan) return
         try {
@@ -63,7 +62,6 @@ export default function PlansSection() {
             notify.error("Error al editar el plan")
         }
     }
-
     const handleConfirmDelete = async () => {
         if (!selectedPlan) return
         try {
@@ -80,7 +78,6 @@ export default function PlansSection() {
             notify.error("Error al eliminar el plan")
         }
     }
-
     const handleShowAumentos = async (plan: any) => {
         try {
             const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/aumentos?plan=${encodeURIComponent(plan['Plan o Producto'])}`)
@@ -140,7 +137,7 @@ export default function PlansSection() {
                                                                     Tipo: plan.Tipo,
                                                                     'Plan o Producto': plan['Plan o Producto'],
                                                                     Precio: plan.Precio,
-                                                                    numero_Clases: plan.numero_Clases
+                                                                    numero_Clases: `${plan.numero_Clases}`
                                                                 })
                                                                 setShowEditDialog(true)
                                                             }}
@@ -195,42 +192,52 @@ export default function PlansSection() {
                 cancelText="Cancelar"
                 onConfirm={handleConfirmCreate}
             >
-                <div className="space-y-4 text-sm">
-                    <div className="flex flex-col">
-                        <Label>Tipo</Label>
-                        <Input
-                            value={createForm.Tipo}
-                            onChange={e => setCreateForm({ ...createForm, Tipo: e.target.value })}
-                            placeholder="GIMNASIO O CLASE"
-                        />
+                <FormEnterToTab>
+                    <div className="space-y-4 text-sm">
+                        <div className="flex flex-col">
+                            <Label>Tipo</Label>
+                            <Select value={createForm.Tipo} onValueChange={(value) => {
+                                setCreateForm(prev => ({ ...prev, Tipo: value }))
+                            }}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="GIMNASIO O CLASE" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
+                                    <SelectItem value="CLASE">CLASE</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Plan o Producto</Label>
+                            <Input
+                                value={createForm['Plan o Producto']}
+                                onChange={e => setCreateForm({ ...createForm, 'Plan o Producto': e.target.value })}
+                                placeholder="Ej: 3 veces x semana - Tela 2 veces x semana"
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Precio</Label>
+                            <Input
+                                type="number"
+                                value={createForm.Precio}
+                                onChange={e => setCreateForm({ ...createForm, Precio: e.target.value })}
+                                placeholder="Ej: 20000"
+                                required
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Número de Clases</Label>
+                            <Input
+                                type="number"
+                                value={createForm.numero_Clases}
+                                onChange={e => setCreateForm({ ...createForm, numero_Clases: e.target.value })}
+                                placeholder="ej: 12"
+                                required
+                            />
+                        </div>
                     </div>
-                    <div className="flex flex-col">
-                        <Label>Plan o Producto</Label>
-                        <Input
-                            value={createForm['Plan o Producto']}
-                            onChange={e => setCreateForm({ ...createForm, 'Plan o Producto': e.target.value })}
-                            placeholder="Ej: 3 veces x semana - Tela 2 veces x semana"
-                        />
-                    </div>
-                    <div className="flex flex-col">
-                        <Label>Precio</Label>
-                        <Input
-                            type="number"
-                            value={createForm.Precio}
-                            onChange={e => setCreateForm({ ...createForm, Precio: e.target.value })}
-                            placeholder="Ej: 20000"
-                        />
-                    </div>
-                    <div className="flex flex-col">
-                        <Label>Número de Clases</Label>
-                        <Input
-                            type="number"
-                            value={createForm.numero_Clases}
-                            onChange={e => setCreateForm({ ...createForm, numero_Clases: e.target.value })}
-                            placeholder="ej: 12"
-                        />
-                    </div>
-                </div>
+                </FormEnterToTab>
             </ConfirmDialog>
 
             {/* Editar Plan */}
@@ -242,38 +249,51 @@ export default function PlansSection() {
                 cancelText="Cancelar"
                 onConfirm={handleConfirmEdit}
             >
-                <div className="space-y-4 text-sm">
-                    <div className="flex flex-col">
-                        <Label>Tipo</Label>
-                        <Input
-                            value={editForm.Tipo}
-                            onChange={e => setEditForm({ ...editForm, Tipo: e.target.value })}
-                        />
+                <FormEnterToTab>
+                    <div className="space-y-4 text-sm">
+                        <div className="flex flex-col">
+                            <Label>Tipo</Label>
+
+                            <Select value={editForm.Tipo} onValueChange={(value) => {
+                                setEditForm(prev => ({ ...prev, Tipo: value }))
+                            }}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="GIMNASIO O CLASE" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
+                                    <SelectItem value="CLASE">CLASE</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Plan o Producto</Label>
+                            <Input
+                                required
+                                value={editForm['Plan o Producto']}
+                                onChange={e => setEditForm({ ...editForm, 'Plan o Producto': e.target.value })}
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Precio</Label>
+                            <Input
+                                required
+                                type="number"
+                                value={editForm.Precio}
+                                onChange={e => setEditForm({ ...editForm, Precio: e.target.value })}
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Número de Clases</Label>
+                            <Input
+                                required
+                                type="number"
+                                value={editForm.numero_Clases}
+                                onChange={e => setEditForm({ ...editForm, numero_Clases: e.target.value })}
+                            />
+                        </div>
                     </div>
-                    <div className="flex flex-col">
-                        <Label>Plan o Producto</Label>
-                        <Input
-                            value={editForm['Plan o Producto']}
-                            onChange={e => setEditForm({ ...editForm, 'Plan o Producto': e.target.value })}
-                        />
-                    </div>
-                    <div className="flex flex-col">
-                        <Label>Precio</Label>
-                        <Input
-                            type="number"
-                            value={editForm.Precio}
-                            onChange={e => setEditForm({ ...editForm, Precio: e.target.value })}
-                        />
-                    </div>
-                    <div className="flex flex-col">
-                        <Label>Número de Clases</Label>
-                        <Input
-                            type="number"
-                            value={editForm.numero_Clases}
-                            onChange={e => setEditForm({ ...editForm, numero_Clases: e.target.value })}
-                        />
-                    </div>
-                </div>
+                </FormEnterToTab>
             </ConfirmDialog>
 
             <ConfirmDialog

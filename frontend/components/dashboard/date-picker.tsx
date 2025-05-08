@@ -19,8 +19,6 @@ interface DatePickerProps {
 export function DatePicker({ date, setDate, disabled = false }: DatePickerProps) {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(date)
 
-  // 🔥 Añade esto para que cada vez que cambie la prop `date`
-  //    actualice también el state interno
   React.useEffect(() => {
     setSelectedDate(date)
   }, [date])

@@ -24,6 +24,7 @@ import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
 import { notify } from '@/lib/toast'
+import { FormEnterToTab } from "@/components/FormEnterToTab"
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -165,12 +166,12 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <FormEnterToTab onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre Completo</Label>
-                <Input id="name" placeholder="Juan Pérez" value={formData.name} onChange={(e) => handleChange("name", e.target.value)} required />
+                <Input capitalizeFirst id="name" placeholder="Juan Pérez" value={formData.name} onChange={(e) => handleChange("name", e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dni">DNI/Identificación</Label>
@@ -255,7 +256,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
             <div className="space-y-2">
               <Label htmlFor="profesorAsignado">Profesor Asignado</Label>
-              <Input id="profesorAsignado" placeholder="Nombre del profesor" value={formData.profesorAsignado} onChange={(e) => handleChange("profesorAsignado", e.target.value)} />
+              <Input capitalizeFirst id="profesorAsignado" placeholder="Nombre del profesor" value={formData.profesorAsignado} onChange={(e) => handleChange("profesorAsignado", e.target.value)} />
             </div>
           </div>
 
@@ -265,7 +266,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
               <Button variant="orange" type="submit">Registrar Miembro</Button>
             </motion.div>
           </DialogFooter>
-        </form>
+        </FormEnterToTab>
       </DialogContent>
     </Dialog>
   )

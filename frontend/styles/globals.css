@@ -94,25 +94,29 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px; /* Ancho de la scrollbar */
-  height: 4px; /* Altura en scroll horizontal */
+  width: 4px;
+  height: 4px; 
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Color de la pista */
+  background: #f1f1f1;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #a0aec0; /* Color del pulgar */
-  border-radius: 9999px; /* Redondear */
+  background: #a0aec0;
+  border-radius: 9999px; 
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #718096; /* Color al pasar el mouse */
+  background: #718096; 
 }
 .custom-scrollbar {
-  scrollbar-width: thin; /* Opciones: auto, thin, none */
+  scrollbar-width: thin;
   scrollbar-color: #a0aec0 #f1f1f1; /* primer color: pulgar; segundo: pista */
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
 }
 
 @layer base {
@@ -125,18 +129,16 @@ body {
     --popover-foreground: 0 0% 3.9%;
     --primary: 24 100% 50%; /* Naranja vibrante */
     --primary-foreground: 0 0% 100%;
-    /* Más variables si querés */
   }
 
   .dark {
-    --background: 220 14% 18%; /* Azul muy oscuro tipo Dark Reader */
-    --foreground: 0 0% 90%;    /* Gris clarito */
+    --background: 220 14% 18%;
+    --foreground: 0 0% 90%;   
     --card: 220 14% 20%;
     --card-foreground: 0 0% 95%;
     --popover: 220 14% 20%;
     --popover-foreground: 0 0% 95%;
-    --primary: 24 100% 65%; /* Naranja más clarito */
+    --primary: 24 100% 65%;
     --primary-foreground: 0 0% 10%;
-    /* Ajustás lo que quieras para el modo dark */
   }
 }

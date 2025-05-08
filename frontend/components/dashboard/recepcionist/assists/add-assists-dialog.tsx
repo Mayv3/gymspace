@@ -7,6 +7,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { motion } from "framer-motion"
 import { useUser } from "@/context/UserContext"
 import { notify } from "@/lib/toast"
+import { FormEnterToTab } from "@/components/FormEnterToTab"
 
 interface RegisterClassDialogProps {
   open: boolean
@@ -47,39 +48,40 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
         <DialogHeader>
           <DialogTitle>Registrar Presentes</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Tipo de Clase</Label>
-            <Select value={formData.tipoClase} onValueChange={(value) => handleChange("tipoClase", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar clase" />
-              </SelectTrigger>
-              <SelectContent>
-                {tiposDeClase.map((tipo) => (
-                  <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Cantidad de Personas</Label>
-            <Input
-              type="number"
-              max={40}
-              value={formData.cantidadPersonas}
-              onChange={(e) => handleChange("cantidadPersonas", e.target.value)}
-              required
-            />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="orange" type="submit">Registrar</Button>
-            </motion.div>
-          </DialogFooter>
-        </form>
+
+        <FormEnterToTab onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tipo de Clase</Label>
+              <Select value={formData.tipoClase} onValueChange={(value) => handleChange("tipoClase", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar clase" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposDeClase.map((tipo) => (
+                    <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Cantidad de Personas</Label>
+              <Input
+                type="number"
+                max={40}
+                value={formData.cantidadPersonas}
+                onChange={(e) => handleChange("cantidadPersonas", e.target.value)}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="orange" type="submit">Registrar</Button>
+              </motion.div>
+            </DialogFooter>
+          </FormEnterToTab>
       </DialogContent>
     </Dialog>
   )

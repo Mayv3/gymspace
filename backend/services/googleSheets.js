@@ -888,13 +888,12 @@ export async function eliminarRegistroDeClase({ IDClase, DNI, Fecha }) {
   return true;
 }
 
-
 // Turnos
 
 export async function getTurnosFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Turnos!A1:F',
+    range: 'Turnos!A1:G',
   });
 
   const [headers, ...rows] = res.data.values || [];
@@ -915,19 +914,21 @@ export async function appendTurnoToSheet(turno) {
     ID: String(nuevoID),
     ...turno
   };
-
+  
   const values = [[
     turnoConID.ID,
     turnoConID.Fecha,
     turnoConID.Tipo,
     turnoConID.Fecha_turno,
     turnoConID.Profesional,
-    turnoConID.Responsable
+    turnoConID.Responsable,
+    turnoConID.Hora
   ]];
+  console.log(values)
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Turnos!A1:F1',
+    range: 'Turnos!A1:G1',
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
@@ -939,7 +940,7 @@ export async function appendTurnoToSheet(turno) {
 export async function updateTurnoByID(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Turnos!A1:F',
+    range: 'Turnos!A1:G',
   });
 
   const [headers, ...rows] = res.data.values || [];
@@ -955,7 +956,7 @@ export async function updateTurnoByID(id, nuevosDatos) {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `Turnos!A${rowIndex + 2}:F${rowIndex + 2}`,
+    range: `Turnos!A${rowIndex + 2}:G${rowIndex + 2}`,
     valueInputOption: 'USER_ENTERED',
     resource: { values: [nuevaFila] },
   });
@@ -966,7 +967,7 @@ export async function updateTurnoByID(id, nuevosDatos) {
 export async function deleteTurnoByID(id) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Turnos!A1:F',
+    range: 'Turnos!A1:G',
   });
 
   const [headers, ...rows] = res.data.values || [];
@@ -1033,7 +1034,6 @@ export async function appendEgresoToSheet(data) {
     resource: { values },
   });
 
-  console.log(nuevoID)
   return { id: nuevoID, ...data };
 }
 

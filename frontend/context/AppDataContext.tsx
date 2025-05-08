@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 interface Plan {
   ID: string
   Tipo: string
+  Precio: string
   ["Plan o Producto"]: string
   numero_Clases: number
 }
@@ -36,6 +37,7 @@ interface Turno {
   Tipo: string
   Fecha_turno: string
   Profesional: string
+  Hora: string
   Responsable: string
 }
 

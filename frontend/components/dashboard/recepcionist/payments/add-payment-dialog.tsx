@@ -21,6 +21,7 @@ import { motion } from "framer-motion"
 import { CreditCard, DollarSign } from "lucide-react"
 import { DatePicker } from "../../date-picker"
 import { notify } from '@/lib/toast'
+import { FormEnterToTab } from "@/components/FormEnterToTab"
 
 interface AddPaymentDialogProps {
   open: boolean
@@ -188,7 +189,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     )
     setFormData(prev => ({ ...prev, expirationDate: nuevaExp }))
   }, [formData.paymentDate])
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[500px] overflow-y-auto max-h-[90vh]">
@@ -198,8 +199,8 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
             Registrar Nuevo Pago
           </DialogTitle>
           <DialogDescription>Completa el formulario para registrar un nuevo pago en el sistema.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        </DialogHeader> 
+        <FormEnterToTab onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="dni">DNI del Miembro</Label>
@@ -315,7 +316,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
               </Button>
             </motion.div>
           </DialogFooter>
-        </form>
+        </FormEnterToTab>
       </DialogContent>
     </Dialog>
   )

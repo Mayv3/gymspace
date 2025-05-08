@@ -170,8 +170,6 @@ export const getPlanesPersonalizadosPorProfesor = async (req, res) => {
       );
     });
 
-    console.log("Pagos filtrados:", pagosFiltrados);
-
     const resultado = pagosFiltrados.reduce((acc, pago) => {
       const dni = pago["Socio DNI"];
       const alumno = alumnos.find((a) => a.DNI === dni);

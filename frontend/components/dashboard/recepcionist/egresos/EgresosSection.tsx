@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
@@ -14,6 +14,7 @@ import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { notify } from "@/lib/toast"
+import { FormEnterToTab } from "@/components/FormEnterToTab"
 
 interface Egreso {
     ID: string
@@ -54,7 +55,6 @@ export default function EgresosSection() {
             console.error("Error al cargar egresos", err)
         }
     }
-
     const handleCreateEgreso = async () => {
         try {
             const payload = { ...form }
@@ -90,7 +90,6 @@ export default function EgresosSection() {
             notify.error("Error al registrar el egreso")
         }
     }
-
     const handleDeleteEgreso = async () => {
         if (!egresoAEliminar) return
         try {
@@ -224,53 +223,59 @@ export default function EgresosSection() {
                     cancelText="Cancelar"
                     onConfirm={handleCreateEgreso}
                 >
-                    <div className="space-y-4 text-sm bg-background text-foreground">
-                        <div className="flex flex-col">
-                            <Label>Fecha</Label>
-                            <DatePicker
-                                date={selectedDate}
-                                setDate={setSelectedDate}
-                            />
+                    <FormEnterToTab>
+                        <div className="space-y-4 text-sm bg-background text-foreground">
+                            <div className="flex flex-col">
+                                <Label>Responsable</Label>
+                                <Input
+                                    className="border border-input bg-background text-foreground px-2 py-1 rounded cursor-disabled"
+                                    value={user?.nombre}
+                                    disabled
+                                    onChange={(e) => setForm(prev => ({ ...prev, Responsable: e.target.value }))}
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <Label>Tipo</Label>
+                                <Select value={form.Tipo} onValueChange={(val) => setForm(prev => ({ ...prev, Tipo: val }))}>
+                                    <SelectTrigger className="bg-background text-foreground border-input">
+                                        <SelectValue placeholder="Seleccionar tipo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
+                                        <SelectItem value="CLASE">CLASE</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex flex-col">
+                                <Label>Fecha</Label>
+                                <DatePicker
+                                    date={selectedDate}
+                                    setDate={setSelectedDate}
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <Label>Motivo</Label>
+                                <Input
+                                    capitalizeFirst
+                                    className="border border-input bg-background text-foreground px-2 py-1 rounded"
+                                    value={form.Motivo}
+                                    onChange={(e) => setForm(prev => ({ ...prev, Motivo: e.target.value }))}
+                                    placeholder="Motivo por el egreso"
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <Label>Monto</Label>
+                                <Input
+                                    type="number"
+                                    className="border border-input bg-background text-foreground px-2 py-1 rounded"
+                                    value={form.Monto}
+                                    onChange={(e) => setForm(prev => ({ ...prev, Monto: e.target.value }))}
+                                    placeholder="Ej: 20000"
+                                />
+                            </div>
+
                         </div>
-                        <div className="flex flex-col">
-                            <Label>Motivo</Label>
-                            <Input
-                                className="border border-input bg-background text-foreground px-2 py-1 rounded"
-                                value={form.Motivo}
-                                onChange={(e) => setForm(prev => ({ ...prev, Motivo: e.target.value }))}
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <Label>Monto</Label>
-                            <Input
-                                type="number"
-                                className="border border-input bg-background text-foreground px-2 py-1 rounded"
-                                value={form.Monto}
-                                onChange={(e) => setForm(prev => ({ ...prev, Monto: e.target.value }))}
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <Label>Responsable</Label>
-                            <Input
-                                className="border border-input bg-background text-foreground px-2 py-1 rounded cursor-disabled"
-                                value={user?.nombre}
-                                disabled
-                                onChange={(e) => setForm(prev => ({ ...prev, Responsable: e.target.value }))}
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <Label>Tipo</Label>
-                            <Select value={form.Tipo} onValueChange={(val) => setForm(prev => ({ ...prev, Tipo: val }))}>
-                                <SelectTrigger className="bg-background text-foreground border-input">
-                                    <SelectValue placeholder="Seleccionar tipo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="GIMNASIO">Gimnasio</SelectItem>
-                                    <SelectItem value="CLASE">Clase</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
+                    </FormEnterToTab>
                 </ConfirmDialog>
             </CardContent>
         </Card>

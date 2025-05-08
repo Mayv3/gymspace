@@ -19,12 +19,13 @@ import { useAppData } from "@/context/AppDataContext"
 import { notify } from '@/lib/toast'
 
 import axios from "axios"
+import { FormEnterToTab } from "@/components/FormEnterToTab"
 
 export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const [editedMember, setEditedMember] = useState(member || {})
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
-  const {planes} = useAppData();
+  const { planes } = useAppData();
 
   const parseDate = (dateStr: string): Date | null => {
     const parts = dateStr.split("/");
@@ -90,114 +91,116 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
           <DialogDescription>Modifica la información del socio.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="Nombre">Nombre</Label>
-              <Input id="Nombre" value={editedMember.Nombre || ""} onChange={(e) => handleChange("Nombre", e.target.value)} />
+        <FormEnterToTab>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="Nombre">Nombre</Label>
+                <Input capitalizeFirst id="Nombre" value={editedMember.Nombre || ""} onChange={(e) => handleChange("Nombre", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="DNI">DNI</Label>
+                <Input id="DNI" value={editedMember.DNI || ""} disabled />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="DNI">DNI</Label>
-              <Input id="DNI" value={editedMember.DNI || ""} disabled />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="Email">Email</Label>
-              <Input id="Email" value={editedMember.Email || ""} onChange={(e) => handleChange("Email", e.target.value)} />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="Email">Email</Label>
+                <Input id="Email" value={editedMember.Email || ""} onChange={(e) => handleChange("Email", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="Telefono">Teléfono</Label>
+                <Input id="Telefono" value={editedMember.Telefono || ""} onChange={(e) => handleChange("Telefono", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="Sexo">Sexo</Label>
+                <Select value={editedMember.Sexo || ""} onValueChange={(value) => handleChange("Sexo", value)}>
+                  <SelectTrigger id="Sexo">
+                    <SelectValue placeholder="Seleccionar sexo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="M">Masculino</SelectItem>
+                    <SelectItem value="F">Femenino</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="Telefono">Teléfono</Label>
-              <Input id="Telefono" value={editedMember.Telefono || ""} onChange={(e) => handleChange("Telefono", e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="Sexo">Sexo</Label>
-              <Select value={editedMember.Sexo || ""} onValueChange={(value) => handleChange("Sexo", value)}>
-                <SelectTrigger id="Sexo">
-                  <SelectValue placeholder="Seleccionar sexo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="M">Masculino</SelectItem>
-                  <SelectItem value="F">Femenino</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="Clases_pagadas">Clases Pagadas</Label>
-              <Input id="Clases_pagadas" value={editedMember.Clases_pagadas || ""} onChange={(e) => handleChange("Clases_pagadas", e.target.value)} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="Clases_pagadas">Clases Pagadas</Label>
+                <Input id="Clases_pagadas" value={editedMember.Clases_pagadas || ""} onChange={(e) => handleChange("Clases_pagadas", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="Clases_realizadas">Clases Realizadas</Label>
+                <Input id="Clases_realizadas" value={editedMember.Clases_realizadas || ""} onChange={(e) => handleChange("Clases_realizadas", e.target.value)} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="Clases_realizadas">Clases Realizadas</Label>
-              <Input id="Clases_realizadas" value={editedMember.Clases_realizadas || ""} onChange={(e) => handleChange("Clases_realizadas", e.target.value)} />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Fecha de Inicio</Label>
-              <DatePicker
-                date={editedMember.Fecha_inicio ? parseDate(editedMember.Fecha_inicio) || new Date() : new Date()}
-                setDate={(newDate: Date) => handleChange("Fecha_inicio", format(newDate, "dd/MM/yyyy"))}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Fecha de Inicio</Label>
+                <DatePicker
+                  date={editedMember.Fecha_inicio ? parseDate(editedMember.Fecha_inicio) || new Date() : new Date()}
+                  setDate={(newDate: Date) => handleChange("Fecha_inicio", format(newDate, "dd/MM/yyyy"))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Fecha de Vencimiento</Label>
+                <DatePicker
+                  date={editedMember.Fecha_vencimiento ? parseDate(editedMember.Fecha_vencimiento) || undefined : new Date()}
+                  setDate={(newDate: Date) => handleChange("Fecha_vencimiento", format(newDate, "dd/MM/yyyy"))}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-            <Label>Fecha de Vencimiento</Label>
-              <DatePicker
-                date={editedMember.Fecha_vencimiento ? parseDate(editedMember.Fecha_vencimiento) || undefined : new Date()}
-                setDate={(newDate: Date) => handleChange("Fecha_vencimiento", format(newDate, "dd/MM/yyyy"))}
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="Fecha_nacimiento">Fecha de Nacimiento</Label>
-              <Input id="Fecha_nacimiento" value={editedMember.Fecha_nacimiento || ""} onChange={(e) => handleChange("Fecha_nacimiento", e.target.value)} pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$" title="El formato debe ser dd/mm/aaaa" required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="Fecha_nacimiento">Fecha de Nacimiento</Label>
+                <Input id="Fecha_nacimiento" value={editedMember.Fecha_nacimiento || ""} onChange={(e) => handleChange("Fecha_nacimiento", e.target.value)} pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$" title="El formato debe ser dd/mm/aaaa" required />
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de Plan</Label>
+                <Select value={tipoSeleccionado} onValueChange={setTipoSeleccionado}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiposUnicos.map((tipo) => (
+                      <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label>Tipo de Plan</Label>
-              <Select value={tipoSeleccionado} onValueChange={setTipoSeleccionado}>
+              <Label>Plan</Label>
+              <Select value={planSeleccionado?.ID || ""} onValueChange={handleSelectPlan}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
+                  <SelectValue placeholder="Seleccionar plan" />
                 </SelectTrigger>
                 <SelectContent>
-                  {tiposUnicos.map((tipo) => (
-                    <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                  {planesFiltrados.map((plan) => (
+                    <SelectItem key={plan.ID} value={plan.ID}>{plan["Plan o Producto"]} - {plan.numero_Clases} clases</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Plan</Label>
-            <Select value={planSeleccionado?.ID || ""} onValueChange={handleSelectPlan}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar plan" />
-              </SelectTrigger>
-              <SelectContent>
-                {planesFiltrados.map((plan) => (
-                  <SelectItem key={plan.ID} value={plan.ID}>{plan["Plan o Producto"]} - {plan.numero_Clases} clases</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="Profesor_asignado">Profesor Asignado</Label>
+              <Input capitalizeFirst id="Profesor_asignado" value={editedMember.Profesor_asignado || ""} onChange={(e) => handleChange("Profesor_asignado", e.target.value)} />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="Profesor_asignado">Profesor Asignado</Label>
-            <Input id="Profesor_asignado" value={editedMember.Profesor_asignado || ""} onChange={(e) => handleChange("Profesor_asignado", e.target.value)} />
+            <div className="flex justify-end">
+              <Button variant="orange" onClick={handleSave}>
+                Guardar Cambios
+              </Button>
+            </div>
           </div>
-
-          <div className="flex justify-end">
-            <Button variant="orange" onClick={handleSave}>
-              Guardar Cambios
-            </Button>
-          </div>
-        </div>
+          </FormEnterToTab>
       </DialogContent>
     </Dialog>
   )
