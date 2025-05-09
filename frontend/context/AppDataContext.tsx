@@ -166,10 +166,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }
 
   const editAsistencia = async (id: string, nuevosDatos: Partial<Asistencia>) => {
-    setisSubmitting(true)
-
-
-
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/clases-diarias/${id}`, {
         method: "PUT",
