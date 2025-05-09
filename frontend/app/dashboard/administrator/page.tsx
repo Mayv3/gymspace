@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Users, TrendingUp } from "lucide-react"
-import { formatDate } from "@/utils/dateUtils"
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { MembersStatsTab } from "@/components/dashboard/administrator/MembersStatsTab"
@@ -55,12 +54,17 @@ export default function AdministratorDashboard() {
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
 
-  const { payments, refreshPayments } = usePayments({
-    dia: today.getDate(),
-    mes: today.getMonth() + 1,
-    anio: today.getFullYear(),
-    turno: selectedShift,
-  })
+  const buildCurrentFilters = (): PaymentsFilters => {
+    const dynamicToday = new Date()
+    return {
+      dia: cashOpen ? dynamicToday.getDate() : selectedDay,
+      mes: selectedMonth,
+      anio: selectedYear,
+      turno: selectedShift,
+    }
+  }
+
+  const { payments, refreshPayments } = usePayments()
 
   const {
     open: cashOpen,
@@ -72,22 +76,6 @@ export default function AdministratorDashboard() {
     closeCash,
     setInitialAmount
   } = useCashRegister({ selectedShift, payments, userName: user?.nombre })
-
-  const filters: PaymentsFilters = cashOpen
-    ? {
-      dia: today.getDate(),
-      mes: today.getMonth() + 1,
-      anio: today.getFullYear(),
-      turno: selectedShift,
-    }
-    : {
-      dia: selectedDay,
-      mes: selectedMonth,
-      anio: selectedYear,
-      turno: selectedShift,
-    }
-
-
 
   const { dialogs, selection, closeDialog, onDeletePayment, onShowAddPayment } = useDialogManager(cashOpen)
 
@@ -180,10 +168,6 @@ export default function AdministratorDashboard() {
   }, [alumnos]);
 
   useEffect(() => {
-    refreshPayments()
-  }, [cashOpen])
-
-  useEffect(() => {
     async function fetchOpenCaja() {
       try {
         const hoy = format(new Date(), "d/M/yyyy")
@@ -202,6 +186,10 @@ export default function AdministratorDashboard() {
     }
     fetchOpenCaja()
   }, [])
+
+  useEffect(()=>{
+    refreshPayments(buildCurrentFilters())
+  },[cashOpen])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -279,7 +267,6 @@ export default function AdministratorDashboard() {
               setSelectedMonth={setSelectedMonth}
               selectedYear={selectedYear}
               setSelectedYear={setSelectedYear}
-
             />
           </TabsContent>
 
@@ -330,7 +317,7 @@ export default function AdministratorDashboard() {
       <AddPaymentDialog
         open={dialogs.addPayment}
         onOpenChange={() => closeDialog("addPayment")}
-        onPaymentAdded={refreshPayments}
+        onPaymentAdded={() => refreshPayments(buildCurrentFilters())}
         onMemberUpdated={handleMemberUpdated}
         currentTurno={selectedShift}
       />
@@ -340,8 +327,8 @@ export default function AdministratorDashboard() {
         onOpenChange={() => closeDialog("deletePayment")}
         payment={selection.paymentToDelete!}
         onDelete={() => {
-          refreshPayments()
           closeDialog("deletePayment")
+          refreshPayments(buildCurrentFilters())
         }}
       />
     </div>

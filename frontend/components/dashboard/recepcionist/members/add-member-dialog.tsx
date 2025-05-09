@@ -61,6 +61,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]
   const planesFiltrados = planes.filter(p => p.Tipo === tipoSeleccionado)
@@ -103,9 +104,11 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMessage("")
+    e.preventDefault();
+    if (isSubmitting) return;
 
+    setIsSubmitting(true)
+    setErrorMessage("")
     const payload = {
       DNI: formData.dni,
       Nombre: formData.name,
@@ -129,9 +132,9 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       )
 
       resetForm()
-      onOpenChange(false)
       onMemberAdded(response.data)
       notify.success("¡Alumno agregado con éxito!")
+      onOpenChange(false)
     } catch (error: any) {
       notify.error("Fallo al registrar el alumno")
       if (error.response?.data?.message) {
@@ -139,6 +142,8 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       } else {
         setErrorMessage("Error al agregar el alumno")
       }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -263,7 +268,9 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="orange" type="submit">Registrar Miembro</Button>
+              <Button variant="orange" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Registrando..." : "Registrar Miembro"}
+              </Button>
             </motion.div>
           </DialogFooter>
         </FormEnterToTab>

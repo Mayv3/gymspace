@@ -19,7 +19,7 @@ export default function PlansSection() {
     const { planes, setPlanes } = useAppData();
 
     const [showCreateDialog, setShowCreateDialog] = useState(false)
-    const [createForm, setCreateForm] = useState({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" })
+    const [createForm, setCreateForm] = useState({ Tipo: "GIMNASIO", "Plan o Producto": "", Precio: "", numero_Clases: "" })
 
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [editingPlan, setEditingPlan] = useState<any | null>(null)
@@ -32,51 +32,77 @@ export default function PlansSection() {
     const [aumentos, setAumentos] = useState<any[]>([])
     const [planSeleccionado, setPlanSeleccionado] = useState<any | null>(null)
 
+    const [isSubmitting, setisSubmitting] = useState(false);
+
     const handleConfirmCreate = async () => {
-        try {
-            const { data: nuevoPlan } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`, createForm)
-            setPlanes(prev => [...prev, nuevoPlan])
-            setShowCreateDialog(false)
-            setCreateForm({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" })
-            notify.success("¡Plan registrado con éxito!")
-        } catch (error) {
-            notify.error("Error al registrar el plan")
+        const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases } = createForm;
+
+        if (!plan || !Precio || !numero_Clases) {
+            notify.error("Por favor, completá todos los campos obligatorios.");
+            return;
         }
-    }
+
+        setisSubmitting(true);
+        try {
+            const { data: nuevoPlan } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`, createForm);
+            setPlanes(prev => [...prev, nuevoPlan]);
+            setShowCreateDialog(false);
+            setCreateForm({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" });
+            notify.success("¡Plan registrado con éxito!");
+        } catch (error) {
+            notify.error("Error al registrar el plan");
+        }
+        setisSubmitting(false);
+    };
+
     const handleConfirmEdit = async () => {
         if (!editingPlan) return
+
+        const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases } = editForm;
+
+        if (!plan || !Precio || !numero_Clases) {
+            notify.error("Por favor, completá todos los campos obligatorios.");
+            return;
+        }
+
+        setisSubmitting(true);
         try {
             const { data: planActualizado } = await axios.patch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/${editingPlan.ID}`,
                 editForm
-            )
+            );
 
             setPlanes(prev =>
                 prev.map(plan => plan.ID === editingPlan.ID ? planActualizado : plan)
-            )
+            );
 
-            setShowEditDialog(false)
-            setEditingPlan(null)
-            notify.success("¡Plan editado con éxito!")
+            setShowEditDialog(false);
+            setEditingPlan(null);
+            notify.success("¡Plan editado con éxito!");
         } catch (error) {
-            notify.error("Error al editar el plan")
+            notify.error("Error al editar el plan");
         }
-    }
+        setisSubmitting(false);
+    };
+
+
     const handleConfirmDelete = async () => {
         if (!selectedPlan) return
+
+        setisSubmitting(true)
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/${selectedPlan.ID}`)
 
             setPlanes(prev =>
                 prev.filter(plan => plan.ID !== selectedPlan.ID)
             )
-
             setShowDeleteDialog(false)
             setSelectedPlan(null)
             notify.info("¡Plan eliminado con éxito!")
         } catch (error) {
             notify.error("Error al eliminar el plan")
         }
+        setisSubmitting(false)
     }
     const handleShowAumentos = async (plan: any) => {
         try {
@@ -190,6 +216,7 @@ export default function PlansSection() {
                 description="Complete los datos del nuevo plan"
                 confirmText="Crear"
                 cancelText="Cancelar"
+                loading={isSubmitting}
                 onConfirm={handleConfirmCreate}
             >
                 <FormEnterToTab>
@@ -240,6 +267,7 @@ export default function PlansSection() {
                 </FormEnterToTab>
             </ConfirmDialog>
 
+
             {/* Editar Plan */}
             <ConfirmDialog
                 open={showEditDialog}
@@ -247,6 +275,7 @@ export default function PlansSection() {
                 title="Editar plan"
                 description="Modificá los datos de este plan registrado." confirmText="Guardar cambios"
                 cancelText="Cancelar"
+                loading={isSubmitting}
                 onConfirm={handleConfirmEdit}
             >
                 <FormEnterToTab>
@@ -303,6 +332,7 @@ export default function PlansSection() {
                 description="Esta acción es permanente y no se puede deshacer."
                 confirmText="Eliminar"
                 cancelText="Cancelar"
+                loading={isSubmitting}
                 destructive
                 onConfirm={handleConfirmDelete}
             >

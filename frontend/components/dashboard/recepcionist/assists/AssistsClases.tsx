@@ -34,6 +34,7 @@ export default function AssistsSection() {
     Responsable: ""
   })
   const { assists, fetchAssists, deleteAsistencia, editAsistencia } = useAppData()
+  const [isSubmitting, setisSubmitting] = useState(false);
 
   const handleDateChange = async (date: Date) => {
     setSelectedDate(date)
@@ -54,7 +55,7 @@ export default function AssistsSection() {
 
   const handleConfirmDelete = async () => {
     if (!selectedClass) return
-    console.log(selectedClass)
+    setisSubmitting(true)
     try {
       await deleteAsistencia(selectedClass.ID)
       setShowDeleteDialog(false)
@@ -63,6 +64,7 @@ export default function AssistsSection() {
     } catch (error) {
       alert("Error al eliminar la clase.")
     }
+    setisSubmitting(false)
   }
 
   return (
@@ -200,6 +202,7 @@ export default function AssistsSection() {
         confirmText="Eliminar"
         cancelText="Cancelar"
         destructive
+        loading={isSubmitting}
         onConfirm={handleConfirmDelete}
       >
         {selectedClass && (
@@ -235,7 +238,9 @@ export default function AssistsSection() {
         description="Modificá los datos de esta clase registrada."
         confirmText="Guardar cambios"
         cancelText="Cancelar"
+        loading={isSubmitting}
         onConfirm={async () => {
+          setisSubmitting(true)
           try {
             await editAsistencia(editingClass.ID, editForm)
             await fetchAssists({ selectedDate, selectedType })
@@ -244,6 +249,7 @@ export default function AssistsSection() {
           } catch (error) {
             notify.error("Error al editar la asistencia")
           }
+          setisSubmitting(false)
         }}
       >
         <FormEnterToTab>

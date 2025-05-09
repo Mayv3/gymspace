@@ -1,5 +1,5 @@
 "use client"
-import React, { use, useEffect } from "react"
+import React, { use, useEffect, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -15,16 +15,15 @@ import { notify } from "@/lib/toast"
 interface DeletePaymentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  payment: any // Puedes definir un tipo Payment si lo tienes
+  payment: any
   onDelete: (deletedPaymentId: string) => void
 }
 
 export function DeletePaymentDialog({ open, onOpenChange, payment, onDelete }: DeletePaymentDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    console.log("Payment data:", payment)
-  }, [])
   const handleDelete = async () => {
+    setIsSubmitting(true)
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos/${payment.ID}`, {
         method: "DELETE",
@@ -36,6 +35,7 @@ export function DeletePaymentDialog({ open, onOpenChange, payment, onDelete }: D
     } catch (error) {
       console.error("Error deleting payment:", error)
     }
+    setIsSubmitting(false)
   }
 
   return (
@@ -54,8 +54,10 @@ export function DeletePaymentDialog({ open, onOpenChange, payment, onDelete }: D
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            Eliminar Pago
+          <Button variant="destructive" disabled={isSubmitting} onClick={() => {
+            handleDelete();
+          }}>
+            {isSubmitting ? "Eliminando..." : "Eliminar pago"}
           </Button>
         </DialogFooter>
       </DialogContent>

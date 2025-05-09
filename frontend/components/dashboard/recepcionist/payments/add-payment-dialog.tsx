@@ -52,6 +52,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   })
   const tiposUnicos = [...new Set(planes.map(p => p.Tipo))]
   const planesFiltrados = planes.filter(p => p.Tipo === tipoSeleccionado)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -90,7 +91,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    setIsSubmitting(true)
 
     const fields = Object.values(formData)
     if (fields.some(f => f.trim() === "")) {
@@ -139,7 +140,6 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       )
 
       onPaymentAdded()
-      onOpenChange(false)
       notify.success("¡Pago cargado con éxito!")
       setFormData({
         dni: "",
@@ -159,6 +159,8 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       notify.error("¡Error al registrar el pago")
       console.error("Error al enviar el pago:", error)
     }
+    setIsSubmitting(false)
+    onOpenChange(false)
   }
 
   useEffect(() => {
@@ -311,8 +313,8 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
               Cancelar
             </Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="orange" type="submit">
-                Registrar Pago
+              <Button variant="orange" disabled={isSubmitting} type="submit">
+                {isSubmitting ? "Registrando pago..." : 'Registrar pago'}
               </Button>
             </motion.div>
           </DialogFooter>

@@ -1,5 +1,4 @@
-// hooks/usePayments.ts
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { Payment } from "@/models/dashboard"
 
 export interface PaymentsFilters {
@@ -9,11 +8,10 @@ export interface PaymentsFilters {
   turno?: string
 }
 
-export function usePayments(filters: PaymentsFilters) {
+export function usePayments() {
   const [payments, setPayments] = useState<Payment[]>([])
 
-  const fetchPayments = useCallback(async () => {
-
+  const fetchPayments = useCallback(async (filters: PaymentsFilters) => {
     try {
       const params = new URLSearchParams()
       if (filters.dia != null) params.append("dia", String(filters.dia))
@@ -22,6 +20,7 @@ export function usePayments(filters: PaymentsFilters) {
       if (filters.turno) params.append("turno", filters.turno)
 
       const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos?${params.toString()}`
+      console.log(url)
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data: Payment[] = await res.json()
@@ -29,7 +28,7 @@ export function usePayments(filters: PaymentsFilters) {
     } catch (err) {
       console.error("Error al cargar pagos:", err)
     }
-  }, [filters.dia, filters.mes, filters.anio, filters.turno])
+  }, [])
 
   return { payments, refreshPayments: fetchPayments }
 }

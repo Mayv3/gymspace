@@ -42,18 +42,21 @@ export default function ReceptionistDashboard() {
   const today = new Date()
   const [selectedDate, setSelectedDate] = useState(today)
   const [selectedShift, setSelectedShift] = useState("todos")
-  const [selectedDay, setSelectedDay] = useState<number | undefined>(today.getDate())
+  const [selectedDay, setSelectedDay] = useState<number | undefined>()
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
 
-  const filtrosBasicos: PaymentsFilters = {
-    dia: selectedDay ?? today.getDate(),
-    mes: selectedMonth ?? today.getMonth() + 1,
-    anio: selectedYear ?? today.getFullYear(),
-    turno: selectedShift,
-  }
+  const { payments, refreshPayments } = usePayments();
 
-  const { payments, refreshPayments } = usePayments(filtrosBasicos)
+  const buildCurrentFilters = (): PaymentsFilters => {
+    const dynamicToday = new Date()
+    return {
+      dia: cashOpen ? dynamicToday.getDate() : selectedDay,
+      mes: selectedMonth,
+      anio: selectedYear,
+      turno: selectedShift,
+    }
+  }
 
   const {
     open: cashOpen,
@@ -115,9 +118,10 @@ export default function ReceptionistDashboard() {
     setMembers(formattedMembers)
   }, [alumnos])
 
+
   useEffect(() => {
-    refreshPayments()
-  }, [selectedDate, selectedShift, cashOpen])
+    refreshPayments(buildCurrentFilters())
+  }, [cashOpen])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -164,6 +168,11 @@ export default function ReceptionistDashboard() {
           </TabsContent>
 
           <TabsContent value="shift-payments" className="space-y-4">
+            <div className="mb-4 text-sm text-muted-foreground">
+              Mostrando pagos del{" "}
+              <span className="font-medium">{selectedDay}/{selectedMonth}/{selectedYear}</span>{" "}
+              - Turno: <span className="font-medium">{selectedShift}</span>
+            </div>
             <PaymentsSection
               currentShiftPayments={payments}
               selectedDate={selectedDate}
@@ -207,8 +216,13 @@ export default function ReceptionistDashboard() {
       <AddMemberDialog open={dialogs.addMember} onOpenChange={() => closeDialog("addMember")} onMemberAdded={onMemberAdded} />
       <EditMemberDialog open={dialogs.editMember} onOpenChange={() => closeDialog("editMember")} member={selection.memberToEdit} onSave={(m: Member) => { updateAttendance(m.DNI, m.Clases_realizadas); onMemberEdited(m) }} />
       <DeleteMemberDialog open={dialogs.deleteMember} onOpenChange={() => closeDialog("deleteMember")} member={selection.memberToDelete!} onDelete={dni => { onMemberDeleted(dni) }} />
-      <AddPaymentDialog open={dialogs.addPayment} onOpenChange={() => closeDialog("addPayment")} onPaymentAdded={refreshPayments} onMemberUpdated={handleMemberUpdated} currentTurno={selectedShift} />
-      <DeletePaymentDialog open={dialogs.deletePayment} onOpenChange={() => closeDialog("deletePayment")} payment={selection.paymentToDelete!} onDelete={() => { refreshPayments(); closeDialog("deletePayment") }} />
+      <AddPaymentDialog open={dialogs.addPayment} onOpenChange={() => closeDialog("addPayment")} onPaymentAdded={() => {
+        refreshPayments(buildCurrentFilters())
+      }} onMemberUpdated={handleMemberUpdated} currentTurno={selectedShift} />
+      <DeletePaymentDialog open={dialogs.deletePayment} onOpenChange={() => closeDialog("deletePayment")} payment={selection.paymentToDelete!} onDelete={() => {
+        refreshPayments(buildCurrentFilters())
+        closeDialog("deletePayment")
+      }} />
     </div>
   )
 }

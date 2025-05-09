@@ -60,7 +60,7 @@ export default function CashRegisterSection({
           </p>
         </div>
       )}
-    
+
       {cashRegisterOpen && (
         <>
           <CashRegisterCard

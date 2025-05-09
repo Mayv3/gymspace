@@ -26,6 +26,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const [tipoSeleccionado, setTipoSeleccionado] = useState("")
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
   const { planes } = useAppData();
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const parseDate = (dateStr: string): Date | null => {
     const parts = dateStr.split("/");
@@ -64,6 +65,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   }
 
   const handleSave = async () => {
+    setIsSubmitting(true)
     const payload = { ...editedMember }
     if (payload.Fecha_nacimiento?.includes("/")) {
       const [day, month, year] = payload.Fecha_nacimiento.split("/")
@@ -81,6 +83,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
     } catch (error) {
       console.error("Error actualizando el miembro", error)
     }
+    setIsSubmitting(false)
   }
 
   return (
@@ -91,12 +94,16 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
           <DialogDescription>Modifica la información del socio.</DialogDescription>
         </DialogHeader>
 
-        <FormEnterToTab>
+        <FormEnterToTab onSubmit={(e)=>{
+          e.preventDefault();
+          handleSave()
+        }}>
+          
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="Nombre">Nombre</Label>
-                <Input capitalizeFirst id="Nombre" value={editedMember.Nombre || ""} onChange={(e) => handleChange("Nombre", e.target.value)} />
+                <Input required capitalizeFirst id="Nombre" value={editedMember.Nombre || ""} onChange={(e) => handleChange("Nombre", e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="DNI">DNI</Label>
@@ -107,11 +114,11 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="Email">Email</Label>
-                <Input id="Email" value={editedMember.Email || ""} onChange={(e) => handleChange("Email", e.target.value)} />
+                <Input required id="Email" value={editedMember.Email || ""} onChange={(e) => handleChange("Email", e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="Telefono">Teléfono</Label>
-                <Input id="Telefono" value={editedMember.Telefono || ""} onChange={(e) => handleChange("Telefono", e.target.value)} />
+                <Input required id="Telefono" value={editedMember.Telefono || ""} onChange={(e) => handleChange("Telefono", e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="Sexo">Sexo</Label>
@@ -130,11 +137,11 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="Clases_pagadas">Clases Pagadas</Label>
-                <Input id="Clases_pagadas" value={editedMember.Clases_pagadas || ""} onChange={(e) => handleChange("Clases_pagadas", e.target.value)} />
+                <Input required id="Clases_pagadas" value={editedMember.Clases_pagadas || ""} onChange={(e) => handleChange("Clases_pagadas", e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="Clases_realizadas">Clases Realizadas</Label>
-                <Input id="Clases_realizadas" value={editedMember.Clases_realizadas || ""} onChange={(e) => handleChange("Clases_realizadas", e.target.value)} />
+                <Input required id="Clases_realizadas" value={editedMember.Clases_realizadas || ""} onChange={(e) => handleChange("Clases_realizadas", e.target.value)} />
               </div>
             </div>
 
@@ -158,7 +165,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="Fecha_nacimiento">Fecha de Nacimiento</Label>
-                <Input id="Fecha_nacimiento" value={editedMember.Fecha_nacimiento || ""} onChange={(e) => handleChange("Fecha_nacimiento", e.target.value)} pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$" title="El formato debe ser dd/mm/aaaa" required />
+                <Input id="Fecha_nacimiento" value={editedMember.Fecha_nacimiento || ""} onChange={(e) => handleChange("Fecha_nacimiento", e.target.value)} pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$" title="El formato debe ser dd/mm/aaaa"/>
               </div>
               <div className="space-y-2">
                 <Label>Tipo de Plan</Label>
@@ -195,12 +202,12 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
             </div>
 
             <div className="flex justify-end">
-              <Button type="button" variant="orange" onClick={handleSave}>
-                Guardar Cambios
+              <Button type="submit" variant="orange" disabled={isSubmitting}>
+                {isSubmitting ? "Guardando cambios..." : "Guardar cambios"}
               </Button>
             </div>
           </div>
-          </FormEnterToTab>
+        </FormEnterToTab>
       </DialogContent>
     </Dialog>
   )

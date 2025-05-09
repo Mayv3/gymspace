@@ -34,17 +34,14 @@ interface PaymentsSectionProps {
 
 export default function PaymentsSection({
   currentShiftPayments,
-
   selectedDay,
   setSelectedDay,
   selectedMonth,
   setSelectedMonth,
   selectedYear,
   setSelectedYear,
-
   selectedShift,
   setSelectedShift,
-
   onShowAddPayment,
   setSelectedPaymentToDelete,
   setShowDeletePaymentDialog,
@@ -58,7 +55,6 @@ export default function PaymentsSection({
       cashOpen={cashOpen}
       currentShiftPayments={currentShiftPayments}
 
-      // Filtros individuales
       selectedDay={selectedDay}
       setSelectedDay={setSelectedDay}
       selectedMonth={selectedMonth}
@@ -66,11 +62,9 @@ export default function PaymentsSection({
       selectedYear={selectedYear}
       setSelectedYear={setSelectedYear}
 
-      // Turno
       selectedShift={selectedShift}
       setSelectedShift={setSelectedShift}
 
-      // Diálogos y acciones
       setShowAddPayment={onShowAddPayment}
       setSelectedPaymentToDelete={setSelectedPaymentToDelete}
       setShowDeletePaymentDialog={setShowDeletePaymentDialog}

@@ -9,11 +9,11 @@ import { PlusCircle, Trash } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
+import { PaymentsFilters } from "@/hooks/usePayments"
 
 interface ShiftPaymentsTabProps {
   currentShiftPayments: any[]
 
-  // filtros separados
   selectedDay?: number
   setSelectedDay: (n?: number) => void
   selectedMonth?: number
@@ -21,17 +21,14 @@ interface ShiftPaymentsTabProps {
   selectedYear?: number
   setSelectedYear: (n?: number) => void
 
-  // turno
   selectedShift: string
   setSelectedShift: (shift: string) => void
 
-  // acciones
   setShowAddPayment: (show: boolean) => void
   setSelectedPaymentToDelete: (payment: any) => void
   setShowDeletePaymentDialog: (show: boolean) => void
   onMemberUpdated: (dni: string, nuevaFecha: string, nuevoPlan: string, clasesPagadas: number) => void
-  refreshPayments: () => void
-
+  refreshPayments: (filters: PaymentsFilters) => void
   cashOpen: boolean
 }
 
@@ -155,7 +152,19 @@ export function ShiftPaymentsTab({
               </div>
 
               <div className="flex items-end">
-                <Button onClick={refreshPayments} disabled={cashOpen}>
+                <Button
+                  onClick={() => {
+                    const today = new Date()
+                    refreshPayments({
+                      dia: cashOpen ? today.getDate() : selectedDay,
+                      mes: selectedMonth,
+                      anio: selectedYear,
+                      turno: selectedShift,
+                    })
+                    console.log(selectedDay, selectedMonth, selectedYear)
+                  }}
+                  disabled={cashOpen}
+                >
                   Filtrar
                 </Button>
               </div>
@@ -174,6 +183,7 @@ export function ShiftPaymentsTab({
                     <TableHead className="text-center w-32">Fecha de pago</TableHead>
                     <TableHead className="text-center w-32">Fecha de venc.</TableHead>
                     <TableHead className="text-center w-32">Tipo</TableHead>
+                    <TableHead className="text-center w-32">Turno</TableHead>
                     <TableHead className="text-center w-32">Registrado Por</TableHead>
                     <TableHead className="text-center w-32">Acciones</TableHead>
                   </TableRow>
@@ -198,6 +208,7 @@ export function ShiftPaymentsTab({
                         <TableCell className="text-center">{payment.Fecha_de_Pago}</TableCell>
                         <TableCell className="text-center">{payment.Fecha_de_Vencimiento}</TableCell>
                         <TableCell className="text-center">{payment.Tipo}</TableCell>
+                        <TableCell className="text-center">{payment.Turno}</TableCell>
                         <TableCell className="text-center">{payment.Responsable}</TableCell>
                         <TableCell className="text-center">
                           <Button

@@ -19,6 +19,7 @@ const tiposDeClase = ["Funcional", "Tela", "Acrobacia", "Yoga", "Cross"]
 export default function RegisterClassDialog({ open, onOpenChange }: RegisterClassDialogProps) {
   const [formData, setFormData] = useState({ tipoClase: "", cantidadPersonas: "", responsable: "DANI" })
   const { user } = useUser()
+  const [isSubmitting, setisSubmitting] = useState(false);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -26,6 +27,7 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setisSubmitting(true)
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/clases-diarias`, {
         method: "POST",
@@ -40,6 +42,7 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
     } catch (error) {
       notify.error("Error al registrar la asistencia")
     }
+    setisSubmitting(false)
   }
 
   return (
@@ -50,38 +53,38 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
         </DialogHeader>
 
         <FormEnterToTab onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tipo de Clase</Label>
-              <Select value={formData.tipoClase} onValueChange={(value) => handleChange("tipoClase", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar clase" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tiposDeClase.map((tipo) => (
-                    <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Cantidad de Personas</Label>
-              <Input
-                type="number"
-                max={40}
-                value={formData.cantidadPersonas}
-                onChange={(e) => handleChange("cantidadPersonas", e.target.value)}
-                required
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="orange" type="submit">Registrar</Button>
-              </motion.div>
-            </DialogFooter>
-          </FormEnterToTab>
+          <div className="space-y-2">
+            <Label>Tipo de Clase</Label>
+            <Select required value={formData.tipoClase} onValueChange={(value) => handleChange("tipoClase", value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar clase" />
+              </SelectTrigger>
+              <SelectContent>
+                {tiposDeClase.map((tipo) => (
+                  <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Cantidad de Personas</Label>
+            <Input
+              type="number"
+              max={40}
+              value={formData.cantidadPersonas}
+              onChange={(e) => handleChange("cantidadPersonas", e.target.value)}
+              required
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button variant="orange" type="submit" disabled={isSubmitting}>{isSubmitting ? "Registrando..." : "Registrar"}</Button>
+            </motion.div>
+          </DialogFooter>
+        </FormEnterToTab>
       </DialogContent>
     </Dialog>
   )
