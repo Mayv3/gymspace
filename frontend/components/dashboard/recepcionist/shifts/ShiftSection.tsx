@@ -21,6 +21,8 @@ import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js"
 import { notify } from "@/lib/toast"
 import { FormEnterToTab } from "@/components/FormEnterToTab"
+import { parse } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
@@ -58,6 +60,15 @@ export default function ShiftsSection() {
         return turno.Tipo === selectedType
     })
 
+    const parseDate = (str: string): Date | null => {
+        try {
+            const parsed = parse(str, 'dd/MM/yyyy', new Date(), { locale: es })
+            return isNaN(parsed.getTime()) ? null : parsed
+        } catch {
+            return null
+        }
+    }
+
     const fetchTurnosPorFecha = async () => {
         try {
             const fechaFormateada = dayjs(selectedDate).format("DD/MM/YYYY")
@@ -65,10 +76,12 @@ export default function ShiftsSection() {
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos?fecha=${fechaFormateada}`
             )
             setTurnos(data)
+            console.log(turnos)
         } catch (error) {
             console.error("Error al cargar turnos por fecha:", error)
         }
     }
+
     const handleConfirmCreate = async () => {
         if (!createForm.Fecha_turno) {
             setFechaError(true)
@@ -116,11 +129,12 @@ export default function ShiftsSection() {
             notify.error("Error al registrar el turno")
         }
     }
-    
+
     const handleConfirmEdit = async (e?: React.FormEvent) => {
         e?.preventDefault()
         if (!editingTurno) return
         setisSubmitting(true)
+
         try {
             const payload = {
                 Tipo: editForm.Tipo,
@@ -226,12 +240,12 @@ export default function ShiftsSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Tipo</TableHead>
-                                        <TableHead>Fecha</TableHead>
-                                        <TableHead>Profesional</TableHead>
-                                        <TableHead>Horario</TableHead>
-                                        <TableHead>Responsable</TableHead>
-                                        <TableHead>Acciones</TableHead>
+                                        <TableHead className="text-center">Tipo</TableHead>
+                                        <TableHead className="text-center">Fecha</TableHead>
+                                        <TableHead className="text-center">Profesional</TableHead>
+                                        <TableHead className="text-center">Horario</TableHead>
+                                        <TableHead className="text-center">Responsable</TableHead>
+                                        <TableHead className="text-center">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -268,10 +282,12 @@ export default function ShiftsSection() {
                                                                 setEditingTurno(turno)
                                                                 setEditForm({
                                                                     Tipo: turno.Tipo,
-                                                                    Fecha_turno: dayjs(
+                                                                    Fecha_turno: parse(
                                                                         turno.Fecha_turno,
-                                                                        "DD/MM/YYYY"
-                                                                    ).toDate(),
+                                                                        "dd/MM/yyyy",
+                                                                        new Date(),
+                                                                        { locale: es }
+                                                                    ),
                                                                     Profesional: turno.Profesional,
                                                                     Responsable: turno.Responsable,
                                                                     Hora: turno.Hora,

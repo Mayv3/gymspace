@@ -14,6 +14,8 @@ import { useAppData } from "@/context/AppDataContext"
 import { notify } from "@/lib/toast"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { FormEnterToTab } from "@/components/FormEnterToTab"
+import { parse } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 export default function PlansSection() {
     const { planes, setPlanes } = useAppData();
@@ -42,6 +44,16 @@ export default function PlansSection() {
             plan.Tipo?.toLowerCase().includes(term)
         )
     })
+
+    const parseDate = (str: string): Date | null => {
+        try {
+            const parsed = parse(str, 'dd/MM/yyyy', new Date(), { locale: es })
+            return isNaN(parsed.getTime()) ? null : parsed
+        } catch {
+            return null
+        }
+    }
+    
     const handleConfirmCreate = async () => {
         const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases } = createForm;
 
