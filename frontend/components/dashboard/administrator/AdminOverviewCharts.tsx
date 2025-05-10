@@ -774,7 +774,6 @@ export default function AdminOverviewCharts({
             <DollarSign className="text-orange-500" />
             <CardTitle>Cajas registradas por año y mes </CardTitle>
           </div>
-
           <div className="flex justify-end gap-4 w-full">
             <div className="w-[100px]">
               <Select
@@ -821,7 +820,10 @@ export default function AdminOverviewCharts({
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={cajasTransformadas}>
-                <XAxis dataKey="fecha" />
+                <XAxis
+                  dataKey="fecha"
+                  tickFormatter={(val) =>dayjs(val).format("DD/MM/YYYY")}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltipCajas />} />
                 <Line
