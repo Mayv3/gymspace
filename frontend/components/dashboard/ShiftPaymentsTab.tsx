@@ -50,6 +50,8 @@ export function ShiftPaymentsTab({
 }: ShiftPaymentsTabProps) {
   const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: { [metodo: string]: number } }>({})
   const [totalesPorMetodo, setTotalesPorMetodo] = useState({ efectivo: 0, tarjeta: 0 })
+  const [searchTerm, setSearchTerm] = useState("")
+  const [tipoFiltro, setTipoFiltro] = useState<string>("todos")
 
   useEffect(() => {
     const totales: Record<string, Record<string, number>> = {}
@@ -72,6 +74,13 @@ export function ShiftPaymentsTab({
     setTotalesPorMetodo({ efectivo: totalEfectivo, tarjeta: totalTarjeta })
   }, [currentShiftPayments])
 
+
+  const filteredPayments = currentShiftPayments.filter(p => {
+    const nombreMatch = p.Nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+    const tipoMatch = tipoFiltro === "todos" || p.Tipo === tipoFiltro
+    return nombreMatch && tipoMatch
+  })
+
   return (
     <>
       <Card>
@@ -90,83 +99,109 @@ export function ShiftPaymentsTab({
         <CardContent>
           {/* FILTROS */}
           {!cashOpen && (
-            <div className="flex flex-wrap gap-4 mb-6">
-              <div className="w-24">
-                <Label>Día</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={31}
-                  value={selectedDay ?? ""}
-                  onChange={e =>
-                    setSelectedDay(e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  disabled={cashOpen}
-                />
+            <div className="flex flex-wrap justify-between pb-4">
+              <div className="flex gap-4">
+                <div className="max-w-sm">
+                  <Label htmlFor="search">Buscar por nombre</Label>
+                  <Input
+                    id="search"
+                    type="text"
+                    placeholder="Ej: Juan Pérez"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="w-36">
+                  <Label>Tipo</Label>
+                  <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
+                      <SelectItem value="CLASE">CLASE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="w-24">
-                <Label>Mes</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={12}
-                  value={selectedMonth ?? ""}
-                  onChange={e =>
-                    setSelectedMonth(e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  disabled={cashOpen}
-                />
-              </div>
+              <div className="flex gap-4">
+                <div className="w-24">
+                  <Label>Día</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={31}
+                    value={selectedDay ?? ""}
+                    onChange={e =>
+                      setSelectedDay(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    disabled={cashOpen}
+                  />
+                </div>
 
-              <div className="w-28">
-                <Label>Año</Label>
-                <Input
-                  type="number"
-                  min={2000}
-                  max={2100}
-                  value={selectedYear ?? ""}
-                  onChange={e =>
-                    setSelectedYear(e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  disabled={cashOpen}
-                />
-              </div>
+                <div className="w-24">
+                  <Label>Mes</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={selectedMonth ?? ""}
+                    onChange={e =>
+                      setSelectedMonth(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    disabled={cashOpen}
+                  />
+                </div>
 
-              <div className="w-32">
-                <Label>Turno</Label>
-                <Select
-                  value={selectedShift}
-                  onValueChange={setSelectedShift}
-                  disabled={cashOpen}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="mañana">Mañana</SelectItem>
-                    <SelectItem value="tarde">Tarde</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="w-28">
+                  <Label>Año</Label>
+                  <Input
+                    type="number"
+                    min={2000}
+                    max={2100}
+                    value={selectedYear ?? ""}
+                    onChange={e =>
+                      setSelectedYear(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    disabled={cashOpen}
+                  />
+                </div>
 
-              <div className="flex items-end">
-                <Button
-                  onClick={() => {
-                    const today = new Date()
-                    refreshPayments({
-                      dia: cashOpen ? today.getDate() : selectedDay,
-                      mes: selectedMonth,
-                      anio: selectedYear,
-                      turno: selectedShift,
-                    })
-                    console.log(selectedDay, selectedMonth, selectedYear)
-                  }}
-                  disabled={cashOpen}
-                >
-                  Filtrar
-                </Button>
+                <div className="w-32">
+                  <Label>Turno</Label>
+                  <Select
+                    value={selectedShift}
+                    onValueChange={setSelectedShift}
+                    disabled={cashOpen}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="mañana">Mañana</SelectItem>
+                      <SelectItem value="tarde">Tarde</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={() => {
+                      const today = new Date()
+                      refreshPayments({
+                        dia: cashOpen ? today.getDate() : selectedDay,
+                        mes: selectedMonth,
+                        anio: selectedYear,
+                        turno: selectedShift,
+                      })
+                    }}
+                    disabled={cashOpen}
+                  >
+                    Filtrar
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -190,8 +225,9 @@ export function ShiftPaymentsTab({
                 </TableHeader>
 
                 <TableBody>
-                  {currentShiftPayments.length > 0 ? (
-                    currentShiftPayments.map((payment, idx) => (
+
+                  {filteredPayments.length > 0 ? (
+                    filteredPayments.map((payment, idx) => (
                       <motion.tr
                         key={idx}
                         initial={{ opacity: 0, y: 10 }}
