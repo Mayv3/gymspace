@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle, Trash, Edit, Tag, Box, DollarSign, CalendarDays, FileText } from "lucide-react"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@radix-ui/react-dropdown-menu"
+import { Label } from "@/components/ui/label"
 import { useAppData } from "@/context/AppDataContext"
 import { notify } from "@/lib/toast"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
@@ -33,7 +33,15 @@ export default function PlansSection() {
     const [planSeleccionado, setPlanSeleccionado] = useState<any | null>(null)
 
     const [isSubmitting, setisSubmitting] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("")
 
+    const filteredPlanes = planes.filter(plan => {
+        const term = searchTerm.toLowerCase()
+        return (
+            plan['Plan o Producto']?.toLowerCase().includes(term) ||
+            plan.Tipo?.toLowerCase().includes(term)
+        )
+    })
     const handleConfirmCreate = async () => {
         const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases } = createForm;
 
@@ -85,7 +93,6 @@ export default function PlansSection() {
         setisSubmitting(false);
     };
 
-
     const handleConfirmDelete = async () => {
         if (!selectedPlan) return
 
@@ -104,6 +111,7 @@ export default function PlansSection() {
         }
         setisSubmitting(false)
     }
+
     const handleShowAumentos = async (plan: any) => {
         try {
             const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/aumentos?plan=${encodeURIComponent(plan['Plan o Producto'])}`)
@@ -131,6 +139,17 @@ export default function PlansSection() {
                     </div>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex flex-col max-w-sm mb-4">
+                        <Label htmlFor="search">Buscar por nombre o tipo</Label>
+                        <Input
+                            id="search"
+                            type="text"
+                            placeholder="Ej: personalizado, gimnasio, clase..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
                     <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
                         <div className="min-w-[800px]">
                             <Table>
@@ -145,8 +164,8 @@ export default function PlansSection() {
                                 </TableHeader>
 
                                 <TableBody>
-                                    {planes.length > 0 ? (
-                                        planes.map((plan, i) => (
+                                    {filteredPlanes.length > 0 ? (
+                                        filteredPlanes.map((plan, i) => (
                                             <TableRow key={i} className="grid grid-cols-6 hover:bg-accent">
                                                 <TableCell className="flex items-center justify-center">{plan.Tipo}</TableCell>
                                                 <TableCell className="flex items-center justify-center col-span-2">{plan['Plan o Producto']}</TableCell>
