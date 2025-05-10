@@ -51,6 +51,7 @@ export default function ShiftsSection() {
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [selectedTurno, setSelectedTurno] = useState<any | null>(null)
+    const [isSubmitting, setisSubmitting] = useState(false);
 
     const filteredTurnos = turnos.filter((turno) => {
         if (selectedType === "todas") return true
@@ -74,7 +75,7 @@ export default function ShiftsSection() {
             return
         }
         setFechaError(false)
-
+        setisSubmitting(true)
         try {
             const payload = {
                 tipo: createForm.Tipo,
@@ -109,15 +110,17 @@ export default function ShiftsSection() {
                 Hora: "",
             })
             notify.success("¡Turno registrado con éxito!")
+            setisSubmitting(false)
         } catch (error) {
             console.error("Error creando turno:", error)
             notify.error("Error al registrar el turno")
         }
     }
+    
     const handleConfirmEdit = async (e?: React.FormEvent) => {
         e?.preventDefault()
         if (!editingTurno) return
-
+        setisSubmitting(true)
         try {
             const payload = {
                 Tipo: editForm.Tipo,
@@ -143,9 +146,12 @@ export default function ShiftsSection() {
         } catch (error) {
             notify.error("Error al editar el turno")
         }
+        setisSubmitting(false)
     }
+
     const handleConfirmDelete = async () => {
         if (!selectedTurno) return
+        setisSubmitting(true)
         try {
             await axios.delete(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos/${selectedTurno.ID}`
@@ -159,6 +165,7 @@ export default function ShiftsSection() {
         } catch (error) {
             notify.error("Error al eliminar el turno")
         }
+        setisSubmitting(false)
     }
 
     useEffect(() => {
@@ -310,6 +317,7 @@ export default function ShiftsSection() {
                 description="Completa los datos del nuevo turno"
                 confirmText="Crear"
                 cancelText="Cancelar"
+                loading={isSubmitting}
                 onConfirm={handleConfirmCreate}
             >
                 <FormEnterToTab>
@@ -387,6 +395,7 @@ export default function ShiftsSection() {
                 description="Modifica los datos del turno."
                 confirmText="Guardar cambios"
                 cancelText="Cancelar"
+                loading={isSubmitting}
                 onConfirm={handleConfirmEdit}
             >
                 <FormEnterToTab>
@@ -459,6 +468,7 @@ export default function ShiftsSection() {
                 confirmText="Eliminar"
                 cancelText="Cancelar"
                 destructive
+                loading={isSubmitting}
                 onConfirm={handleConfirmDelete}
             >
                 {selectedTurno && (

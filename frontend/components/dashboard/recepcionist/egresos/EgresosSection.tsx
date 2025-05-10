@@ -33,6 +33,7 @@ export default function EgresosSection() {
     const [egresoAEliminar, setEgresoAEliminar] = useState<Egreso | null>(null)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const { user } = useUser()
+    const [isSubmitting, setisSubmitting] = useState(false);
 
     const [form, setForm] = useState({
         Fecha: dayjs().format("DD/MM/YYYY"),
@@ -56,6 +57,7 @@ export default function EgresosSection() {
         }
     }
     const handleCreateEgreso = async () => {
+        setisSubmitting(true)
         try {
             const payload = { ...form }
 
@@ -89,9 +91,11 @@ export default function EgresosSection() {
             console.error(error)
             notify.error("Error al registrar el egreso")
         }
+        setisSubmitting(false)
     }
     const handleDeleteEgreso = async () => {
         if (!egresoAEliminar) return
+        setisSubmitting(true)
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/egresos/${egresoAEliminar.ID}`)
             setEgresos(prev => prev.filter(e => e.ID !== egresoAEliminar.ID))
@@ -102,6 +106,7 @@ export default function EgresosSection() {
             console.log(error)
             notify.error("Error al eliminar el egreso")
         }
+        setisSubmitting(false)
     }
 
     useEffect(() => {
@@ -202,6 +207,7 @@ export default function EgresosSection() {
                     confirmText="Eliminar"
                     cancelText="Cancelar"
                     destructive
+                    loading={isSubmitting}
                     onConfirm={handleDeleteEgreso}
                 >
                     {egresoAEliminar && (
@@ -221,6 +227,7 @@ export default function EgresosSection() {
                     description="Completa los datos para registrar un egreso"
                     confirmText="Registrar"
                     cancelText="Cancelar"
+                    loading={isSubmitting}
                     onConfirm={handleCreateEgreso}
                 >
                     <FormEnterToTab>
