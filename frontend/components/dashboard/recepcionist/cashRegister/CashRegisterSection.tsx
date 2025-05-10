@@ -56,7 +56,7 @@ export default function CashRegisterSection({
       {selectedShift === "todos" && (
         <div className="flex justify-center">
           <p className="text-lg text-red-600">
-            Por favor selecciona un turno (mañana o tarde) para abrir la caja.
+            Por favor selecciona un turno (mañana o tarde) para abrir la caja en PAGOS.
           </p>
         </div>
       )}
