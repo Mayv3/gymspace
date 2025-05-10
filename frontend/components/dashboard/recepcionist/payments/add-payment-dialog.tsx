@@ -91,6 +91,12 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.amount || !formData.method || !formData.concept || !formData.paymentDate || !formData.expirationDate || !formData.responsable || !formData.turno) {
+      notify.error("Por favor completa todos los campos antes de enviar.");
+      return;
+    }
+
     setIsSubmitting(true)
 
     const fields = Object.values(formData)
@@ -192,6 +198,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     const [y, m, d] = str.split("-")
     return new Date(Number(y), Number(m) - 1, Number(d))
   }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[500px] overflow-y-auto max-h-[90vh]">

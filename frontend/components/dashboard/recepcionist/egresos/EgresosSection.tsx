@@ -57,6 +57,12 @@ export default function EgresosSection() {
         }
     }
     const handleCreateEgreso = async () => {
+
+        if (!form.Fecha || !form.Motivo.trim() || !form.Monto.trim() || !form.Tipo) {
+            notify.error("Por favor completa todos los campos antes de enviar.");
+            return;
+        }
+
         setisSubmitting(true)
         try {
             const payload = { ...form }
@@ -93,6 +99,7 @@ export default function EgresosSection() {
         }
         setisSubmitting(false)
     }
+    
     const handleDeleteEgreso = async () => {
         if (!egresoAEliminar) return
         setisSubmitting(true)
@@ -264,6 +271,7 @@ export default function EgresosSection() {
                                 <Label>Motivo</Label>
                                 <Input
                                     capitalizeFirst
+                                    required
                                     className="border border-input bg-background text-foreground px-2 py-1 rounded"
                                     value={form.Motivo}
                                     onChange={(e) => setForm(prev => ({ ...prev, Motivo: e.target.value }))}

@@ -81,8 +81,14 @@ export default function ShiftsSection() {
             console.error("Error al cargar turnos por fecha:", error)
         }
     }
-
+    
     const handleConfirmCreate = async () => {
+
+         if (!createForm.Fecha_turno || !createForm.Hora || !createForm.Profesional || !createForm.Tipo) {
+            notify.error("Por favor completa todos los campos antes de enviar.");
+            return;
+        }
+
         if (!createForm.Fecha_turno) {
             setFechaError(true)
             return

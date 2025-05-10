@@ -27,6 +27,12 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.tipoClase || !formData.cantidadPersonas || !formData.responsable) {
+      notify.error("Por favor completa todos los campos antes de enviar.");
+      return;
+    }
+
     setisSubmitting(true)
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/clases-diarias`, {

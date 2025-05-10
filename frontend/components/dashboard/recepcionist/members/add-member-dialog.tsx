@@ -105,6 +105,12 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.name || !formData.dni || !formData.email || !formData.phone || !formData.sexo || !formData.plan || !formData.clasesPagadas || !formData.clasesRealizadas || !formData.fechaInicio || !formData.fechaVencimiento || !formData.fechaNacimiento || !formData.profesorAsignado) {
+      notify.error("Por favor completa todos los campos antes de enviar.");
+      return;
+    }
+
     if (isSubmitting) return;
 
     setIsSubmitting(true)
