@@ -162,8 +162,6 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
   return null;
 };
 
-
-
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
@@ -691,7 +689,6 @@ export default function AdminOverviewCharts({
             <CalendarCheck className="text-orange-500" />
             <CardTitle>Planes Personalizados por Profesor</CardTitle>
           </div>
-
           <div className="flex justify-end gap-4 w-full">
             <div className="w-[100px]">
               <Select
@@ -742,10 +739,8 @@ export default function AdminOverviewCharts({
               </TooltipProvider>
             </div>
 
-
           </div>
         </CardHeader>
-
         <CardContent>
           {!planesPorProfesor ? (
             <p className="text-sm text-muted-foreground text-center mt-8">

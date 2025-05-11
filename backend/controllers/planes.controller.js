@@ -146,7 +146,6 @@ export const getPlanesPersonalizadosPorProfesor = async (req, res) => {
     console.log("Pagos crudos:", pagos);
 
     const pagosFiltrados = pagos.filter((pago) => {
-      // depuración
       console.log({
         Fecha_de_Pago: pago.Fecha_de_Pago,
         SocioDNI: pago["Socio DNI"],
@@ -175,8 +174,10 @@ export const getPlanesPersonalizadosPorProfesor = async (req, res) => {
       const alumno = alumnos.find((a) => a.DNI === dni);
       if (!alumno) return acc;
 
-      const plan = (alumno.Plan || "").toLowerCase();
-      if (!plan.includes("personalizado")) return acc;
+      const planRaw = alumno.Plan || "";
+      const plan = planRaw.trim().toLowerCase();
+
+      if (plan !== "personalizado") return acc;
 
       const profesor = alumno.Profesor_asignado || "Sin profesor";
       const nombre = alumno.Nombre || "Alumno sin nombre";
