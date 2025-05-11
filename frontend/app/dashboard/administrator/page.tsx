@@ -187,9 +187,9 @@ export default function AdministratorDashboard() {
     fetchOpenCaja()
   }, [])
 
-  useEffect(()=>{
+  useEffect(() => {
     refreshPayments(buildCurrentFilters())
-  },[cashOpen])
+  }, [cashOpen])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -288,6 +288,7 @@ export default function AdministratorDashboard() {
         </Tabs>
 
       </div>
+
       <AddMemberDialog
         open={showAddMember}
         onOpenChange={setShowAddMember}

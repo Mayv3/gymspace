@@ -70,7 +70,6 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   const handleDniBlur = () => {
     const dni = dniInputRef.current?.value || ""
     const alumno = alumnos.find(a => a.DNI === dni)
-
     if (alumno) {
       setFormData(prev => ({ ...prev, dni, name: alumno.Nombre }))
       setDniError("")

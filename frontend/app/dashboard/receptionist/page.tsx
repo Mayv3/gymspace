@@ -35,7 +35,7 @@ export default function ReceptionistDashboard() {
   const router = useRouter()
 
   const { updateAttendance } = useMembers()
-  const { alumnos } = useAppData()
+  const { alumnos, setAlumnos } = useAppData()
   const [members, setMembers] = useState<Member[]>([])
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -71,16 +71,43 @@ export default function ReceptionistDashboard() {
 
   const { dialogs, selection, openDialog, closeDialog, onEditMember, onDeleteMember, onDeletePayment, onShowAddPayment } = useDialogManager(cashOpen)
 
-  const handleMemberUpdated = (dni: string, nuevaFecha: string, nuevoPlan: string, clasesPagadas: number) => {
+  const handleMemberUpdated = (
+    dni: string,
+    nuevaFecha: string,
+    nuevoPlan: string,
+    clasesPagadas: number
+  ) => {
     setMembers(prev =>
       prev.map(m =>
-        m.DNI === dni ? { ...m, Fecha_vencimiento: nuevaFecha, Plan: nuevoPlan, Clases_pagadas: clasesPagadas, Clases_realizadas: 0 } : m
+        m.DNI === dni
+          ? {
+            ...m,
+            Fecha_vencimiento: nuevaFecha,
+            Plan: nuevoPlan,
+            Clases_pagadas: clasesPagadas,
+            Clases_realizadas: 0,
+          }
+          : m
+      )
+    )
+    setAlumnos(prev =>
+      prev.map(a =>
+        a.DNI === dni
+          ? {
+            ...a,
+            Fecha_vencimiento: nuevaFecha,
+            Plan: nuevoPlan,
+            Clases_pagadas: clasesPagadas.toString(),
+            Clases_realizadas: "0",
+          }
+          : a
       )
     )
   }
 
   const onMemberAdded = (newMember: Member) => {
-    setMembers(prev => [...prev, newMember])
+    setAlumnos(prev=> [...prev, newMember])
+    setMembers(prev => [...prev, newMember]);
     closeDialog("addMember")
   }
 
@@ -180,7 +207,6 @@ export default function ReceptionistDashboard() {
               selectedShift={selectedShift}
               setSelectedShift={setSelectedShift}
               onShowAddPayment={onShowAddPayment}
-              formatDate={formatDate}
               setSelectedPaymentToDelete={onDeletePayment}
               setShowDeletePaymentDialog={() => { }}
               onMemberUpdated={handleMemberUpdated}
@@ -213,16 +239,34 @@ export default function ReceptionistDashboard() {
         </Tabs>
       </div>
 
-      <AddMemberDialog open={dialogs.addMember} onOpenChange={() => closeDialog("addMember")} onMemberAdded={onMemberAdded} />
-      <EditMemberDialog open={dialogs.editMember} onOpenChange={() => closeDialog("editMember")} member={selection.memberToEdit} onSave={(m: Member) => { updateAttendance(m.DNI, m.Clases_realizadas); onMemberEdited(m) }} />
-      <DeleteMemberDialog open={dialogs.deleteMember} onOpenChange={() => closeDialog("deleteMember")} member={selection.memberToDelete!} onDelete={dni => { onMemberDeleted(dni) }} />
-      <AddPaymentDialog open={dialogs.addPayment} onOpenChange={() => closeDialog("addPayment")} onPaymentAdded={() => {
-        refreshPayments(buildCurrentFilters())
-      }} onMemberUpdated={handleMemberUpdated} currentTurno={selectedShift} />
-      <DeletePaymentDialog open={dialogs.deletePayment} onOpenChange={() => closeDialog("deletePayment")} payment={selection.paymentToDelete!} onDelete={() => {
-        refreshPayments(buildCurrentFilters())
-        closeDialog("deletePayment")
-      }} />
+      <AddMemberDialog
+        open={dialogs.addMember}
+        onOpenChange={() => closeDialog("addMember")}
+        onMemberAdded={onMemberAdded} />
+
+      <EditMemberDialog
+        open={dialogs.editMember}
+        onOpenChange={() => closeDialog("editMember")}
+        member={selection.memberToEdit} onSave={(m: Member) => { updateAttendance(m.DNI, m.Clases_realizadas); onMemberEdited(m) }} />
+
+      <DeleteMemberDialog
+        open={dialogs.deleteMember}
+        onOpenChange={() => closeDialog("deleteMember")}
+        member={selection.memberToDelete!} onDelete={dni => { onMemberDeleted(dni) }} />
+
+      <AddPaymentDialog
+        open={dialogs.addPayment}
+        onOpenChange={() => closeDialog("addPayment")}
+        onPaymentAdded={() => { refreshPayments(buildCurrentFilters()) }} onMemberUpdated={handleMemberUpdated} currentTurno={selectedShift} />
+
+      <DeletePaymentDialog
+        open={dialogs.deletePayment}
+        onOpenChange={() => closeDialog("deletePayment")}
+        payment={selection.paymentToDelete!}
+        onDelete={() => {
+          refreshPayments(buildCurrentFilters())
+          closeDialog("deletePayment")
+        }} />
     </div>
   )
 }

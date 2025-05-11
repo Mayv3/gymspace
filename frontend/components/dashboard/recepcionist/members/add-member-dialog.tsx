@@ -139,6 +139,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
       resetForm()
       onMemberAdded(response.data)
+      
       notify.success("¡Alumno agregado con éxito!")
       onOpenChange(false)
     } catch (error: any) {
