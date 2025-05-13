@@ -1,3 +1,2 @@
-2025/05/09-15:50:39.397 39b4 Reusing MANIFEST C:\Users\nicop\OneDrive\Desktop\gymspace\backend\session\session\Default\Service Worker\Database/MANIFEST-000001
-2025/05/09-15:50:39.414 39b4 Recovering log #3
-2025/05/09-15:50:39.414 39b4 Reusing old log C:\Users\nicop\OneDrive\Desktop\gymspace\backend\session\session\Default\Service Worker\Database/000003.log 
+2025/05/12-22:44:00.042 4904 Creating DB C:\Users\nicop\OneDrive\Desktop\gymspace\backend\session\session\Default\Service Worker\Database since it was missing.
+2025/05/12-22:44:00.049 4904 Reusing MANIFEST C:\Users\nicop\OneDrive\Desktop\gymspace\backend\session\session\Default\Service Worker\Database/MANIFEST-000001

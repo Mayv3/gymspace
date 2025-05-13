@@ -43,6 +43,7 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
   const [edadMax, setEdadMax] = useState("")
   const [profe, setProfe] = useState("")
   const [plan, setPlan] = useState("")
+  const [nombre, setNombre] = useState("")
 
   const [selectedAlumno, setSelectedAlumno] = useState<Alumno | null>(null)
   const [openAdd, setOpenAdd] = useState(false)
@@ -57,9 +58,18 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
       const cumpleEdadMax = !edadMax || calcularEdad(a.Fecha_nacimiento) <= parseInt(edadMax)
       const cumpleProfe = !profe || a.Profesor_asignado?.toLowerCase().includes(profe.toLowerCase())
       const cumplePlan = !plan || plan === "todos" || a.Plan?.toLowerCase() === plan.toLowerCase()
-      return cumpleSexo && cumpleEdadMin && cumpleEdadMax && cumpleProfe && cumplePlan
+      const cumpleNombre = !nombre || a.Nombre?.toLowerCase().includes(nombre.toLowerCase())
+
+      return (
+        cumpleSexo &&
+        cumpleEdadMin &&
+        cumpleEdadMax &&
+        cumpleProfe &&
+        cumplePlan &&
+        cumpleNombre
+      )
     })
-  }, [alumnos, sexo, edadMin, edadMax, profe, plan])
+  }, [alumnos, sexo, edadMin, edadMax, profe, plan, nombre])
 
   function calcularEdad(fecha: string): number {
     const [dia, mes, año] = fecha.split("/")
@@ -86,6 +96,19 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
         <CardTitle>Estadísticas de Alumnos</CardTitle>
         <div className="flex flex-wrap justify-between gap-4 mt-4">
           <div className="flex gap-2">
+            <Input
+              placeholder="Nombre"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              className="w-[180px]"
+            />
+            <Input
+              placeholder="Profesor"
+              value={profe}
+              onChange={(e) => setProfe(e.target.value)}
+              className="w-[180px]"
+            />
+
             <Select onValueChange={setSexo}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Sexo" />
@@ -95,26 +118,7 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
                 <SelectItem value="F">Femenino</SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              type="number"
-              placeholder="Edad mínima"
-              value={edadMin}
-              onChange={(e) => setEdadMin(e.target.value)}
-              className="w-[130px]"
-            />
-            <Input
-              type="number"
-              placeholder="Edad máxima"
-              value={edadMax}
-              onChange={(e) => setEdadMax(e.target.value)}
-              className="w-[130px]"
-            />
-            <Input
-              placeholder="Profesor"
-              value={profe}
-              onChange={(e) => setProfe(e.target.value)}
-              className="w-[180px]"
-            />
+
             <Select onValueChange={setPlan} value={plan}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Seleccionar plan" />
@@ -128,6 +132,29 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
                 ))}
               </SelectContent>
             </Select>
+            <div className="flex flex-col items-start">
+              <label className="text-sm">Edad mínima: {edadMin || 0}</label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={edadMin}
+                onChange={(e) => setEdadMin(e.target.value)}
+                className="w-[130px] accent-orange-500"
+              />
+            </div>
+
+            <div className="flex flex-col items-start">
+              <label className="text-sm">Edad máxima: {edadMax || 100}</label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={edadMax}
+                onChange={(e) => setEdadMax(e.target.value)}
+                className="w-[130px] accent-orange-500"
+              />
+            </div>
           </div>
           <div>
             <Button onClick={() => setOpenAdd(true)} variant="orange">

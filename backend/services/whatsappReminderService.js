@@ -36,7 +36,7 @@ client.on('ready', async () => {
 client.initialize()
 
 async function enviarMensajeDeInicio() {
-  const numeroWhatsApp = '5493513274314@c.us'
+  const numeroWhatsApp = '5493513274314@c.us';
   const mensaje = '✅ Gymspace: el servicio de WhatsApp se inició correctamente.'
   try {
     await client.sendMessage(numeroWhatsApp, mensaje)
