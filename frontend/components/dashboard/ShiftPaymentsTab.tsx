@@ -74,7 +74,6 @@ export function ShiftPaymentsTab({
     setTotalesPorMetodo({ efectivo: totalEfectivo, tarjeta: totalTarjeta })
   }, [currentShiftPayments])
 
-
   const filteredPayments = currentShiftPayments.filter(p => {
     const nombreMatch = p.Nombre?.toLowerCase().includes(searchTerm.toLowerCase())
     const tipoMatch = tipoFiltro === "todos" || p.Tipo === tipoFiltro
@@ -276,25 +275,33 @@ export function ShiftPaymentsTab({
             <div className="flex flex-col md:flex-row md:items-end gap-2 mb-4">
               <h2 className="text-2xl">Totales del turno {selectedShift}</h2>
             </div>
-
             {Object.keys(resumenPorTipo).length > 0 && (
               <div className="grid md:grid-cols-3 gap-4">
-                {Object.entries(resumenPorTipo).map(([tipo, metodos]) => (
-                  <div key={tipo} className="bg-muted rounded-xl p-5 border border-orange-500">
-                    <h4 className="font-semibold mb-2">{tipo}</h4>
-                    <ul className="space-y-1">
-                      {Object.entries(metodos).map(([metodo, total]) => (
-                        <li key={metodo} className="flex justify-between">
-                          <span>{metodo}</span>
-                          <span className="font-semibold">${total.toLocaleString("es-AR")}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-
-                <div className="bg-muted rounded-xl p-5 border border-orange-500">
-                  <div className="flex justify-between mb-2">
+                {Object.entries(resumenPorTipo).map(([tipo, metodos]) => {
+                  const totalPorTipo = Object.values(metodos).reduce((sum, val) => sum + val, 0)
+                  return (
+                    <div key={tipo} className="bg-muted rounded-xl p-5 border border-orange-600 flex flex-col justify-between">
+                      <div>
+                        <h4 className="font-semibold mb-2">{tipo}</h4>
+                        <ul className="space-y-1">
+                          {Object.entries(metodos).map(([metodo, total]) => (
+                            <li key={metodo} className="flex justify-between">
+                              <span>{metodo}</span>
+                              <span className="font-semibold">${total.toLocaleString("es-AR")}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="flex justify-between border-t pt-2 mt-4 font-bold">
+                        <span>Total de {tipo}</span>
+                        <span>${totalPorTipo.toLocaleString("es-AR")}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+                <div className="bg-muted rounded-xl p-5  border border-orange-600 flex flex-col justify-between">
+                  <h4 className="font-semibold mb-1">Por metodo de pago</h4>
+                  <div className="flex justify-between">
                     <span>Total en Tarjeta:</span>
                     <span className="font-semibold">${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}</span>
                   </div>
@@ -302,8 +309,8 @@ export function ShiftPaymentsTab({
                     <span>Total en Efectivo:</span>
                     <span className="font-semibold">${totalesPorMetodo.efectivo.toLocaleString("es-AR")}</span>
                   </div>
-                  <div className="flex justify-between mt-4">
-                    <span className="font-medium">Total del turno:</span>
+                  <div className="flex justify-between items-end mt-4">
+                    <span className="font-bold">Total</span>
                     <span className="text-xl font-bold">
                       $
                       {currentShiftPayments
