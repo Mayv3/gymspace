@@ -6,22 +6,25 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import Image from "next/image";
+import { FormEnterToTab } from "@/components/FormEnterToTab";
 
 const LoginPage = () => {
   const [dni, setDni] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false)
   const router = useRouter();
   const { setUser } = useUser();
 
-  const handleLogin = async () => {
-    setErrorMessage(""); // Limpiar errores anteriores
+  const handleLogin = async (e: any) => {
+    e.preventDefault()
+    setErrorMessage("");
 
     if (!dni.trim()) {
       setErrorMessage("Por favor ingresá un DNI válido.");
       return;
     }
-
     try {
+      setLoading(true)
       const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${dni}`);
       const data = res.data;
 
@@ -38,9 +41,11 @@ const LoginPage = () => {
       } else {
         router.push("/dashboard/member");
       }
+      setLoading(false)
     } catch (error) {
       console.error("Error en login:", error);
       setErrorMessage("No se pudo encontrar un usuario con ese DNI.");
+      setLoading(false)
     }
   };
 
@@ -54,36 +59,37 @@ const LoginPage = () => {
           height={60}
           className="mb-6"
         />
-        <input
-          type="text"
-          value={dni}
-          onChange={(e) => setDni(e.target.value)}
-          placeholder="Ej: 34023002"
-          className="
-            
+        <FormEnterToTab>
+          <input
+            type="text"
+            value={dni}
+            onChange={(e) => setDni(e.target.value)}
+            placeholder="Ej: 34023002"
+            className="
             bg-white text-black
             placeholder:text-zinc-400
             focus:outline-none focus:ring-2 focus:ring-orange-500 
             p-3 w-full rounded-lg mb-4 transition
           "
-        />
-
-        <button
-          onClick={handleLogin}
-          className="
+          />
+          <button
+            onClick={handleLogin}
+            type="submit"
+            className="
             w-full bg-orange-500 hover:bg-orange-600 
             text-white font-semibold py-3 rounded-lg 
             transition
           "
-        >
-          Ingresar
-        </button>
+          >
+            {loading ? "Ingresando..." : "Ingresar"}
+          </button>
 
-        {errorMessage && (
-          <p className="text-red-400 mt-4 text-sm text-center font-medium">
-            {errorMessage}
-          </p>
-        )}
+          {errorMessage && (
+            <p className="text-red-400 mt-4 text-sm text-center font-medium">
+              {errorMessage}
+            </p>
+          )}
+        </FormEnterToTab>
       </div>
     </div>
   );

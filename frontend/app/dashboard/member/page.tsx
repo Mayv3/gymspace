@@ -78,7 +78,6 @@ export default function MemberDashboard() {
   useEffect(() => {
     if (!contextUser || hasFetched.current) return
     hasFetched.current = true
-
     fetchUser()
     fetchClases()
   }, [contextUser])
@@ -404,7 +403,8 @@ export default function MemberDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card>
+          {user.Tipo_de_plan === "CLASE" ? (
+            <Card>
             <CardHeader className="bg-primary/5 bg">
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 text-primary mr-2" />
@@ -487,7 +487,8 @@ export default function MemberDashboard() {
                 )
               }
             </CardContent>
-          </Card>
+          </Card>) : (<></>)}
+     
         </motion.div>
       </div>
     </div>

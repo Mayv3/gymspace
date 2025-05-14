@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
-import dayjs from 'dayjs'
+import { FormEnterToTab } from '@/components/FormEnterToTab'
 
 export default function AsistenciaPage() {
   const [dni, setDni] = useState('')
   const [data, setData] = useState<any>(null)
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -16,6 +17,7 @@ export default function AsistenciaPage() {
     if (timeoutId) clearTimeout(timeoutId)
 
     try {
+      setLoading(true)
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -29,7 +31,11 @@ export default function AsistenciaPage() {
         setData(null)
       }, 20000)
       setTimeoutId(id)
+
+      setLoading(false)
+
     } catch (error) {
+      setLoading(false)
       console.error('Error al registrar asistencia:', error)
     }
   }
@@ -55,20 +61,14 @@ export default function AsistenciaPage() {
           <img
             src="/Gymspace-logo-png.png"
             alt="Gymspace Logo"
-            className="w-24 md:w-32 mb-2"
+            className="w-24 md:w-32"
           />
-          <h1
-            className="text-5xl md:text-6xl font-extrabold text-center text-orange-600 tracking-wide italic"
-            style={{ fontFamily: "'Ethnocentric', sans-serif" }}
-          >
-            GYMSPACE
-          </h1>
         </div>
-        <p className="text-center text-gray-600 text-lg md:text-xl mb-8">
+        <h1 className="text-center text-gray-600 text-lg md:text-2xl mb-8">
           Ingresá tu DNI para registrar tu asistencia
-        </p>
+        </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormEnterToTab onSubmit={handleSubmit} className="space-y-6">
           <input
             type="text"
             value={dni}
@@ -80,16 +80,16 @@ export default function AsistenciaPage() {
             type="submit"
             className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 text-lg rounded-xl transition"
           >
-            Registrar asistencia
+            {loading ? "Registrando..." : "Registrar asistencia"}
           </button>
-        </form>
+        </FormEnterToTab>
       </div>
 
       {data && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center animate-fade-in-up">
             <div className='flex justify-center'>
-            {renderIcon()}
+              {renderIcon()}
             </div>
             <h2 className={`text-2xl font-bold mb-4 ${data.success ? 'text-green-700' : 'text-red-600'}`}>
               {data.message}
