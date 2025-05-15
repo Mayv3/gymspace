@@ -88,8 +88,13 @@ const config = {
           "70%": { transform: "scale(1.05)", opacity: "0.8" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        blink: {
+          "0%, 100%": { backgroundColor: "transparent" },
+          "50%": { backgroundColor: "#f97316" },
+        },
       },
       animation: {
+        blink: "blink 2s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-scale": "pulse-scale 2s ease-in-out infinite",
@@ -100,7 +105,7 @@ const config = {
     },
   },
   plugins: [require("tailwindcss-animate"), require('tailwind-scrollbar-hide')],
-  
+
 } satisfies Config
 
 export default config

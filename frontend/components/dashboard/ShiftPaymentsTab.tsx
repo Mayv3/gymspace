@@ -123,86 +123,86 @@ export function ShiftPaymentsTab({
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex gap-4">
+                  <div className="w-24">
+                    <Label>Día</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={31}
+                      value={selectedDay ?? ""}
+                      onChange={e =>
+                        setSelectedDay(e.target.value ? Number(e.target.value) : undefined)
+                      }
+                      disabled={cashOpen}
+                    />
+                  </div>
+
+                  <div className="w-24">
+                    <Label>Mes</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={12}
+                      value={selectedMonth ?? ""}
+                      onChange={e =>
+                        setSelectedMonth(e.target.value ? Number(e.target.value) : undefined)
+                      }
+                      disabled={cashOpen}
+                    />
+                  </div>
+
+                  <div className="w-28">
+                    <Label>Año</Label>
+                    <Input
+                      type="number"
+                      min={2000}
+                      max={2100}
+                      value={selectedYear ?? ""}
+                      onChange={e =>
+                        setSelectedYear(e.target.value ? Number(e.target.value) : undefined)
+                      }
+                      disabled={cashOpen}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      onClick={() => {
+                        const today = new Date()
+                        refreshPayments({
+                          dia: cashOpen ? today.getDate() : selectedDay,
+                          mes: selectedMonth,
+                          anio: selectedYear,
+                          turno: selectedShift,
+                        })
+                      }}
+                      disabled={cashOpen}
+                    >
+                      Filtrar
+                    </Button>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="w-24">
-                  <Label>Día</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={31}
-                    value={selectedDay ?? ""}
-                    onChange={e =>
-                      setSelectedDay(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                    disabled={cashOpen}
-                  />
-                </div>
-
-                <div className="w-24">
-                  <Label>Mes</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={12}
-                    value={selectedMonth ?? ""}
-                    onChange={e =>
-                      setSelectedMonth(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                    disabled={cashOpen}
-                  />
-                </div>
-
-                <div className="w-28">
-                  <Label>Año</Label>
-                  <Input
-                    type="number"
-                    min={2000}
-                    max={2100}
-                    value={selectedYear ?? ""}
-                    onChange={e =>
-                      setSelectedYear(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                    disabled={cashOpen}
-                  />
-                </div>
-
-                <div className="w-32">
-                  <Label>Turno</Label>
-                  <Select
-                    value={selectedShift}
-                    onValueChange={setSelectedShift}
-                    disabled={cashOpen}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="mañana">Mañana</SelectItem>
-                      <SelectItem value="tarde">Tarde</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    onClick={() => {
-                      const today = new Date()
-                      refreshPayments({
-                        dia: cashOpen ? today.getDate() : selectedDay,
-                        mes: selectedMonth,
-                        anio: selectedYear,
-                        turno: selectedShift,
-                      })
-                    }}
-                    disabled={cashOpen}
-                  >
-                    Filtrar
-                  </Button>
-                </div>
+              <div className="w-32">
+                <Label>Turno</Label>
+                <Select
+                  value={selectedShift}
+                  onValueChange={setSelectedShift}
+                  disabled={cashOpen}
+                >
+                  <SelectTrigger className={selectedShift === 'todos' ? 'animate-blink border-orange-500' : ''}>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="mañana">Mañana</SelectItem>
+                    <SelectItem value="tarde">Tarde</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
           )}
 
           <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)] mb-6">

@@ -106,7 +106,7 @@ export default function ReceptionistDashboard() {
   }
 
   const onMemberAdded = (newMember: Member) => {
-    setAlumnos(prev=> [...prev, newMember])
+    setAlumnos(prev => [...prev, newMember])
     setMembers(prev => [...prev, newMember]);
     closeDialog("addMember")
   }
@@ -176,7 +176,7 @@ export default function ReceptionistDashboard() {
         <Tabs defaultValue="members" className="space-y-4">
           <TabsList className="grid w-full grid-cols-6 md:w-auto">
             <TabsTrigger value="members">Miembros</TabsTrigger>
-            <TabsTrigger value="shift-payments">Pagos por Turno</TabsTrigger>
+            <TabsTrigger value="shift-payments">Pagos</TabsTrigger>
             <TabsTrigger value="assists">Asistencias</TabsTrigger>
             <TabsTrigger value="plans">Planes</TabsTrigger>
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
