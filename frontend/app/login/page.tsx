@@ -50,8 +50,8 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col justify-center items-center bg-gradient-to-br from-orange-300 via-orange-500 to-red-500 p-4 w-full">
-      <div className="bg-zinc-900 bg-opacity-90 p-10 rounded-2xl shadow-xl w-full max-w-sm flex flex-col justify-center items-center border border-orange-400">
+    <div className="h-screen flex flex-col justify-center items-center bg-gradient-to-br from-orange-600 via-orange-500 to-orange-600 p-4 w-full">
+      <div className="bg-zinc-900 bg-opacity-90 p-10 rounded-2xl shadow-xl w-full max-w-sm flex flex-col justify-center items-center">
         <Image
           src="/gymspace-titulo.png"
           alt="Logo"

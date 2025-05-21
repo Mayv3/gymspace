@@ -195,7 +195,7 @@ export default function MemberDashboard() {
               ) : (
                 <XCircle className="mx-auto h-10 w-10 text-red-500" />
               )}
-              <p className="text-lg font-medium text-gray-900">
+              <p className="text-justify tracking-tight	 text-lg font-medium text-red-600">
                 {feedbackMessage}
               </p>
               <button
