@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { DollarSign } from "lucide-react"
 import { CashRegisterCard } from "@/components/dashboard/recepcionist/cashRegister/CashRegisterCard"
+import { useState } from "react"
 
 type CashRegisterSectionProps = {
   cashRegisterOpen: boolean
@@ -24,6 +25,10 @@ export default function CashRegisterSection({
   setInitialAmount,
   errorMessage
 }: CashRegisterSectionProps) {
+
+  const [loading, setLoading] = useState(false)
+  const [closing, setClosing] = useState(false)
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between space-x-2">
@@ -38,17 +43,92 @@ export default function CashRegisterSection({
         {!cashRegisterOpen ? (
           <Button
             variant="orange"
-            onClick={onOpenCashRegister}
+            onClick={async () => {
+              setLoading(true)
+              try {
+                await onOpenCashRegister()
+              } finally {
+                setLoading(false)
+              }
+            }}
             className="animate-pulse-scale"
-            disabled={selectedShift === "todos"}
+            disabled={selectedShift === "todos" || loading}
           >
-            <DollarSign className="mr-2 h-4 w-4" />
-            Abrir Caja
+            {loading ? (
+              <div className="flex items-center">
+                <svg
+                  className="animate-spin mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                  />
+                </svg>
+                Abriendo...
+              </div>
+            ) : (
+              <>
+                <DollarSign className="mr-2 h-4 w-4" />
+                Abrir Caja
+              </>
+            )}
           </Button>
+
         ) : (
-          <Button variant="destructive" onClick={onCloseCashRegister}>
-            <DollarSign className="mr-2 h-4 w-4" />
-            Cerrar Caja
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              setClosing(true)
+              try {
+                await onCloseCashRegister()
+              } finally {
+                setClosing(false)
+              }
+            }}
+            disabled={closing}
+          >
+            {closing ? (
+              <div className="flex items-center">
+                <svg
+                  className="animate-spin mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                  />
+                </svg>
+                Cerrando...
+              </div>
+            ) : (
+              <>
+                <DollarSign className="mr-2 h-4 w-4" />
+                Cerrar Caja
+              </>
+            )}
           </Button>
         )}
       </div>
