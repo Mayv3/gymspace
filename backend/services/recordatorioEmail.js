@@ -1,4 +1,3 @@
-import cron from 'node-cron'
 import nodemailer from 'nodemailer'
 import dayjs from 'dayjs'
 import dotenv from 'dotenv'
@@ -67,7 +66,7 @@ const enviarRecordatoriosPorLotes = async (alumnos, loteSize = 10, delayEntreLot
     }
   }
 
-  console.log(`📦 Alumnos que vencen en 2 días: ${alumnosPorVencer.length}`)
+  console.log(`📦 Alumnos que vencen en 4 días: ${alumnosPorVencer.length}`)
   console.log(`📛 Alumnos que vencen hoy: ${alumnosVencenHoy.length}`)
 
   for (let i = 0; i < alumnosPorVencer.length; i += loteSize) {
@@ -100,10 +99,3 @@ export const probarRecordatoriosEmail = async () => {
 }
 
 probarRecordatoriosEmail()
-
-// Cron: todos los días a las 11:00 UTC → 8:00 AM Argentina
-cron.schedule('0 11 * * *', async () => {
-  console.log(`📬 [${new Date().toLocaleString()}] Cron de EMAIL iniciado`)
-  const alumnos = await getAlumnosFromSheet()
-  await enviarRecordatoriosPorLotes(alumnos)
-})
