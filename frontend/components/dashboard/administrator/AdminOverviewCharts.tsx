@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { parse, isValid, format } from "date-fns";
 import {
   BarChart,
   Bar,
@@ -176,7 +177,11 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
 
   return (
     <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
-      <p className="font-bold mb-1">📅 {dayjs(data.fecha).format("DD/MM/YYYY")}</p>
+      <p className="font-bold mb-1">
+        📅 {isValid(parse(data.fecha, "dd/MM/yyyy", new Date()))
+          ? format(parse(data.fecha, "dd/MM/yyyy", new Date()), "dd/MM/yyyy")
+          : "Fecha inválida"}
+      </p>
 
       {["mañana", "tarde"].map((turno) => (
         data[`${turno}_monto`] !== undefined && (
@@ -337,18 +342,22 @@ export default function AdminOverviewCharts({
     const limpiarNumero = (valor: any) =>
       Number(String(valor).replace(/\./g, "").replace(",", ".")) || 0;
 
-    const fecha = dayjs(caja.Fecha, "D/M/YYYY", true).isValid()
-      ? dayjs(caja.Fecha, "D/M/YYYY").format("D/M/YYYY")
-      : caja.Fecha;
+    const fechaRaw = String(caja.Fecha).trim();
+    const parsedDate = parse(fechaRaw, "d/M/yyyy", new Date());
+    const fechaFormateada = isValid(parsedDate) ? format(parsedDate, "dd/MM/yyyy") : "Invalid Date";
+
+    console.log("Fecha cruda:", caja.Fecha);
+    console.log("Unicode:", [...fechaRaw].map(c => c.charCodeAt(0)));
+    console.log("Fecha formateada:", fechaFormateada);
 
     const turno = caja.Turno?.toLowerCase();
     const monto = limpiarNumero(caja["Total Final"]);
 
-    let existente = acc.find((item) => item.fecha === fecha);
+    let existente = acc.find((item) => item.fecha === fechaFormateada);
 
     if (!existente) {
       existente = {
-        fecha,
+        fecha: fechaFormateada,
         mañana_monto: 0,
         tarde_monto: 0,
         mañana_saldoInicial: 0,
@@ -817,7 +826,10 @@ export default function AdminOverviewCharts({
               <LineChart data={cajasTransformadas}>
                 <XAxis
                   dataKey="fecha"
-                  tickFormatter={(val) =>dayjs(val).format("DD/MM/YYYY")}
+                  tickFormatter={(val) => {
+                    const parsed = parse(val, "dd/MM/yyyy", new Date());
+                    return isValid(parsed) ? format(parsed, "dd/MM/yyyy") : "Fecha inválida";
+                  }}
                 />
                 <YAxis />
                 <Tooltip content={<CustomTooltipCajas />} />
