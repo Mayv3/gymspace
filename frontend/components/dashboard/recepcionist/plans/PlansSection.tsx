@@ -52,7 +52,6 @@ export default function PlansSection() {
     const endIndex = startIndex + itemsPerPage
     const paginatedPlanes = filteredPlanes.slice(startIndex, endIndex)
 
-
     const parseDate = (str: string): Date | null => {
         try {
             const parsed = parse(str, 'dd/MM/yyyy', new Date(), { locale: es })

@@ -55,10 +55,17 @@ export default function ShiftsSection() {
     const [selectedTurno, setSelectedTurno] = useState<any | null>(null)
     const [isSubmitting, setisSubmitting] = useState(false);
 
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
+
     const filteredTurnos = turnos.filter((turno) => {
         if (selectedType === "todas") return true
         return turno.Tipo === selectedType
     })
+
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginatedShifts = filteredTurnos.slice(startIndex, endIndex)
 
     const parseDate = (str: string): Date | null => {
         try {
@@ -81,10 +88,10 @@ export default function ShiftsSection() {
             console.error("Error al cargar turnos por fecha:", error)
         }
     }
-    
+
     const handleConfirmCreate = async () => {
 
-         if (!createForm.Fecha_turno || !createForm.Hora || !createForm.Profesional || !createForm.Tipo) {
+        if (!createForm.Fecha_turno || !createForm.Hora || !createForm.Profesional || !createForm.Tipo) {
             notify.error("Por favor completa todos los campos antes de enviar.");
             return;
         }
@@ -196,6 +203,11 @@ export default function ShiftsSection() {
         fetchTurnosPorFecha()
     }, [selectedDate])
 
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [selectedDate, selectedType]);
+
     return (
         <TabsContent value="shifts" className="space-y-4">
             <Card>
@@ -255,8 +267,8 @@ export default function ShiftsSection() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredTurnos.length ? (
-                                        filteredTurnos.map((turno, i) => (
+                                    {paginatedShifts.length ? (
+                                        paginatedShifts.map((turno, i) => (
                                             <motion.tr
                                                 key={i}
                                                 initial={{ opacity: 0, y: 10 }}
@@ -327,6 +339,33 @@ export default function ShiftsSection() {
                                 </TableBody>
                             </Table>
                         </div>
+
+                        {filteredTurnos.length > itemsPerPage && (
+                            <div className="flex justify-center gap-2 my-4">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Anterior
+                                </Button>
+                                <span className="flex items-center px-2 text-sm">
+                                    Página {currentPage} de {Math.ceil(filteredTurnos.length / itemsPerPage)}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    onClick={() =>
+                                        setCurrentPage((prev) =>
+                                            prev < Math.ceil(filteredTurnos.length / itemsPerPage) ? prev + 1 : prev
+                                        )
+                                    }
+                                    disabled={currentPage >= Math.ceil(filteredTurnos.length / itemsPerPage)}
+                                >
+                                    Siguiente
+                                </Button>
+                            </div>
+                        )}
+
                     </div>
                 </CardContent>
             </Card>
