@@ -52,6 +52,8 @@ export function ShiftPaymentsTab({
   const [totalesPorMetodo, setTotalesPorMetodo] = useState({ efectivo: 0, tarjeta: 0 })
   const [searchTerm, setSearchTerm] = useState("")
   const [tipoFiltro, setTipoFiltro] = useState<string>("todos")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   useEffect(() => {
     const totales: Record<string, Record<string, number>> = {}
@@ -79,6 +81,14 @@ export function ShiftPaymentsTab({
     const tipoMatch = tipoFiltro === "todos" || p.Tipo === tipoFiltro
     return nombreMatch && tipoMatch
   })
+
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedPayments = filteredPayments.slice(startIndex, endIndex)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, tipoFiltro])
 
   return (
     <>
@@ -225,8 +235,8 @@ export function ShiftPaymentsTab({
 
                 <TableBody>
 
-                  {filteredPayments.length > 0 ? (
-                    filteredPayments.map((payment, idx) => (
+                  {paginatedPayments.length > 0 ? (
+                    paginatedPayments.map((payment, idx) => (
                       <motion.tr
                         key={idx}
                         initial={{ opacity: 0, y: 10 }}
@@ -269,6 +279,31 @@ export function ShiftPaymentsTab({
                 </TableBody>
               </Table>
             </div>
+            {filteredPayments.length > itemsPerPage && (
+              <div className="flex justify-center gap-2 my-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <span className="flex items-center px-2 text-sm">
+                  Página {currentPage} de {Math.ceil(filteredPayments.length / itemsPerPage)}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      prev < Math.ceil(filteredPayments.length / itemsPerPage) ? prev + 1 : prev
+                    )
+                  }
+                  disabled={currentPage >= Math.ceil(filteredPayments.length / itemsPerPage)}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="bg-background rounded-2xl shadow-sm py-6 space-y-6">

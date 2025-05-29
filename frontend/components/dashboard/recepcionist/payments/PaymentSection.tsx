@@ -1,6 +1,6 @@
 "use client"
 
-import { ShiftPaymentsTab } from "@/components/dashboard/ShiftPaymentsTab"
+import { ShiftPaymentsTab } from "@/components/dashboard/recepcionist/payments/ShiftPaymentsTab"
 
 interface PaymentsSectionProps {
   currentShiftPayments: any[]
