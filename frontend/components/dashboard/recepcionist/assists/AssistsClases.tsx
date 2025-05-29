@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
@@ -35,6 +35,8 @@ export default function AssistsSection() {
   })
   const { assists, fetchAssists, deleteAsistencia, editAsistencia } = useAppData()
   const [isSubmitting, setisSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const handleDateChange = async (date: Date) => {
     setSelectedDate(date)
@@ -53,6 +55,10 @@ export default function AssistsSection() {
     return mismaFecha && mismoTipo
   })
 
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedAssists = displayedAssists.slice(startIndex, endIndex)
+
   const handleConfirmDelete = async () => {
     if (!selectedClass) return
     setisSubmitting(true)
@@ -66,6 +72,10 @@ export default function AssistsSection() {
     }
     setisSubmitting(false)
   }
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedDate, selectedType])
 
   return (
     <TabsContent value="assists" className="space-y-4">
@@ -122,8 +132,8 @@ export default function AssistsSection() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {assists.length > 0 ? (
-                    assists.map((asistencia, index) => (
+                  {paginatedAssists.length > 0 ? (
+                    paginatedAssists.map((asistencia, index) => (
                       <motion.tr
                         key={index}
                         initial={{ opacity: 0, y: 10 }}
@@ -178,7 +188,31 @@ export default function AssistsSection() {
                   )}
                 </TableBody>
               </Table>
-
+              {displayedAssists.length > itemsPerPage && (
+                <div className="flex justify-center gap-2 my-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <span className="flex items-center px-2 text-sm">
+                    Página {currentPage} de {Math.ceil(displayedAssists.length / itemsPerPage)}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        prev < Math.ceil(displayedAssists.length / itemsPerPage) ? prev + 1 : prev
+                      )
+                    }
+                    disabled={currentPage >= Math.ceil(displayedAssists.length / itemsPerPage)}
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
