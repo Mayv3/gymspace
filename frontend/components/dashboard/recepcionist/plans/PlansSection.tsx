@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import axios from "axios"
 import { TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
@@ -37,6 +37,9 @@ export default function PlansSection() {
     const [isSubmitting, setisSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState("")
 
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
+
     const filteredPlanes = planes.filter(plan => {
         const term = searchTerm.toLowerCase()
         return (
@@ -44,6 +47,11 @@ export default function PlansSection() {
             plan.Tipo?.toLowerCase().includes(term)
         )
     })
+
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginatedPlanes = filteredPlanes.slice(startIndex, endIndex)
+
 
     const parseDate = (str: string): Date | null => {
         try {
@@ -53,7 +61,7 @@ export default function PlansSection() {
             return null
         }
     }
-    
+
     const handleConfirmCreate = async () => {
         const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases } = createForm;
 
@@ -136,6 +144,9 @@ export default function PlansSection() {
         }
     }
 
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchTerm])
     return (
         <TabsContent value="plans" className="space-y-4">
             <Card>
@@ -176,8 +187,8 @@ export default function PlansSection() {
                                 </TableHeader>
 
                                 <TableBody>
-                                    {filteredPlanes.length > 0 ? (
-                                        filteredPlanes.map((plan, i) => (
+                                    {paginatedPlanes.length > 0 ? (
+                                        paginatedPlanes.map((plan, i) => (
                                             <TableRow key={i} className="grid grid-cols-6 hover:bg-accent">
                                                 <TableCell className="flex items-center justify-center">{plan.Tipo}</TableCell>
                                                 <TableCell className="flex items-center justify-center col-span-2">{plan['Plan o Producto']}</TableCell>
@@ -233,7 +244,31 @@ export default function PlansSection() {
                                     )}
                                 </TableBody>
                             </Table>
-
+                            {filteredPlanes.length > itemsPerPage && (
+                                <div className="flex justify-center gap-2 my-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        Anterior
+                                    </Button>
+                                    <span className="flex items-center px-2 text-sm">
+                                        Página {currentPage} de {Math.ceil(filteredPlanes.length / itemsPerPage)}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() =>
+                                            setCurrentPage((prev) =>
+                                                prev < Math.ceil(filteredPlanes.length / itemsPerPage) ? prev + 1 : prev
+                                            )
+                                        }
+                                        disabled={currentPage >= Math.ceil(filteredPlanes.length / itemsPerPage)}
+                                    >
+                                        Siguiente
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </CardContent>
