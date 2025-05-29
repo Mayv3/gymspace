@@ -35,6 +35,9 @@ export default function EgresosSection() {
     const { user } = useUser()
     const [isSubmitting, setisSubmitting] = useState(false);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
     const [form, setForm] = useState({
         Fecha: dayjs().format("DD/MM/YYYY"),
         Motivo: "",
@@ -42,6 +45,10 @@ export default function EgresosSection() {
         Responsable: user?.nombre,
         Tipo: "GIMNASIO"
     })
+
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginatedShifts = egresos.slice(startIndex, endIndex)
 
     const fetchEgresos = async () => {
         const anio = dayjs(selectedDate).year()
@@ -56,6 +63,7 @@ export default function EgresosSection() {
             console.error("Error al cargar egresos", err)
         }
     }
+
     const handleCreateEgreso = async () => {
 
         if (!form.Fecha || !form.Motivo.trim() || !form.Monto.trim() || !form.Tipo) {
@@ -99,7 +107,7 @@ export default function EgresosSection() {
         }
         setisSubmitting(false)
     }
-    
+
     const handleDeleteEgreso = async () => {
         if (!egresoAEliminar) return
         setisSubmitting(true)
@@ -117,7 +125,8 @@ export default function EgresosSection() {
     }
 
     useEffect(() => {
-        fetchEgresos()
+        fetchEgresos();
+        setCurrentPage(1)
     }, [selectedDate, selectedType])
 
     return (
@@ -171,7 +180,7 @@ export default function EgresosSection() {
                             </TableHeader>
                             <TableBody>
                                 {egresos.length > 0 ? (
-                                    egresos.map((e, i) => (
+                                    paginatedShifts.map((e, i) => (
                                         <TableRow key={i}>
                                             <TableCell className="text-center w-1/6">{e.Fecha}</TableCell>
                                             <TableCell className="text-center w-1/6">
@@ -205,6 +214,31 @@ export default function EgresosSection() {
                             </TableBody>
                         </Table>
                     </div>
+                    {egresos.length > itemsPerPage && (
+                        <div className="flex justify-center gap-2 my-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                            >
+                                Anterior
+                            </Button>
+                            <span className="flex items-center px-2 text-sm">
+                                Página {currentPage} de {Math.ceil(egresos.length / itemsPerPage)}
+                            </span>
+                            <Button
+                                variant="outline"
+                                onClick={() =>
+                                    setCurrentPage((prev) =>
+                                        prev < Math.ceil(egresos.length / itemsPerPage) ? prev + 1 : prev
+                                    )
+                                }
+                                disabled={currentPage >= Math.ceil(egresos.length / itemsPerPage)}
+                            >
+                                Siguiente
+                            </Button>
+                        </div>
+                    )}
                 </div>
                 <ConfirmDialog
                     open={showDeleteDialog}
