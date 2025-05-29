@@ -6,11 +6,12 @@ import { Search, Edit, Trash, PlusCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
-dayjs.extend(isSameOrBefore)
+import { useState, useEffect } from "react"
 
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 dayjs.extend(customParseFormat)
+dayjs.extend(isSameOrBefore)
 
 interface Member {
   id: string
@@ -34,10 +35,13 @@ interface MembersTabProps {
   onEdit: (member: Member) => void
   onDelete: (member: Member) => void
   onAddMember: () => void
-  
+
 }
 
 export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelete, onAddMember }: MembersTabProps) {
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
   const filteredMembers = members.filter((member) =>
     member.Nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.Email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,6 +49,14 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
     member.DNI.includes(searchTerm) ||
     member.Plan.includes(searchTerm)
   )
+
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedMembers = filteredMembers.slice(startIndex, endIndex)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
 
   return (
     <Card>
@@ -82,7 +94,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMembers.map((member, index) => (
+                {paginatedMembers.map((member, index) => (
                   <motion.tr
                     key={member.DNI}
                     initial={{ opacity: 0, y: 10 }}
@@ -149,6 +161,31 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
             </Table>
           </div>
         </div>
+        {filteredMembers.length > itemsPerPage && (
+          <div className="flex justify-center mt-4 gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </Button>
+            <span className="flex items-center px-2 text-sm">
+              Página {currentPage} de {Math.ceil(filteredMembers.length / itemsPerPage)}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  prev < Math.ceil(filteredMembers.length / itemsPerPage) ? prev + 1 : prev
+                )
+              }
+              disabled={currentPage >= Math.ceil(filteredMembers.length / itemsPerPage)}
+            >
+              Siguiente
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
