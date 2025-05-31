@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle, XCircle, Clock } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, BadgeCheck, CalendarCheck, Coins } from 'lucide-react'
 import { FormEnterToTab } from '@/components/FormEnterToTab'
 
 export default function AsistenciaPage() {
@@ -22,7 +22,7 @@ export default function AsistenciaPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dni })
-      }) 
+      })
 
       const result = await res.json()
       setData({ ...result, success: res.ok })
@@ -109,8 +109,27 @@ export default function AsistenciaPage() {
                   </div>
                 </div>
                 <div className="text-left text-gray-800 space-y-2 mb-4">
-                  <p><strong>Plan:</strong> {data.plan}</p>
-                  <p><strong>Fecha de Vencimiento:</strong> {data.fechaVencimiento}</p>
+                  <p className="flex items-center justify-between gap-2">
+                    <strong className="flex items-center  gap-1 text-orange-600">
+                      <BadgeCheck className="w-4 h-4 text-orange-600" />
+                      Plan:
+                    </strong>
+                    {data.plan}
+                  </p>
+                  <p className="flex items-center justify-between gap-2">
+                    <strong className="flex items-center  gap-1 text-orange-600">
+                      <CalendarCheck className="w-4 h-4 text-orange-600" />
+                      Fecha de Vencimiento:
+                    </strong>
+                    {data.fechaVencimiento}
+                  </p>
+                  <p className="flex items-center justify-between gap-2">
+                    <strong className="flex items-center gap-1 text-orange-600">
+                      <Coins className="w-4 h-4 text-orange-600" />
+                      GymspaceCoins:
+                    </strong>
+                    <span className='flex items-center gap-1'><Coins className="w-4 h-4 text-orange-600" />{data.gymCoins}</span>
+                  </p>
                 </div>
               </>
             )}
