@@ -33,6 +33,7 @@ export default function AsistenciaPage() {
       setTimeoutId(id)
 
       setLoading(false)
+      setDni('')
 
     } catch (error) {
       setLoading(false)
