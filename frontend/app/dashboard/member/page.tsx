@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Award, Dumbbell, TrendingUp } from "lucide-react"
+import { Calendar, Award, Dumbbell, TrendingUp, Coins, Sparkles } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -45,6 +45,7 @@ interface Member {
   Precio: number;
   Tipo_de_plan: string;
   Pagos: Pago[];
+  GymCoins: "";
 }
 
 interface Clase {
@@ -96,6 +97,7 @@ export default function MemberDashboard() {
         Precio: parseInt(raw.Precio),
         Tipo_de_plan: raw.Tipo_de_plan,
         Pagos: raw.Pagos || [],
+        GymCoins: raw.GymCoins
       }
       setUser(member)
     } catch (err) {
@@ -219,10 +221,10 @@ export default function MemberDashboard() {
           </div>
         </motion.div>
 
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Plan Actual */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-            <Card className="card-hover-effect border-primary/20  h-[20vh]">
+            <Card className="card-hover-effect border-primary/20 h-[20vh] dark:bg-zinc-800 dark:border-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
                 <Award className="h-5 w-5 text-primary animate-pulse-scale" />
@@ -243,7 +245,7 @@ export default function MemberDashboard() {
             transition={{ duration: 0.3, delay: 0.2 }}
             className="w-full"
           >
-            <Card className="w-full h-[20vh] card-hover-effect border-primary/20">
+            <Card className="w-full h-[20vh] card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
               <CardHeader className="flex justify-between h-12 px-4">
                 <CardTitle className="text-sm font-medium">
                   Estado de Membresía
@@ -253,7 +255,7 @@ export default function MemberDashboard() {
 
               <CardContent className="pt-2 px-4 flex flex-col justify-between">
                 <div>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold gradient-text">
                     {planInhabilitado
                       ? "Plan inhabilitado"
                       : `${daysLeft} días restantes`}
@@ -291,7 +293,7 @@ export default function MemberDashboard() {
             transition={{ duration: 0.3, delay: 0.3 }}
             className="w-full"
           >
-            <Card className="w-full h-[20vh] card-hover-effect border-primary/20">
+            <Card className="w-full h-[20vh] card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
               <CardHeader className="flex justify-between h-12 px-4">
                 <CardTitle className="text-sm font-medium">
                   Clases Restantes
@@ -301,7 +303,7 @@ export default function MemberDashboard() {
 
               <CardContent className="pt-2 px-4 flex flex-col justify-between">
                 <div>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold gradient-text">
                     {planInhabilitado ? "Sin acceso" : user.Clases_restantes}
                   </div>
                   <div className="flex justify-between mb-5">
@@ -330,12 +332,48 @@ export default function MemberDashboard() {
             </Card>
 
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            className="w-full"
+          >
+            <Card className="w-full h-[20vh] card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
+              <CardHeader className="flex justify-between h-12 px-4">
+                <CardTitle className="text-sm font-medium">
+                  GymspaceCoins
+                </CardTitle>
+                <Dumbbell className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent className="pt-2 px-4 flex flex-col justify-between">
+                <div>
+                  <div className="text-2xl font-bold flex items-center gap-1 gradient-text">
+                    <p className="text-2xl">
+                      {planInhabilitado ? "Sin acceso" : user.GymCoins}
+                    </p>
+                    <Coins />
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground leading-snug">
+                    <span className="flex items-center gap-1">
+                      Canjealos por premios exclusivos en recepción
+                    </span>
+                    <ul className="list-disc list-inside ml-1 mt-1 space-y-0.5">
+                      <li>300 coins → Botella</li>
+                      <li>500 coins → Camiseta</li>
+                      <li>1000 coins → Mes gratuito</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Historial de pagos */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
-          <Card>
-            <CardHeader className="bg-primary/5">
+          <Card className="dark:bg-zinc-900 dark:border-none rounded-lg">
+            <CardHeader className="bg-primary/5 dark:bg-zinc-800 dark:border-none rounded-lg">
               <div className="flex items-center">
                 <TrendingUp className="h-5 w-5 text-primary mr-2" />
                 <CardTitle>Historial de Pagos</CardTitle>
