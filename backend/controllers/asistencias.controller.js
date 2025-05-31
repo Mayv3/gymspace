@@ -34,7 +34,7 @@ export const registrarAsistencia = async (req, res) => {
     const hoyDate = dayjs();
     if (hoyDate.isSame(vencimiento, 'day') || hoyDate.isAfter(vencimiento, 'day')) {
       return res.status(403).json({
-        message: `El plan de ${alumno.Nombre || alumno['Nombre']} venció el ${vencimiento.format('DD/MM/YYYY')}`,
+        message: `El plan de ${alumno.Nombre} venció el ${vencimiento.format('DD/MM/YYYY')}`,
         fechaVencimiento: vencimiento.format('DD/MM/YYYY'),
       });
     }
@@ -49,74 +49,90 @@ export const registrarAsistencia = async (req, res) => {
     const yaAsistioHoy = asistenciasFormateadas.some(a => a.DNI === dni && a.Fecha === hoy);
     if (yaAsistioHoy) {
       return res.status(409).json({
-        message: `El alumno ${alumno.Nombre || alumno['Nombre']} ya registró asistencia hoy`
+        message: `El alumno ${alumno.Nombre} ya registró asistencia hoy`
       });
     }
 
-    // ⚠️ Revisar si está inscripto a alguna clase hoy
+    // Verificar clases del día
     const clases = await getClasesElClubFromSheet();
-    const diaHoy = dayjs().locale('es').format('dddd'); // ej: "jueves"
+    const diaHoy = dayjs().locale('es').format('dddd');
     const clasesDeHoy = clases.filter(c => c.Dia.toLowerCase() === diaHoy.toLowerCase());
-
     const claseInscripto = clasesDeHoy.find(c => {
       const inscriptos = c.Inscriptos ? c.Inscriptos.split(',').map(d => d.trim()) : [];
       return inscriptos.includes(dni);
     });
 
+    // Registrar asistencia
     const nuevaAsistencia = {
       Fecha: hoy,
       Hora: dayjs().tz("America/Argentina/Buenos_Aires").format('HH:mm'),
       DNI: alumno.DNI,
-      Nombre: alumno.Nombre || alumno['Nombre'],
+      Nombre: alumno.Nombre,
       Plan: alumno.Plan,
       Responsable: ''
     };
 
     await appendAsistenciaToSheet(nuevaAsistencia);
-
     const io = req.app.get('socketio');
     io.emit('asistencia-registrada', { dni, nuevaAsistencia });
 
     const plan = alumno.Plan;
     const esIlimitado = PLANES_ILIMITADOS.includes(plan);
+    const realizadasActual = parseInt(alumno['Clases_realizadas'] || '0', 10);
+    const realizadas = realizadasActual + 1;
+    const gymCoinsActuales = parseInt(alumno['GymCoins'] || '0', 10);
+    const gymCoinsActualizadas = gymCoinsActuales + 10;
+
+    // Actualizar datos en la hoja
+    await updateAlumnoByDNI(dni, {
+      'Clases_realizadas': String(realizadas),
+      'GymCoins': String(gymCoinsActualizadas),
+    });
 
     let mensaje = 'Asistencia registrada correctamente';
     if (claseInscripto) {
       mensaje = `Bienvenido a la clase de "${claseInscripto['Nombre de clase']}"`;
     }
 
+    io.emit('asistencia-actualizada', {
+      dni,
+      clasesRealizadas: realizadas,
+      gymCoins: gymCoinsActualizadas
+    });
+
     if (esIlimitado) {
       return res.status(201).json({
         message: mensaje,
         plan,
+        clasesRealizadas: realizadas,
+        gymCoins: gymCoinsActualizadas,
         fechaVencimiento: alumno['Fecha_vencimiento']
       });
     }
 
     const pagadas = parseInt(alumno['Clases_pagadas'] || '0', 10);
-    const realizadasActual = parseInt(alumno['Clases_realizadas'] || '0', 10);
 
     if (realizadasActual >= pagadas) {
       return res.status(409).json({
-        message: `El alumno ${alumno.Nombre || alumno['Nombre']} ya agotó sus clases pagadas`,
+        message: `El alumno ${alumno.Nombre} ya agotó sus clases pagadas`,
         plan,
         clasesPagadas: pagadas,
         clasesRealizadas: realizadasActual,
+        gymCoins: gymCoinsActualizadas,
         fechaVencimiento: alumno['Fecha_vencimiento']
       });
     }
-
-    const realizadas = realizadasActual + 1;
-    await updateAlumnoByDNI(dni, { 'Clases_realizadas': String(realizadas) });
-    io.emit('asistencia-actualizada', { dni, clasesRealizadas: realizadas });
 
     res.status(201).json({
       message: mensaje,
       plan,
       clasesPagadas: pagadas,
       clasesRealizadas: realizadas,
+      gymCoins: gymCoinsActualizadas,
       fechaVencimiento: alumno['Fecha_vencimiento']
     });
+
+    console.log(`Gymcoins Actualizadas: $${gymCoinsActualizadas}`)
   } catch (error) {
     console.error('Error al registrar asistencia:', error);
     res.status(500).json({ message: 'Error al registrar la asistencia' });
@@ -239,9 +255,9 @@ export const getPromedios = async (req, res) => {
     const anioNum = parseInt(anio, 10)
     if (isNaN(anioNum)) return res.status(400).json({ message: 'Año inválido' })
 
-    const mesNum    = mes    ? parseInt(mes, 10)    : null
+    const mesNum = mes ? parseInt(mes, 10) : null
     const semanaNum = semana ? parseInt(semana, 10) : null
-    if (mes    && isNaN(mesNum))    return res.status(400).json({ message: 'Mes inválido' })
+    if (mes && isNaN(mesNum)) return res.status(400).json({ message: 'Mes inválido' })
     if (semana && isNaN(semanaNum)) return res.status(400).json({ message: 'Semana inválida' })
 
     let useDateRange = false
@@ -258,7 +274,7 @@ export const getPromedios = async (req, res) => {
     const diasConAsistencias = new Set()
 
     for (const a of asistencias) {
-      const f = dayjs(a.Fecha, ['D/M/YYYY','DD/MM/YYYY','YYYY-MM-DD'], true)
+      const f = dayjs(a.Fecha, ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'], true)
       const h = dayjs(a.Hora, 'H:mm', true).hour()
       if (!f.isValid()) continue
 
@@ -267,13 +283,13 @@ export const getPromedios = async (req, res) => {
       if (useDateRange) {
         if (f.isBefore(startDate, 'day') || f.isAfter(endDate, 'day')) continue
       } else {
-        if (mesNum    && (f.month()+1) !== mesNum)    continue
-        if (semanaNum && f.week() !== semanaNum)      continue
+        if (mesNum && (f.month() + 1) !== mesNum) continue
+        if (semanaNum && f.week() !== semanaNum) continue
       }
 
       diasConAsistencias.add(f.format('YYYY-MM-DD'))
 
-      if (h >= 7  && h < 12) rangos.manana++
+      if (h >= 7 && h < 12) rangos.manana++
       if (h >= 15 && h < 18) rangos.tarde++
       if (h >= 18 && h <= 22) rangos.noche++
     }
@@ -281,9 +297,9 @@ export const getPromedios = async (req, res) => {
     const totalDias = diasConAsistencias.size || 1
 
     const promedios = {
-      manana: { total: rangos.manana, promedio: (rangos.manana/totalDias).toFixed(2), dias: totalDias },
-      tarde:  { total: rangos.tarde,  promedio: (rangos.tarde/totalDias).toFixed(2),  dias: totalDias },
-      noche:  { total: rangos.noche,  promedio: (rangos.noche/totalDias).toFixed(2),  dias: totalDias },
+      manana: { total: rangos.manana, promedio: (rangos.manana / totalDias).toFixed(2), dias: totalDias },
+      tarde: { total: rangos.tarde, promedio: (rangos.tarde / totalDias).toFixed(2), dias: totalDias },
+      noche: { total: rangos.noche, promedio: (rangos.noche / totalDias).toFixed(2), dias: totalDias },
     }
 
     res.json(promedios)

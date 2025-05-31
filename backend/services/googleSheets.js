@@ -39,7 +39,7 @@ async function getNextId(range) {
 export async function getAlumnosFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Alumnos!A1:M',
+    range: 'Alumnos!A1:N',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -58,9 +58,9 @@ export async function getAlumnosFromSheet() {
 export async function appendAlumnoToSheet(alumno) {
   const dniRes = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Alumnos!B2:B', 
+    range: 'Alumnos!B2:B',
   });
-  
+
   const existingDNIs = dniRes.data.values?.flat() || [];
 
   if (existingDNIs.includes(alumno.DNI)) {
@@ -83,11 +83,12 @@ export async function appendAlumnoToSheet(alumno) {
     alumno['Fecha_inicio'] || '',
     alumno['Fecha_vencimiento'] || '',
     alumno['Profesor_asignado'] || '',
+    alumno['GymCoins'] || '0'
   ]];
 
   sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Alumnos!A1:M1',
+    range: 'Alumnos!A1:N1',
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
@@ -97,7 +98,7 @@ export async function appendAlumnoToSheet(alumno) {
 export async function updateAlumnoByDNI(dni, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Alumnos!A1:M',
+    range: 'Alumnos!A1:N',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -106,14 +107,17 @@ export async function updateAlumnoByDNI(dni, nuevosDatos) {
   if (index === -1) return false;
 
   // Actualizar esa fila
-  const nuevaFila = headers.map((key) => nuevosDatos[key] || rows[index][headers.indexOf(key)]);
+  const nuevaFila = headers.map((key, i) =>
+    nuevosDatos.hasOwnProperty(key) ? nuevosDatos[key] : rows[index][i]
+  );
 
-  sheets.spreadsheets.values.update({
+  await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `Alumnos!A${index + 2}:M${index + 2}`,
+    range: `Alumnos!A${index + 2}:N${index + 2}`,
     valueInputOption: 'USER_ENTERED',
     resource: { values: [nuevaFila] },
   });
+
 
   return true;
 }
@@ -121,7 +125,7 @@ export async function updateAlumnoByDNI(dni, nuevosDatos) {
 export async function deleteAlumnoByDNI(dni) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Alumnos!A1:M',
+    range: 'Alumnos!A1:N',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -176,7 +180,7 @@ export async function getPagosFromSheet() {
 
 export async function appendPagoToSheet(pago) {
   const nuevoID = await getNextId('Pagos!A2:A');
-  
+
   const horaActual = new Date().toLocaleTimeString("es-AR", {
     timeZone: 'America/Argentina/Buenos_Aires',
     hour: "2-digit",
@@ -202,7 +206,7 @@ export async function appendPagoToSheet(pago) {
 
   sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A1:K1', 
+    range: 'Pagos!A1:K1',
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
@@ -453,7 +457,7 @@ export async function appendCajaToSheet(caja) {
     resource: { values },
   });
 
-  return {id : values[0][0], message: 'Caja añadida correctamente'}; 
+  return { id: values[0][0], message: 'Caja añadida correctamente' };
 }
 
 export async function updateCajaByID(id, nuevosDatos) {
@@ -497,7 +501,7 @@ export async function deleteCajaByID(id) {
         {
           deleteDimension: {
             range: {
-              sheetId: 404044225, 
+              sheetId: 404044225,
               dimension: 'ROWS',
               startIndex: rowIndex + 1,
               endIndex: rowIndex + 2
@@ -575,7 +579,7 @@ export async function appendPlanToSheet(data) {
 export async function updatePlanInSheet(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A1:E',   
+    range: 'PlanesYprecios!A1:E',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -588,7 +592,7 @@ export async function updatePlanInSheet(id, nuevosDatos) {
 
   sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `PlanesYprecios!A${rowIndex + 2}:E${rowIndex + 2}`, 
+    range: `PlanesYprecios!A${rowIndex + 2}:E${rowIndex + 2}`,
     valueInputOption: 'USER_ENTERED',
     resource: { values: [nuevaFila] }
   });
@@ -614,7 +618,7 @@ export async function deletePlanInSheet(id) {
         {
           deleteDimension: {
             range: {
-              sheetId: 222062821, 
+              sheetId: 222062821,
               dimension: 'ROWS',
               startIndex: rowIndex,
               endIndex: rowIndex + 1
@@ -639,11 +643,11 @@ export const appendAumentoToSheet = async ({
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Aumentos_planes!A:E',      
+    range: 'Aumentos_planes!A:E',
     valueInputOption: 'RAW',
     resource: {
       values: [
-        [ Fecha, Precio_anterior, Precio_actualiza, Porcentaje_aumento, Plan ]
+        [Fecha, Precio_anterior, Precio_actualiza, Porcentaje_aumento, Plan]
       ]
     }
   });
@@ -755,7 +759,7 @@ export async function deleteAnotacionInSheet(id) {
         {
           deleteDimension: {
             range: {
-              sheetId: 1095798724, 
+              sheetId: 1095798724,
               dimension: 'ROWS',
               startIndex: rowIndex,
               endIndex: rowIndex + 1
@@ -782,7 +786,7 @@ export async function getClasesElClubFromSheet() {
   if (!headers || !rows) {
     throw new Error('No se encontraron datos en la hoja de Clases del Club.');
   }
-  
+
   return rows.map(row => {
     const clase = {};
     headers.forEach((header, i) => {
@@ -914,7 +918,7 @@ export async function appendTurnoToSheet(turno) {
     ID: String(nuevoID),
     ...turno
   };
-  
+
   const values = [[
     turnoConID.ID,
     turnoConID.Fecha,
@@ -975,7 +979,7 @@ export async function deleteTurnoByID(id) {
 
   if (rowIndex === -1) return false;
 
-  const sheetRowIndex = rowIndex + 1 + 1; 
+  const sheetRowIndex = rowIndex + 1 + 1;
 
   await sheets.spreadsheets.batchUpdate({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -986,7 +990,7 @@ export async function deleteTurnoByID(id) {
             range: {
               sheetId: 1421664716,
               dimension: 'ROWS',
-              startIndex: sheetRowIndex - 1, 
+              startIndex: sheetRowIndex - 1,
               endIndex: sheetRowIndex
             }
           }
