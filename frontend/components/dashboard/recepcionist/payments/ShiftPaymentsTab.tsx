@@ -77,7 +77,8 @@ export function ShiftPaymentsTab({
   }, [currentShiftPayments])
 
   const filteredPayments = currentShiftPayments.filter(p => {
-    const nombreMatch = p.Nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+    const nombreMatch = p.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.Ultimo_Plan?.toLowerCase().includes(searchTerm.toLowerCase())
     const tipoMatch = tipoFiltro === "todos" || p.Tipo === tipoFiltro
     return nombreMatch && tipoMatch
   })
@@ -115,7 +116,7 @@ export function ShiftPaymentsTab({
                   <Input
                     id="search"
                     type="text"
-                    placeholder="Ej: Juan Pérez"
+                    placeholder="Alumno o plan"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
