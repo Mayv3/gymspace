@@ -228,6 +228,7 @@ export function ShiftPaymentsTab({
                     <TableHead className="text-center w-32">Fecha de venc.</TableHead>
                     <TableHead className="text-center w-32">Tipo</TableHead>
                     <TableHead className="text-center w-32">Turno</TableHead>
+                    <TableHead className="text-center w-32">Plan Pagado</TableHead>
                     <TableHead className="text-center w-32">Registrado Por</TableHead>
                     <TableHead className="text-center w-32">Acciones</TableHead>
                   </TableRow>
@@ -254,6 +255,7 @@ export function ShiftPaymentsTab({
                         <TableCell className="text-center">{payment.Fecha_de_Vencimiento}</TableCell>
                         <TableCell className="text-center">{payment.Tipo}</TableCell>
                         <TableCell className="text-center">{payment.Turno}</TableCell>
+                        <TableCell className="text-center">{payment.Ultimo_Plan || "—"}</TableCell>
                         <TableCell className="text-center">{payment.Responsable}</TableCell>
                         <TableCell className="text-center">
                           <Button

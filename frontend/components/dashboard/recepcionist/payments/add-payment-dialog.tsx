@@ -118,6 +118,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
           "Responsable": user?.nombre,
           "Turno": formData.turno,
           "Tipo": tipoSeleccionado,
+          "Ultimo_Plan": planSeleccionado?.["Plan o Producto"] || "",
         }),
       })
 

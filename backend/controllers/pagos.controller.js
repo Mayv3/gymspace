@@ -321,7 +321,7 @@ export const addPago = async (req, res) => {
     try {
         const pago = req.body;
 
-        if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago']) {
+        if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago'] || !pago['Ultimo_Plan']) {
             return res.status(400).json({ message: 'Faltan campos obligatorios' });
         }
 

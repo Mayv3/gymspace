@@ -162,7 +162,7 @@ export async function deleteAlumnoByDNI(dni) {
 export async function getPagosFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A1:K',
+    range: 'Pagos!A1:L',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -201,12 +201,13 @@ export async function appendPagoToSheet(pago) {
     pago.Responsable || '',
     pago.Turno || '',
     pago.Hora || '',
-    pago['Tipo'] || ''
+    pago['Tipo'] || '',
+    pago['Ultimo_Plan'] || ''
   ]];
 
   sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A1:K1',
+    range: 'Pagos!A1:L1',
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
