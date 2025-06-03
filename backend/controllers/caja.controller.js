@@ -148,7 +148,7 @@ export const obtenerCajaAbiertaPorTurno = async (req, res) => {
     const { turno } = req.params;
     const cajas = await getCajasFromSheet();
 
-    const hoy = dayjs().format("D/M/YYYY");
+    const hoy = dayjs().tz('America/Argentina/Buenos_Aires').format("D/M/YYYY");
 
     const cajaHoy = cajas.find(caja =>
       caja.Turno === turno &&
@@ -167,6 +167,9 @@ export const obtenerCajaAbiertaPorTurno = async (req, res) => {
         saldoInicial: cajaHoy["Saldo Inicial"] || "0",
       });
     }
+
+    console.log("Fecha backend Argentina:", hoy);
+
     return res.status(200).json({ existe: true, abierta: false });
 
   } catch (error) {
@@ -210,7 +213,7 @@ export const getCajasPorMes = async (req, res) => {
           ...caja,
           TotalGimnasio: totalGimnasio,
           TotalClases: totalClases,
-          _fechaCaja: fechaCaja 
+          _fechaCaja: fechaCaja
         };
       })
       .filter(caja => {
