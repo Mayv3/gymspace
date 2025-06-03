@@ -71,7 +71,7 @@ export default function AsistenciaPage() {
 
         <FormEnterToTab onSubmit={handleSubmit} className="space-y-6">
           <input
-            type="text"
+            type="number"
             value={dni}
             onChange={(e) => setDni(e.target.value)}
             placeholder="Ej: 45082808"
