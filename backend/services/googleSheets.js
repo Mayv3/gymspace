@@ -472,6 +472,10 @@ export async function updateCajaByID(id, nuevosDatos) {
 
   if (rowIndex === -1) return false;
 
+  if (nuevosDatos['Saldo Inicial'] !== undefined) {
+    rows[rowIndex][headers.indexOf('Saldo Inicial')] = nuevosDatos['Saldo Inicial']
+  }
+  
   if (
     nuevosDatos['Total Efectivo'] !== undefined &&
     nuevosDatos['Total Tarjeta'] !== undefined
@@ -481,7 +485,7 @@ export async function updateCajaByID(id, nuevosDatos) {
 
     const saldoInicialStr = rows[rowIndex][headers.indexOf('Saldo Inicial')] || '0'
     const saldoInicial = parseFloat(saldoInicialStr) || 0
-    
+
     nuevosDatos['Total Final'] = (saldoInicial + efectivo + tarjeta).toString()
   }
 

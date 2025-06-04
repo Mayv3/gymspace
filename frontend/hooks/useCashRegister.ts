@@ -105,6 +105,7 @@ export function useCashRegister({
         "Hora Cierre": horaCierre,
         "Total Efectivo": String(totalEfectivo),
         "Total Tarjeta": String(totalTarjeta),
+        "Saldo Inicial": initialAmount
       }
       console.log("Cierre de caja → body:", body)
 
