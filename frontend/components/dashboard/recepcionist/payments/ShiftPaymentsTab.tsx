@@ -318,7 +318,7 @@ export function ShiftPaymentsTab({
                 {Object.entries(resumenPorTipo).map(([tipo, metodos]) => {
                   const totalPorTipo = Object.values(metodos).reduce((sum, val) => sum + val, 0)
                   return (
-                    <div key={tipo} className="bg-muted rounded-xl p-5 border border-orange-600 flex flex-col justify-between">
+                    <div key={tipo} className="bg-muted rounded-xl p-5 border flex flex-col justify-between">
                       <div>
                         <h4 className="font-semibold mb-2">{tipo}</h4>
                         <ul className="space-y-1">
@@ -337,7 +337,7 @@ export function ShiftPaymentsTab({
                     </div>
                   )
                 })}
-                <div className="bg-muted rounded-xl p-5  border border-orange-600 flex flex-col justify-between">
+                <div className="bg-muted rounded-xl p-5  border flex flex-col justify-between">
                   <h4 className="font-semibold mb-1">Por metodo de pago</h4>
                   <div className="flex justify-between">
                     <span>Total en Tarjeta:</span>

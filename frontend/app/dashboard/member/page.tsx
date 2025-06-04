@@ -162,7 +162,7 @@ export default function MemberDashboard() {
   }
 
   const rawFecha = user.Fecha_vencimiento
-  const fechaVencimiento = dayjs(rawFecha, ["D/M/YYYY", "DD/MM/YYYY"], true)
+  const fechaVencimiento = dayjs(rawFecha, ["D/M/YYYY", "DD/MM/YYYY"])
   const today = dayjs().startOf("day")
 
   const fechaValida = fechaVencimiento.isValid()
@@ -170,7 +170,7 @@ export default function MemberDashboard() {
   const daysLeft = vencido ? 0 : fechaVencimiento.diff(today, "day")
 
   const agotado = user.Clases_restantes <= 0
-  const planInhabilitado = vencido || agotado
+  const planInhabilitado = vencido
 
   const progressPercentage = fechaValida
     ? Math.min(100, Math.max(0, (daysLeft / 30) * 100))
