@@ -472,6 +472,19 @@ export async function updateCajaByID(id, nuevosDatos) {
 
   if (rowIndex === -1) return false;
 
+  if (
+    nuevosDatos['Total Efectivo'] !== undefined &&
+    nuevosDatos['Total Tarjeta'] !== undefined
+  ) {
+    const efectivo = parseFloat(nuevosDatos['Total Efectivo']) || 0
+    const tarjeta = parseFloat(nuevosDatos['Total Tarjeta']) || 0
+
+    const saldoInicialStr = rows[rowIndex][headers.indexOf('Saldo Inicial')] || '0'
+    const saldoInicial = parseFloat(saldoInicialStr) || 0
+    
+    nuevosDatos['Total Final'] = (saldoInicial + efectivo + tarjeta).toString()
+  }
+
   const nuevaFila = headers.map((header, i) => nuevosDatos[header] || rows[rowIndex][i]);
 
   await sheets.spreadsheets.values.update({
