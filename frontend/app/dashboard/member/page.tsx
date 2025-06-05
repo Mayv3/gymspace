@@ -339,7 +339,7 @@ export default function MemberDashboard() {
             transition={{ duration: 0.3, delay: 0.3 }}
             className="w-full"
           >
-            <Card className="w-full h-[20vh] card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
+            <Card className="w-full card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
               <CardHeader className="flex justify-between h-12 px-4">
                 <CardTitle className="text-sm font-medium">
                   GymspaceCoins
@@ -354,7 +354,7 @@ export default function MemberDashboard() {
                     </p>
                     <Coins />
                   </div>
-                  <div className="mt-2 text-xs text-muted-foreground leading-snug">
+                  <div className="mt-2 text-xs text-muted-foreground leading-snug ">
                     <span className="flex items-center gap-1">
                       Canjealos por premios exclusivos en recepción
                     </span>
