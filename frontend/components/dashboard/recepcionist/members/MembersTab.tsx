@@ -35,7 +35,6 @@ interface MembersTabProps {
   onEdit: (member: Member) => void
   onDelete: (member: Member) => void
   onAddMember: () => void
-
 }
 
 export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelete, onAddMember }: MembersTabProps) {
@@ -116,7 +115,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                     <TableCell className="text-center">
                       {(() => {
                         const hoy = dayjs();
-                        const fechaVencimiento = dayjs(member.Fecha_vencimiento, ["D/M/YYYY", "DD/MM/YYYY"], true);
+                        const fechaVencimiento = dayjs(member.Fecha_vencimiento, ["D/M/YYYY", "DD/MM/YYYY"]);
 
                         const clasesPagadas = Number(member.Clases_pagadas);
                         const clasesRealizadas = Number(member.Clases_realizadas);
