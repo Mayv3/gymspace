@@ -90,6 +90,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                   ].map((head, i) => (
                     <TableHead key={i} className="text-center w-[7.7%]">{head}</TableHead>
                   ))}
+                  
                 </TableRow>
               </TableHeader>
               <TableBody>
