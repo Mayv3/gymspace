@@ -167,13 +167,20 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
 
-  const montoManana = data["mañana_monto"] || 0;
   const montoTarde = data["tarde_monto"] || 0;
 
-  const totalDia = montoTarde ? montoTarde : montoManana;
+  const totalDia = montoTarde;
 
-  const montoGimnasio = data["tarde_gimnasio"] ? data["tarde_gimnasio"] : data["mañana_gimnasio"];
-  const montoClase = data["tarde_clases"] ? data["tarde_clases"] : data["mañana_clases"];
+  const mañana_tarjeta = data["mañana_tarjeta"] || 0;
+  const mañana_efectivo = data["mañana_efectivo"] || 0;
+  const tarde_tarjeta = data["tarde_tarjeta"] || 0;
+  const tarde_efectivo = data["tarde_efectivo"] || 0;
+
+  const total_tarjeta = mañana_tarjeta + tarde_tarjeta;
+  const total_efectivo = mañana_efectivo + tarde_efectivo;
+
+  const montoGimnasio = (data["mañana_gimnasio"] || 0) + (data["tarde_gimnasio"] || 0);
+  const montoClase = (data["mañana_clases"] || 0) + (data["tarde_clases"] || 0);
 
   return (
     <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
@@ -202,6 +209,14 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
         <ul className="ml-2 text-xs">
           <li>🏋️ Gimnasio: ${montoGimnasio}</li>
           <li>🤸 Clase:    ${montoClase}</li>
+        </ul>
+      </div>
+
+      <div className="border-t mt-2 pt-2 text-sm">
+        <p className="font-semibold">💳 Por método de pago</p>
+        <ul className="ml-2 text-xs">
+          <li>Total en Tarjeta: ${total_tarjeta}</li>
+          <li>Total en Efectivo: ${total_efectivo}</li>
         </ul>
       </div>
 

@@ -141,6 +141,7 @@ export default function ReceptionistDashboard() {
       Fecha_nacimiento: alumno.Fecha_nacimiento,
       Plan: alumno.Plan,
       Profesor_asignado: alumno.Profesor_asignado,
+      GymCoins: alumno.GymCoins
     }))
     setMembers(formattedMembers)
   }, [alumnos])

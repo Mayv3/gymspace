@@ -72,7 +72,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     const alumno = alumnos.find(a => a.DNI === dni)
     if (alumno) {
       setFormData(prev => ({ ...prev, dni, name: alumno.Nombre }))
-      setDniError("")
+      setDniError(`Fecha de vencimiento: ${alumno.Fecha_vencimiento}`)
     } else if (dni.length >= 6) {
       setFormData(prev => ({ ...prev, dni, name: "" }))
       setDniError("No se encontró un alumno con ese DNI")
@@ -277,6 +277,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
               <div className="space-y-2">
                 <Label htmlFor="paymentDate">Fecha de Pago</Label>
                 <DatePicker
+                disabled
                   date={
                     formData.paymentDate
                       ? parseLocalYMD(formData.paymentDate)

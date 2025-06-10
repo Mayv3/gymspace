@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Award, Dumbbell, TrendingUp, Coins, Sparkles } from "lucide-react"
+import { Calendar, Award, Dumbbell, TrendingUp, Coins } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -59,14 +59,17 @@ interface Clase {
 }
 
 export default function MemberDashboard() {
-  const [user, setUser] = useState<Member | null>(null)
-  const [clases, setClases] = useState<Clase[]>([])
-  const [loadingClases, setLoadingClases] = useState(false)
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
-  const [feedbackType, setFeedbackType] = useState<"success" | "error">("success")
-  const [showFeedback, setShowFeedback] = useState(false)
+  const [user, setUser] = useState<Member | null>(null);
+  const [clases, setClases] = useState<Clase[]>([]);
+  const [loadingClases, setLoadingClases] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [feedbackType, setFeedbackType] = useState<"success" | "error">("success");
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [loadingClaseId, setLoadingClaseId] = useState<string | null>(null);
+  const [topAlumnosCoins, setTopAlumnosCoins] = useState([]);
+  const [rankingAlumno, setRankingAlumno] = useState<number | null>(null);
+
   const hasFetched = useRef(false)
-  const [loadingClaseId, setLoadingClaseId] = useState<string | null>(null)
 
   const { user: contextUser, loading } = useUser()
   const router = useRouter()
@@ -80,8 +83,10 @@ export default function MemberDashboard() {
   useEffect(() => {
     if (!contextUser || hasFetched.current) return
     hasFetched.current = true
-    fetchUser()
-    fetchClases()
+    fetchUser();
+    fetchClases();
+    fetchTopAlumnos();
+    fetchRankingAlumno();
   }, [contextUser])
 
   const fetchUser = async () => {
@@ -105,16 +110,36 @@ export default function MemberDashboard() {
     }
   }
 
+  const fetchRankingAlumno = async () => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/posicion/${contextUser!.dni}`);
+      const { data } = res;
+      const { posicion } = data
+      setRankingAlumno(posicion);
+    } catch (error) {
+      console.error("Error al traer ranking:", error);
+      setRankingAlumno(0);
+    }
+  };
+
   const fetchClases = async () => {
     try {
       setLoadingClases(true)
       const res = await axios.get<Clase[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/clases-el-club`)
-      console.log(res)
       setClases(res.data)
     } catch (err) {
       console.error("Error al cargar clases:", err)
     } finally {
       setLoadingClases(false)
+    }
+  }
+
+  const fetchTopAlumnos = async () => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/topAlumnosCoins`)
+      setTopAlumnosCoins(res.data)
+    } catch (err) {
+      console.error("Error fetching user:", err)
     }
   }
 
@@ -350,18 +375,18 @@ export default function MemberDashboard() {
                 <div>
                   <div className="text-2xl font-bold flex items-center gap-1 gradient-text">
                     <p className="text-2xl">
-                      {planInhabilitado ? "Sin acceso" : user.GymCoins}
+                     #{rankingAlumno} - {planInhabilitado ? "Sin acceso" : user.GymCoins}
                     </p>
                     <Coins />
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground leading-snug ">
-                    <span className="flex items-center gap-1">
-                      Canjealos por premios exclusivos en recepción
+                    <span className="flex items-center gap-1 mb-3">
+                      Estos puntos te serviran para llegar a estar en el ranking de los 10 mejores !Participando de un sorteo mensual!
                     </span>
                     <ul className="list-disc list-inside ml-1 mt-1 space-y-0.5">
-                      <li>300 coins → Botella</li>
-                      <li>500 coins → Camiseta</li>
-                      <li>1000 coins → Mes gratuito</li>
+                      <li>Según tu antigüedad, compromiso de pago.</li>
+                      <li>Mientras más asistas, más puntos vas a acumular.</li>
+                      <li>Mejorando tu plan obtendrás más puntos.</li>
                     </ul>
                   </div>
                 </div>
@@ -369,6 +394,44 @@ export default function MemberDashboard() {
             </Card>
           </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="mt-6"
+        >
+          <Card className="border-primary/20 dark:bg-zinc-800 dark:border-none">
+            <CardHeader className="flex justify-between items-center bg-primary/5 mb-5">
+              <CardTitle>Ranking GymSpace Coins</CardTitle>
+              <CardDescription>Los 10 mejores participantes</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {topAlumnosCoins.map((alumno, index) => {
+                const esUsuarioActual = alumno.DNI === contextUser?.dni;
+                return (
+                  <motion.div
+                    key={alumno.DNI}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: esUsuarioActual ? 1.05 : 1 }}
+                    transition={{ duration: 0.4 }}
+                    className={`rounded-lg border p-4 flex flex-col items-center justify-center text-center cursor-default
+              ${esUsuarioActual ? 'bg-yellow-400 dark:bg-yellow-900 font-bold shadow-lg' : 'bg-background dark:bg-zinc-900'}
+              hover:shadow-md transition-shadow`}
+                  >
+                    <div className="text-2xl text-primary font-extrabold mb-1">#{index + 1}</div>
+                    <div className="text-lg font-semibold truncate max-w-full">{alumno.Nombre}</div>
+                    <div className="mt-2 flex items-center gap-1 text-2xl font-bold gradient-text">
+                      {alumno.GymCoins}
+                      <Coins className="w-6 h-6" />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </motion.div>
+
 
         {/* Historial de pagos */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
@@ -503,7 +566,7 @@ export default function MemberDashboard() {
                               <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
                               <p className="text-lg">
                                 <span className="font-semibold">{inscritos.length}</span> /{' '}
-                                <span className="font-semibold">{clase['Cupo maximo']}</span> inscritos
+                                <span className="font-semibold">{clase['Cupo maximo']}</span> Inscriptos
                               </p>
                             </div>
                             <div className="mt-4">

@@ -12,7 +12,6 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import weekOfYear from 'dayjs/plugin/weekOfYear.js'
 
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isSameOrBefore)
@@ -81,7 +80,7 @@ export const registrarAsistencia = async (req, res) => {
     const realizadasActual = parseInt(alumno['Clases_realizadas'] || '0', 10);
     const realizadas = realizadasActual + 1;
     const gymCoinsActuales = parseInt(alumno['GymCoins'] || '0', 10);
-    const gymCoinsActualizadas = gymCoinsActuales + 10;
+    const gymCoinsActualizadas = gymCoinsActuales + 25;
 
     // Actualizar datos en la hoja
     await updateAlumnoByDNI(dni, {

@@ -28,13 +28,13 @@ export const getPlanes = async (req, res) => {
 
 export const createPlan = async (req, res) => {
   try {
-    const { Tipo, 'Plan o Producto': nombre, Precio, numero_Clases } = req.body;
+    const { Tipo, 'Plan o Producto': nombre, Precio, numero_Clases, Coins } = req.body;
 
     if (!Tipo || !nombre || !Precio) {
       return res.status(400).json({ message: 'Faltan campos obligatorios' });
     }
 
-    const nuevoPlan = await appendPlanToSheet({ Tipo, 'Plan o Producto': nombre, Precio, numero_Clases });
+    const nuevoPlan = await appendPlanToSheet({ Tipo, 'Plan o Producto': nombre, Precio, numero_Clases, Coins });
     res.status(201).json(nuevoPlan);
   } catch (error) {
     console.error('Error al crear plan:', error);

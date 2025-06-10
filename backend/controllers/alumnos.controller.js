@@ -5,6 +5,7 @@ import {
   deleteAlumnoByDNI,
   getPlanesFromSheet,
   getPagosFromSheet,
+  reiniciarPuntosAlumnos,
 
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
@@ -305,6 +306,47 @@ export const getDashboardAlumnos = async (req, res) => {
   }
 }
 
+export const getTopAlumnos = async (req, res) => {
+  try {
+    const alumnos = await getAlumnosFromSheet();
 
+    const alumnosConPuntos = alumnos.map(alumno => ({
+      Nombre: alumno.Nombre,
+      GymCoins: parseInt(alumno.GymCoins || '0', 10),
+      DNI: alumno.DNI
+    }));
 
+    alumnosConPuntos.sort((a, b) => b.GymCoins - a.GymCoins);
 
+    const top10 = alumnosConPuntos.slice(0, 10);
+
+    res.json(top10);
+  } catch (error) {
+    console.error('Error al obtener top alumnos:', error);
+    res.status(500).json({ message: 'Error al obtener los mejores alumnos' });
+  }
+}
+
+export const getPosicionAlumno = async (req, res) => {
+  const dni = req.params.dni;
+  const alumnos = await getAlumnosFromSheet();
+
+  alumnos.sort((a, b) => (parseInt(b.GymCoins || '0') - parseInt(a.GymCoins || '0')));
+
+  const posicion = alumnos.findIndex(al => al.DNI === dni);
+  if (posicion === -1) {
+    return res.status(404).json({ message: "Alumno no encontrado" });
+  }
+
+  res.json({ posicion: posicion + 1 });
+};
+
+export const resetPuntosController = async (req, res) => {
+  try {
+    await reiniciarPuntosAlumnos();
+    res.status(200).json({ message: 'Puntos reiniciados correctamente' });
+  } catch (error) {
+    console.error('Error en resetPuntosController:', error);
+    res.status(500).json({ message: 'Error al reiniciar puntos' });
+  }
+};

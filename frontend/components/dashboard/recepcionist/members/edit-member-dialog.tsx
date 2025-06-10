@@ -94,11 +94,11 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
           <DialogDescription>Modifica la información del socio.</DialogDescription>
         </DialogHeader>
 
-        <FormEnterToTab onSubmit={(e)=>{
+        <FormEnterToTab onSubmit={(e) => {
           e.preventDefault();
           handleSave()
         }}>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -134,7 +134,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="Clases_pagadas">Clases Pagadas</Label>
                 <Input required id="Clases_pagadas" value={editedMember.Clases_pagadas || ""} onChange={(e) => handleChange("Clases_pagadas", e.target.value)} />
@@ -142,6 +142,17 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
               <div className="space-y-2">
                 <Label htmlFor="Clases_realizadas">Clases Realizadas</Label>
                 <Input required id="Clases_realizadas" value={editedMember.Clases_realizadas || ""} onChange={(e) => handleChange("Clases_realizadas", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="GymCoins">GymCoins</Label>
+                <Input
+                  id="GymCoins"
+                  type="number"
+                  min={0}
+                  value={editedMember.GymCoins !== undefined ? editedMember.GymCoins : 0}
+                  required
+                  onChange={(e) => handleChange("GymCoins", e.target.value)}
+                />
               </div>
             </div>
 
@@ -165,7 +176,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="Fecha_nacimiento">Fecha de Nacimiento</Label>
-                <Input id="Fecha_nacimiento" value={editedMember.Fecha_nacimiento || ""} onChange={(e) => handleChange("Fecha_nacimiento", e.target.value)} pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$" title="El formato debe ser dd/mm/aaaa"/>
+                <Input id="Fecha_nacimiento" value={editedMember.Fecha_nacimiento || ""} onChange={(e) => handleChange("Fecha_nacimiento", e.target.value)} pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$" title="El formato debe ser dd/mm/aaaa" />
               </div>
               <div className="space-y-2">
                 <Label>Tipo de Plan</Label>

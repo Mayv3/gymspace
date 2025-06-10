@@ -157,6 +157,50 @@ export async function deleteAlumnoByDNI(dni) {
   return true;
 }
 
+export async function reiniciarPuntosAlumnos() {
+  try {
+    console.log('🔄 Iniciando reinicio de puntos...');
+    
+    // Leer todas las filas de la columna N a partir de la fila 2
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: `Alumnos!N2:N`,
+    });
+
+    const filas = res.data.values || [];
+    const totalFilas = filas.length;
+
+    console.log(`Filas leídas para puntos: ${totalFilas}`);
+
+    if (totalFilas === 0) {
+      console.log('No hay datos en la columna N para actualizar.');
+      return;
+    }
+
+    // Crear un array con 0 para cada fila leída
+    const nuevosPuntos = filas.map(() => [0]);
+    console.log('Valores a actualizar:', nuevosPuntos);
+
+    const filaInicio = 2;
+    const filaFin = filaInicio + totalFilas - 1;
+
+    // Actualizar todas las filas con 0
+    const updateResponse = await sheets.spreadsheets.values.update({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: `Alumnos!N${filaInicio}:N${filaFin}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: nuevosPuntos }
+    });
+
+    console.log('Update response:', updateResponse.status, updateResponse.statusText);
+    console.log('✅ Puntos reiniciados para todos los alumnos');
+  } catch (error) {
+    console.error('❌ Error al reiniciar puntos:', error);
+    throw error;
+  }
+}
+
+
 // Pagos
 
 export async function getPagosFromSheet() {
@@ -475,7 +519,7 @@ export async function updateCajaByID(id, nuevosDatos) {
   if (nuevosDatos['Saldo Inicial'] !== undefined) {
     rows[rowIndex][headers.indexOf('Saldo Inicial')] = nuevosDatos['Saldo Inicial']
   }
-  
+
   if (
     nuevosDatos['Total Efectivo'] !== undefined &&
     nuevosDatos['Total Tarjeta'] !== undefined
@@ -555,7 +599,7 @@ export async function getCajasFromSheet() {
 export async function getPlanesFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A1:E',
+    range: 'PlanesYprecios!A1:F',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -568,18 +612,19 @@ export async function getPlanesFromSheet() {
 
 export async function appendPlanToSheet(data) {
   const nuevoID = await getNextId('PlanesYprecios!A2:A');
-
+  console.log(data)
   const values = [[
     nuevoID,
     data.Tipo,
     data['Plan o Producto'],
     data.Precio,
-    data.numero_Clases
+    data.numero_Clases,
+    data.Coins
   ]]
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A:E',
+    range: 'PlanesYprecios!A:F',
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     resource: { values }
@@ -591,13 +636,14 @@ export async function appendPlanToSheet(data) {
     'Plan o Producto': data['Plan o Producto'],
     Precio: data.Precio,
     numero_Clases: data.numero_Clases,
+    Coins: data.Coins
   }
 }
 
 export async function updatePlanInSheet(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A1:E',
+    range: 'PlanesYprecios!A1:F',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -610,7 +656,7 @@ export async function updatePlanInSheet(id, nuevosDatos) {
 
   sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `PlanesYprecios!A${rowIndex + 2}:E${rowIndex + 2}`,
+    range: `PlanesYprecios!A${rowIndex + 2}:F${rowIndex + 2}`,
     valueInputOption: 'USER_ENTERED',
     resource: { values: [nuevaFila] }
   });
@@ -621,7 +667,7 @@ export async function updatePlanInSheet(id, nuevosDatos) {
 export async function deletePlanInSheet(id) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'PlanesYprecios!A1:D',
+    range: 'PlanesYprecios!A1:F',
   });
 
   const rows = res.data.values;
@@ -661,7 +707,7 @@ export const appendAumentoToSheet = async ({
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Aumentos_planes!A:E',
+    range: 'Aumentos_planes!A:F',
     valueInputOption: 'RAW',
     resource: {
       values: [
@@ -676,7 +722,7 @@ export const getAumentosPlanesFromSheet = async () => {
   const sheets = google.sheets({ version: 'v4', auth });
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-  const range = 'Aumentos_planes!A:E';
+  const range = 'Aumentos_planes!A:F';
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,

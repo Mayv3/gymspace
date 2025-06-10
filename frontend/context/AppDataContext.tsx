@@ -9,6 +9,7 @@ interface Plan {
   Precio: string
   ["Plan o Producto"]: string
   numero_Clases: number
+  Coins: string
 }
 interface Alumno {
   ID: string
@@ -24,6 +25,7 @@ interface Alumno {
   Fecha_inicio: string
   Fecha_vencimiento: string
   Profesor_asignado: string
+  GymCoins: string
 }
 interface Asistencia {
   ID: string
@@ -203,7 +205,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (esLogin || esUser) return;
-
     fetchDashboardCompleto();
 
   }, [esLogin, esAdmin])

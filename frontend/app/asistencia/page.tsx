@@ -88,18 +88,18 @@ export default function AsistenciaPage() {
 
       {data && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center animate-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg text-center animate-fade-in-up">
             <div className='flex justify-center'>
               {renderIcon()}
             </div>
-            <h2 className={`text-2xl font-bold mb-4 ${data.success ? 'text-green-700' : 'text-red-600'}`}>
+            <h2 className={`text-3xl font-bold mb-4 ${data.success ? 'text-green-700' : 'text-red-600'}`}>
               {data.message}
             </h2>
 
             {data.success && !yaRegistrado && (
               <>
                 <div className="mb-4">
-                  <p className="text-gray-700 text-lg mb-1">
+                  <p className="text-gray-700 text-2xl mb-4">
                     {clasesRealizadas} de {clasesPagadas} clases realizadas
                   </p>
                   <div className="w-full bg-gray-300 rounded-full h-4 overflow-hidden">
@@ -110,26 +110,26 @@ export default function AsistenciaPage() {
                   </div>
                 </div>
                 <div className="text-left text-gray-800 space-y-2 mb-4">
-                  <p className="flex items-center justify-between gap-2">
+                  <p className="flex items-center justify-between gap-2 text-2xl">
                     <strong className="flex items-center  gap-1 text-orange-600">
-                      <BadgeCheck className="w-4 h-4 text-orange-600" />
+                      <BadgeCheck className="w-7 h-7 text-orange-600" />
                       Plan:
                     </strong>
                     {data.plan}
                   </p>
-                  <p className="flex items-center justify-between gap-2">
+                  <p className="flex items-center justify-between gap-2 text-2xl">
                     <strong className="flex items-center  gap-1 text-orange-600">
-                      <CalendarCheck className="w-4 h-4 text-orange-600" />
+                      <CalendarCheck className="w-7 h-7 text-orange-600" />
                       Fecha de Vencimiento:
                     </strong>
                     {data.fechaVencimiento}
                   </p>
-                  <p className="flex items-center justify-between gap-2">
+                  <p className="flex items-center justify-between gap-2 text-2xl">
                     <strong className="flex items-center gap-1 text-orange-600">
-                      <Coins className="w-4 h-4 text-orange-600" />
+                      <Coins className="w-7 h-7 text-orange-600" />
                       GymspaceCoins:
                     </strong>
-                    <span className='flex items-center gap-1'><Coins className="w-4 h-4 text-orange-600" />{data.gymCoins}</span>
+                    <span className='flex items-center gap-1'><Coins className="w-7 h-7 text-orange-600" />{data.gymCoins}</span>
                   </p>
                 </div>
               </>

@@ -6,7 +6,7 @@ import { TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, Trash, Edit, Tag, Box, DollarSign, CalendarDays, FileText } from "lucide-react"
+import { PlusCircle, Trash, Edit, Tag, Box, DollarSign, CalendarDays, FileText, Coins } from "lucide-react"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,11 +21,11 @@ export default function PlansSection() {
     const { planes, setPlanes } = useAppData();
 
     const [showCreateDialog, setShowCreateDialog] = useState(false)
-    const [createForm, setCreateForm] = useState({ Tipo: "GIMNASIO", "Plan o Producto": "", Precio: "", numero_Clases: "" })
+    const [createForm, setCreateForm] = useState({ Tipo: "GIMNASIO", "Plan o Producto": "", Precio: "", numero_Clases: "", Coins: "" })
 
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [editingPlan, setEditingPlan] = useState<any | null>(null)
-    const [editForm, setEditForm] = useState({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" })
+    const [editForm, setEditForm] = useState({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "", Coins: "" })
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [selectedPlan, setSelectedPlan] = useState<any | null>(null)
@@ -62,9 +62,9 @@ export default function PlansSection() {
     }
 
     const handleConfirmCreate = async () => {
-        const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases } = createForm;
+        const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases, Coins } = createForm;
 
-        if (!plan || !Precio || !numero_Clases) {
+        if (!plan || !Precio || !numero_Clases || !Coins ) {
             notify.error("Por favor, completá todos los campos obligatorios.");
             return;
         }
@@ -74,7 +74,7 @@ export default function PlansSection() {
             const { data: nuevoPlan } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes`, createForm);
             setPlanes(prev => [...prev, nuevoPlan]);
             setShowCreateDialog(false);
-            setCreateForm({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "" });
+            setCreateForm({ Tipo: "", "Plan o Producto": "", Precio: "", numero_Clases: "", Coins });
             notify.success("¡Plan registrado con éxito!");
         } catch (error) {
             notify.error("Error al registrar el plan");
@@ -146,6 +146,8 @@ export default function PlansSection() {
     useEffect(() => {
         setCurrentPage(1)
     }, [searchTerm])
+
+
     return (
         <TabsContent value="plans" className="space-y-4">
             <Card>
@@ -176,11 +178,12 @@ export default function PlansSection() {
                         <div className="min-w-[800px]">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="grid grid-cols-6">
+                                    <TableRow className="grid grid-cols-7">
                                         <TableHead className="flex items-center justify-center">Tipo</TableHead>
                                         <TableHead className="flex items-center justify-center col-span-2">Plan</TableHead>
                                         <TableHead className="flex items-center justify-center">Precio</TableHead>
                                         <TableHead className="flex items-center justify-center">Clases</TableHead>
+                                        <TableHead className="flex items-center justify-center">Coins</TableHead>
                                         <TableHead className="flex items-center justify-center">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -188,11 +191,12 @@ export default function PlansSection() {
                                 <TableBody>
                                     {paginatedPlanes.length > 0 ? (
                                         paginatedPlanes.map((plan, i) => (
-                                            <TableRow key={i} className="grid grid-cols-6 hover:bg-accent">
+                                            <TableRow key={i} className="grid grid-cols-7 hover:bg-accent">
                                                 <TableCell className="flex items-center justify-center">{plan.Tipo}</TableCell>
                                                 <TableCell className="flex items-center justify-center col-span-2">{plan['Plan o Producto']}</TableCell>
                                                 <TableCell className="flex items-center justify-center">{plan.Precio}</TableCell>
                                                 <TableCell className="flex items-center justify-center">{plan.numero_Clases}</TableCell>
+                                                <TableCell className="flex items-center justify-center">{plan.Coins}</TableCell>
                                                 <TableCell className="flex items-center justify-center">
                                                     <div className="flex gap-2">
                                                         <Button
@@ -204,7 +208,8 @@ export default function PlansSection() {
                                                                     Tipo: plan.Tipo,
                                                                     'Plan o Producto': plan['Plan o Producto'],
                                                                     Precio: plan.Precio,
-                                                                    numero_Clases: `${plan.numero_Clases}`
+                                                                    numero_Clases: `${plan.numero_Clases}`,
+                                                                    Coins: plan.Coins
                                                                 })
                                                                 setShowEditDialog(true)
                                                             }}
@@ -324,7 +329,17 @@ export default function PlansSection() {
                                 type="number"
                                 value={createForm.numero_Clases}
                                 onChange={e => setCreateForm({ ...createForm, numero_Clases: e.target.value })}
-                                placeholder="ej: 12"
+                                placeholder="Ej: 12"
+                                required
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Número Coins</Label>
+                            <Input
+                                type="number"
+                                value={createForm.Coins}
+                                onChange={e => setCreateForm({ ...createForm, Coins: e.target.value })}
+                                placeholder="Ej: 400"
                                 required
                             />
                         </div>
@@ -384,6 +399,15 @@ export default function PlansSection() {
                                 type="number"
                                 value={editForm.numero_Clases}
                                 onChange={e => setEditForm({ ...editForm, numero_Clases: e.target.value })}
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <Label>Número de Coins</Label>
+                            <Input
+                                required
+                                type="number"
+                                value={editForm.Coins}
+                                onChange={e => setEditForm({ ...editForm, Coins: e.target.value })}
                             />
                         </div>
                     </div>

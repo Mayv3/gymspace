@@ -2,7 +2,10 @@ import {
     getPagosFromSheet,
     appendPagoToSheet,
     updatePagoByID,
-    deletePagoByID
+    deletePagoByID,
+    getAlumnosFromSheet,
+    getPlanesFromSheet,
+    updateAlumnoByDNI
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
@@ -193,7 +196,6 @@ export const getPagos = async (req, res) => {
     }
 }
 
-
 export const getPagosFiltrados = async (req, res) => {
     try {
         const { fecha, tipo } = req.query;
@@ -317,21 +319,99 @@ export const getPagosUltimaSemana = async (req, res) => {
 
 // POST
 
+export async function obtenerCoinsPorPlan() {
+  const planes = await getPlanesFromSheet();
+
+  const coinsPorPlan = {};
+
+  planes.forEach(plan => {
+    const coins = parseInt(plan.Coins, 10) || 0;
+    coinsPorPlan[plan['Plan o Producto']] = coins;
+  });
+
+  return coinsPorPlan;
+}
+
+const calcularCoinsPorPago = (alumno, pago, coinsPorPlan) => {
+  let coins = 0;
+
+  const coinsPlan = coinsPorPlan[pago['Ultimo_Plan']] || 0;
+  coins += coinsPlan;
+
+  const fechaInicio = dayjs(alumno['Fecha_inicio'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
+  const fechaPago = dayjs(pago['Fecha de Pago'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
+  const fechaVencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
+  const hoy = dayjs();
+
+  const antiguedad = hoy.diff(fechaInicio, 'year');
+  const pagoAntesVencimiento = fechaPago.isBefore(fechaVencimiento);
+
+  let coinsAntiguedad = 0;
+  let coinsPagoAnticipado = 0;
+
+  if (antiguedad >= 1) {
+    coinsAntiguedad = 100;  // Cambié a 100 puntos si tiene 1 año o más
+    coins += coinsAntiguedad;
+  }
+
+  if (pagoAntesVencimiento) {
+    coinsPagoAnticipado = 100;
+    coins += coinsPagoAnticipado;
+  }
+ 
+  console.log('=== Cálculo de coins ===');
+  console.log('Alumno:', alumno.Nombre, 'DNI:', alumno.DNI);
+  console.log('Plan pagado:', pago['Ultimo_Plan']);
+  console.log('Coins base plan:', coinsPlan);
+  console.log('Fecha inicio alumno:', fechaInicio.format('DD/MM/YYYY'));
+  console.log('Fecha pago:', fechaPago.format('DD/MM/YYYY'));
+  console.log('Fecha vencimiento:', fechaVencimiento.format('DD/MM/YYYY'));
+  console.log('Antigüedad (años):', antiguedad);
+  console.log('Pago antes de vencimiento:', pagoAntesVencimiento);
+  console.log('Coins por antigüedad:', coinsAntiguedad);
+  console.log('Coins por pago anticipado:', coinsPagoAnticipado);
+  console.log('Total coins calculados:', coins);
+  console.log('========================');
+
+  return coins;
+};
+
+
 export const addPago = async (req, res) => {
-    try {
-        const pago = req.body;
+  try {
+    const pago = req.body;
 
-        if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago'] || !pago['Ultimo_Plan']) {
-            return res.status(400).json({ message: 'Faltan campos obligatorios' });
-        }
-
-        await appendPagoToSheet(pago);
-
-        res.status(201).json({ message: 'Pago registrado correctamente' });
-    } catch (error) {
-        console.error('Error al registrar pago:', error);
-        res.status(500).json({ message: 'Error al registrar el pago' });
+    if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago'] || !pago['Fecha de Vencimiento'] || !pago['Ultimo_Plan']) {
+      return res.status(400).json({ message: 'Faltan campos obligatorios' });
     }
+
+    await appendPagoToSheet(pago);
+
+    const alumnos = await getAlumnosFromSheet();
+    const alumno = alumnos.find(a => a.DNI === pago['Socio DNI']);
+    if (!alumno) return res.status(404).json({ message: 'Alumno no encontrado para actualizar coins' });
+
+    const coinsPorPlan = await obtenerCoinsPorPlan();
+
+    const coinsASumar = calcularCoinsPorPago(alumno, pago, coinsPorPlan);
+
+    const gymCoinsActuales = parseInt(alumno['GymCoins'] || '0', 10);
+    const gymCoinsNuevos = gymCoinsActuales + coinsASumar;
+
+    await updateAlumnoByDNI(alumno.DNI, {
+      GymCoins: String(gymCoinsNuevos)
+    });
+
+    res.status(201).json({
+      message: 'Pago registrado correctamente y coins actualizados',
+      coinsSumados: coinsASumar,
+      coinsTotales: gymCoinsNuevos,
+    });
+
+  } catch (error) {
+    console.error('Error al registrar pago:', error);
+    res.status(500).json({ message: 'Error al registrar el pago' });
+  }
 };
 
 // PUT

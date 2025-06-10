@@ -17,13 +17,6 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const ahoraAR = new Date().toLocaleTimeString('es-AR', {
-  timeZone: 'America/Argentina/Buenos_Aires',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false
-});
-
 export const crearCaja = async (req, res) => {
   try {
     const { turno, saldoInicial, responsable } = req.body;
@@ -32,7 +25,7 @@ export const crearCaja = async (req, res) => {
       return res.status(400).json({ message: 'Campos requeridos: turno, responsable' });
     }
 
-    const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format("YYYY-MM-DD")
+    const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format("YYYY-MM-DD");
     const cajas = await getCajasFromSheet();
 
     const yaExiste = cajas.find(c => {
@@ -55,6 +48,13 @@ export const crearCaja = async (req, res) => {
       saldoInicialFinal = cajaManiana?.['Total Final'] || '0';
     }
 
+    const ahoraAR = new Date().toLocaleTimeString('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
     const nuevaCaja = {
       Fecha: hoy,
       Turno: turno,

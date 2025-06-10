@@ -26,6 +26,7 @@ interface Member {
   Fecha_nacimiento: string
   Plan: string
   Profesor_asignado: string
+  GymCoins: string
 }
 
 interface MembersTabProps {
@@ -86,12 +87,10 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 <TableRow>
                   {[
                     "Nombre", "DNI", "Email", "Teléfono", "C.Pagadas", "C.Realizadas",
-                    "Inicio", "Vencimiento", "Nacimiento", "Plan", "Profesor", "Estado", "Acciones"
+                    "Inicio", "Vencimiento", "Nacimiento", "Plan", "Profesor", "Estado", "GymCoins", "Acciones"
                   ].map((head, i) => (
                     <TableHead key={i} className="text-center w-[7.7%]">{head}</TableHead>
                   ))}
-                  
-                  
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -146,6 +145,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                         }
                       })()}
                     </TableCell>
+                    <TableCell className="text-center">{member.GymCoins}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-2">
                         <Button size="icon" variant="ghost" onClick={() => onEdit(member)}>
