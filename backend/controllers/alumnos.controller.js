@@ -309,18 +309,50 @@ export const getDashboardAlumnos = async (req, res) => {
 export const getTopAlumnos = async (req, res) => {
   try {
     const alumnos = await getAlumnosFromSheet();
+    const planes = await getPlanesFromSheet();
 
-    const alumnosConPuntos = alumnos.map(alumno => ({
+    const planesGimnasio = planes.filter(plan => plan.Tipo == "GIMNASIO");
+    const planesClases = planes.filter(plan => plan.Tipo == "CLASE");
+
+    const alumnosConPlanGimnasio = alumnos.filter(alumno => {
+      if (!alumno.Plan || typeof alumno.Plan !== 'string') {
+        return false;
+      }
+      return planesGimnasio.some(plan => {
+        return plan['Plan o Producto'] === alumno.Plan;
+      });
+    });
+
+    const alumnosConPlanClases = alumnos.filter(alumno => {
+      if (!alumno.Plan || typeof alumno.Plan !== 'string') {
+        return false;
+      }
+      return planesClases.some(plan => {
+        return plan['Plan o Producto'] === alumno.Plan;
+      });
+    });
+
+    const alumnosConPuntosGimnasio = alumnosConPlanGimnasio.map(alumno => ({
       Nombre: alumno.Nombre,
+      Plan: alumno.Plan,
       GymCoins: parseInt(alumno.GymCoins || '0', 10),
       DNI: alumno.DNI
     }));
 
-    alumnosConPuntos.sort((a, b) => b.GymCoins - a.GymCoins);
+    const alumnosConPuntosClases = alumnosConPlanClases.map(alumno => ({
+      Nombre: alumno.Nombre,
+      Plan: alumno.Plan,
+      GymCoins: parseInt(alumno.GymCoins || '0', 10),
+      DNI: alumno.DNI
+    }));
 
-    const top10 = alumnosConPuntos.slice(0, 10);
+    alumnosConPuntosClases.sort((a, b) => b.GymCoins - a.GymCoins);
+    alumnosConPuntosGimnasio.sort((a, b) => b.GymCoins - a.GymCoins);
 
-    res.json(top10);
+    const top10Gimnasio = alumnosConPuntosGimnasio.slice(0, 10);
+    const top10Clases = alumnosConPuntosClases.slice(0, 10);
+
+    res.json({ top10Gimnasio, top10Clases });
   } catch (error) {
     console.error('Error al obtener top alumnos:', error);
     res.status(500).json({ message: 'Error al obtener los mejores alumnos' });
@@ -330,15 +362,44 @@ export const getTopAlumnos = async (req, res) => {
 export const getPosicionAlumno = async (req, res) => {
   const dni = req.params.dni;
   const alumnos = await getAlumnosFromSheet();
+  const planes = await getPlanesFromSheet();
 
-  alumnos.sort((a, b) => (parseInt(b.GymCoins || '0') - parseInt(a.GymCoins || '0')));
+  const planesGimnasio = planes.filter(plan => plan.Tipo == "GIMNASIO");
+  const planesClases = planes.filter(plan => plan.Tipo == "CLASE");
 
-  const posicion = alumnos.findIndex(al => al.DNI === dni);
-  if (posicion === -1) {
-    return res.status(404).json({ message: "Alumno no encontrado" });
+  const alumnosConPlanGimnasio = alumnos.filter(alumno => {
+    if (!alumno.Plan || typeof alumno.Plan !== 'string') {
+      return false;
+    }
+    return planesGimnasio.some(plan => {
+      return plan['Plan o Producto'] === alumno.Plan;
+    });
+  });
+
+  const alumnosConPlanClases = alumnos.filter(alumno => {
+    if (!alumno.Plan || typeof alumno.Plan !== 'string') {
+      return false;
+    }
+    return planesClases.some(plan => {
+      return plan['Plan o Producto'] === alumno.Plan;
+    });
+  });
+
+  alumnosConPlanGimnasio.sort((a, b) => (parseInt(b.GymCoins || '0') - parseInt(a.GymCoins || '0')));
+  alumnosConPlanClases.sort((a, b) => (parseInt(b.GymCoins || '0') - parseInt(a.GymCoins || '0')));
+
+  const alumno = alumnos.find(al => al.DNI === dni);
+  const nombreDelPlan = alumno.Plan;
+  
+  let posicion;
+
+  if (planesGimnasio.some(planGimnasio => planGimnasio['Plan o Producto'] === nombreDelPlan)) {
+    posicion = alumnosConPlanGimnasio.findIndex(al => al.DNI === dni);
+  } else {
+    posicion = alumnosConPlanClases.findIndex(al => al.DNI === dni);
   }
 
-  res.json({ posicion: posicion + 1 });
+  res.json({posicion: posicion + 1});
 };
 
 export const resetPuntosController = async (req, res) => {

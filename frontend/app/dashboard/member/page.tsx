@@ -355,7 +355,6 @@ export default function MemberDashboard() {
                 </div>
               </CardContent>
             </Card>
-
           </motion.div>
 
           <motion.div
@@ -375,7 +374,7 @@ export default function MemberDashboard() {
                 <div>
                   <div className="text-2xl font-bold flex items-center gap-1 gradient-text">
                     <p className="text-2xl">
-                     #{rankingAlumno} - {planInhabilitado ? "Sin acceso" : user.GymCoins}
+                      #{rankingAlumno} - {planInhabilitado ? "Sin acceso" : user.GymCoins}
                     </p>
                     <Coins />
                   </div>
@@ -404,30 +403,54 @@ export default function MemberDashboard() {
           <Card className="border-primary/20 dark:bg-zinc-800 dark:border-none">
             <CardHeader className="flex justify-between items-center bg-primary/5 mb-5">
               <CardTitle>Ranking GymSpace Coins</CardTitle>
-              <CardDescription>Los 10 mejores participantes</CardDescription>
+              <CardDescription>
+                Los 10 mejores participantes {user.Tipo_de_plan === "GIMNASIO" ? "del GIMNASIO" : "del CLUB"}
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {topAlumnosCoins.map((alumno, index) => {
-                const esUsuarioActual = alumno.DNI === contextUser?.dni;
-                return (
-                  <motion.div
-                    key={alumno.DNI}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: esUsuarioActual ? 1.05 : 1 }}
-                    transition={{ duration: 0.4 }}
-                    className={`rounded-lg border p-4 flex flex-col items-center justify-center text-center cursor-default
-              ${esUsuarioActual ? 'bg-yellow-400 dark:bg-yellow-900 font-bold shadow-lg' : 'bg-background dark:bg-zinc-900'}
-              hover:shadow-md transition-shadow`}
-                  >
-                    <div className="text-2xl text-primary font-extrabold mb-1">#{index + 1}</div>
-                    <div className="text-lg font-semibold truncate max-w-full">{alumno.Nombre}</div>
-                    <div className="mt-2 flex items-center gap-1 text-2xl font-bold gradient-text">
-                      {alumno.GymCoins}
-                      <Coins className="w-6 h-6" />
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {user?.Tipo_de_plan === "GIMNASIO"
+                ? topAlumnosCoins.top10Gimnasio.map((alumno, index) => {
+                  const esUsuarioActual = alumno.DNI === contextUser?.dni;
+                  return (
+                    <motion.div
+                      key={alumno.DNI}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: esUsuarioActual ? 1.05 : 1 }}
+                      transition={{ duration: 0.4 }}
+                      className={`rounded-lg border p-4 flex flex-col items-center justify-center text-center cursor-default
+                ${esUsuarioActual ? 'bg-yellow-400 dark:bg-yellow-900 font-bold shadow-lg' : 'bg-background dark:bg-zinc-900'}
+                hover:shadow-md transition-shadow`}
+                    >
+                      <div className="text-2xl text-primary font-extrabold mb-1">#{index + 1}</div>
+                      <div className="text-lg font-semibold truncate max-w-full">{alumno.Nombre}</div>
+                      <div className="mt-2 flex items-center gap-1 text-2xl font-bold gradient-text">
+                        {alumno.GymCoins}
+                        <Coins className="w-6 h-6" />
+                      </div>
+                    </motion.div>
+                  );
+                })
+                : topAlumnosCoins.top10Clases.map((alumno, index) => {
+                  const esUsuarioActual = alumno.DNI === contextUser?.dni;
+                  return (
+                    <motion.div
+                      key={alumno.DNI}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: esUsuarioActual ? 1.05 : 1 }}
+                      transition={{ duration: 0.4 }}
+                      className={`rounded-lg border p-4 flex flex-col items-center justify-center text-center cursor-default
+                ${esUsuarioActual ? 'bg-yellow-400 dark:bg-yellow-900 font-bold shadow-lg' : 'bg-background dark:bg-zinc-900'}
+                hover:shadow-md transition-shadow`}
+                    >
+                      <div className="text-2xl text-primary font-extrabold mb-1">#{index + 1}</div>
+                      <div className="text-lg font-semibold truncate max-w-full">{alumno.Nombre}</div>
+                      <div className="mt-2 flex items-center gap-1 text-2xl font-bold gradient-text">
+                        {alumno.GymCoins}
+                        <Coins className="w-6 h-6" />
+                      </div>
+                    </motion.div>
+                  );
+                })}
             </CardContent>
           </Card>
         </motion.div>
