@@ -583,7 +583,7 @@ export default function MemberDashboard() {
                       <h3 className="text-2xl font-bold mb-4 text-primary">{dia}</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {clases.map((clase) => {
-                          const inscritos = clase.Inscriptos?.split(',').map(d => d.trim()) || [];
+                          const inscritos = clase.Inscriptos?.split(',').map(d => d.trim()).filter(d => d) || [];
                           const estaInscripto = inscritos.includes(contextUser!.dni);
 
                           const ARG_TZ = "America/Argentina/Buenos_Aires";
