@@ -91,6 +91,37 @@ export function ShiftPaymentsTab({
     setCurrentPage(1)
   }, [searchTerm, tipoFiltro])
 
+  const resumenAgrupado: Record<
+    string,
+    { metodos: Record<string, number>; deuda: number }
+  > = {}
+
+  for (const [tipo, metodos] of Object.entries(resumenPorTipo)) {
+    let clave = tipo
+    let esDeuda = false
+
+    if (tipo.toLowerCase().includes("deuda gimnasio")) {
+      clave = "GIMNASIO"
+      esDeuda = true
+    } else if (tipo.toLowerCase().includes("deuda clases")) {
+      clave = "CLASE"
+      esDeuda = true
+    }
+
+    if (!resumenAgrupado[clave]) {
+      resumenAgrupado[clave] = { metodos: {}, deuda: 0 }
+    }
+
+    for (const [metodo, monto] of Object.entries(metodos)) {
+      resumenAgrupado[clave].metodos[metodo] =
+        (resumenAgrupado[clave].metodos[metodo] || 0) + monto
+
+      if (esDeuda) {
+        resumenAgrupado[clave].deuda += monto
+      }
+    }
+  }
+
   return (
     <>
       <Card>
@@ -314,13 +345,21 @@ export function ShiftPaymentsTab({
               <h2 className="text-2xl">Totales del turno {selectedShift}</h2>
             </div>
             {Object.keys(resumenPorTipo).length > 0 && (
-              <div className="grid md:grid-cols-3 gap-4">
-                {Object.entries(resumenPorTipo).map(([tipo, metodos]) => {
+              <div className="grid gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
+
+                {Object.entries(resumenAgrupado).map(([tipo, { metodos, deuda }]) => {
                   const totalPorTipo = Object.values(metodos).reduce((sum, val) => sum + val, 0)
                   return (
                     <div key={tipo} className="bg-muted rounded-xl p-5 border flex flex-col justify-between">
                       <div>
-                        <h4 className="font-semibold mb-2">{tipo}</h4>
+                        <h4 className="font-semibold mb-2">
+                          {tipo}
+                          {deuda > 0 && (
+                            <span className="text-sm text-red-600 ml-2">
+                              (incluye ${deuda.toLocaleString("es-AR")} de deuda)
+                            </span>
+                          )}
+                        </h4>
                         <ul className="space-y-1">
                           {Object.entries(metodos).map(([metodo, total]) => (
                             <li key={metodo} className="flex justify-between">

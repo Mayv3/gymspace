@@ -157,13 +157,14 @@ export const getDashboardCompleto = async (req, res) => {
       mes: dayjs().month(i).locale('es').format('MMMM'),
       gimnasio: 0,
       clase: 0,
+      servicio: 0,
+      producto: 0,
       egresosGimnasio: 0,
       egresosClase: 0,
       netoGimnasio: 0,
       netoClase: 0,
     }));
 
-    // 📌 Procesar EGRESOS por mes y tipo
     for (const e of egresos) {
       const fechaEgreso = dayjs(e.Fecha, ['D/M/YYYY', 'DD/MM/YYYY'], true);
       if (!fechaEgreso.isValid()) continue;
@@ -178,7 +179,6 @@ export const getDashboardCompleto = async (req, res) => {
       }
     }
 
-    // 📌 Procesar INGRESOS por mes y tipo
     for (const p of pagos) {
       const fechaPagoStr = p.Fecha_pago || p.Fecha_de_Pago || p["Fecha de Pago"] || "";
       const fechaPago = dayjs(fechaPagoStr, ['D/M/YYYY', 'DD/MM/YYYY'], true);
@@ -193,8 +193,15 @@ export const getDashboardCompleto = async (req, res) => {
         const tipo = (p.Tipo || "").trim().toUpperCase();
         const monto = parseFloat(p.Monto || "0");
 
-        if (tipo === "GIMNASIO") meses[mesIndex].gimnasio += monto;
-        else if (tipo === "CLASE") meses[mesIndex].clase += monto;
+        if (["GIMNASIO", "DEUDA GIMNASIO"].includes(tipo)) {
+          meses[mesIndex].gimnasio += monto;
+        } else if (["CLASE", "DEUDA CLASES"].includes(tipo)) {
+          meses[mesIndex].clase += monto;
+        } else if (tipo === "SERVICIO") {
+          meses[mesIndex].servicio += monto;
+        } else if (tipo === "PRODUCTO") {
+          meses[mesIndex].producto += monto;
+        }
       }
     }
 

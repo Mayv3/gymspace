@@ -32,8 +32,8 @@ export default function EgresosSection() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [egresoAEliminar, setEgresoAEliminar] = useState<Egreso | null>(null)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
-    const { user } = useUser()
     const [isSubmitting, setisSubmitting] = useState(false);
+    const { user } = useUser()
 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);

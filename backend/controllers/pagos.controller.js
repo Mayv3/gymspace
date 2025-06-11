@@ -276,13 +276,19 @@ export const getFacturacionAnual = async (req, res) => {
             if (fecha.year() !== anio) continue
 
             const mesIndex = fecha.month();
-            const tipo = (pago.Tipo || "").toUpperCase()
+            const tipo = (pago.Tipo || "").toUpperCase().trim()
             const monto = parseFloat(pago.Monto) || 0
 
-            if (tipo === "GIMNASIO") {
-                meses[mesIndex].gimnasio += monto
-            } else if (tipo === "CLASE") {
-                meses[mesIndex].clase += monto
+            console.log(`Tipo leído: "${tipo}" | Monto: ${monto}`);
+
+            if (["GIMNASIO", "DEUDA GIMNASIO"].includes(tipo)) {
+                meses[mesIndex].gimnasio += monto;
+                console.log(`Monto gimnasio: ${monto}`)
+            }
+
+            if (["CLASE", "DEUDA CLASES"].includes(tipo)) {
+                meses[mesIndex].clase += monto;
+                console.log(`Monto clases: ${monto}`)
             }
         }
 
@@ -320,98 +326,103 @@ export const getPagosUltimaSemana = async (req, res) => {
 // POST
 
 export async function obtenerCoinsPorPlan() {
-  const planes = await getPlanesFromSheet();
+    const planes = await getPlanesFromSheet();
 
-  const coinsPorPlan = {};
+    const coinsPorPlan = {};
 
-  planes.forEach(plan => {
-    const coins = parseInt(plan.Coins, 10) || 0;
-    coinsPorPlan[plan['Plan o Producto']] = coins;
-  });
+    planes.forEach(plan => {
+        const coins = parseInt(plan.Coins, 10) || 0;
+        coinsPorPlan[plan['Plan o Producto']] = coins;
+    });
 
-  return coinsPorPlan;
+    return coinsPorPlan;
 }
 
 const calcularCoinsPorPago = (alumno, pago, coinsPorPlan) => {
-  let coins = 0;
+    let coins = 0;
 
-  const coinsPlan = coinsPorPlan[pago['Ultimo_Plan']] || 0;
-  coins += coinsPlan;
+    const planes = getAlumnosFromSheet();
 
-  const fechaInicio = dayjs(alumno['Fecha_inicio'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
-  const fechaPago = dayjs(pago['Fecha de Pago'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
-  const fechaVencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
-  const hoy = dayjs();
+    const coinsPlan = coinsPorPlan[pago['Ultimo_Plan']] || 0;
+    coins += coinsPlan;
 
-  const antiguedad = hoy.diff(fechaInicio, 'year');
-  const pagoAntesVencimiento = fechaPago.isBefore(fechaVencimiento);
+    const fechaInicio = dayjs(alumno['Fecha_inicio'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
+    const fechaPago = dayjs(pago['Fecha de Pago'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
+    const fechaVencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
+    const hoy = dayjs();
 
-  let coinsAntiguedad = 0;
-  let coinsPagoAnticipado = 0;
+    const antiguedad = hoy.diff(fechaInicio, 'year');
+    const pagoAntesVencimiento = fechaPago.isBefore(fechaVencimiento);
 
-  if (antiguedad >= 1) {
-    coinsAntiguedad = 100;  // Cambié a 100 puntos si tiene 1 año o más
-    coins += coinsAntiguedad;
-  }
+    let coinsAntiguedad = 0;
+    let coinsPagoAnticipado = 0;
 
-  if (pagoAntesVencimiento) {
-    coinsPagoAnticipado = 100;
-    coins += coinsPagoAnticipado;
-  }
- 
-  console.log('=== Cálculo de coins ===');
-  console.log('Alumno:', alumno.Nombre, 'DNI:', alumno.DNI);
-  console.log('Plan pagado:', pago['Ultimo_Plan']);
-  console.log('Coins base plan:', coinsPlan);
-  console.log('Fecha inicio alumno:', fechaInicio.format('DD/MM/YYYY'));
-  console.log('Fecha pago:', fechaPago.format('DD/MM/YYYY'));
-  console.log('Fecha vencimiento:', fechaVencimiento.format('DD/MM/YYYY'));
-  console.log('Antigüedad (años):', antiguedad);
-  console.log('Pago antes de vencimiento:', pagoAntesVencimiento);
-  console.log('Coins por antigüedad:', coinsAntiguedad);
-  console.log('Coins por pago anticipado:', coinsPagoAnticipado);
-  console.log('Total coins calculados:', coins);
-  console.log('========================');
+    if (["GIMNASIO", "CLASE"].includes(pago['Tipo'])) {
+        if (antiguedad >= 1) {
+            coinsAntiguedad = 100;
+            coins += coinsAntiguedad;
+        }
 
-  return coins;
-};
+        if (pagoAntesVencimiento) {
+            coinsPagoAnticipado = 100;
+            coins += coinsPagoAnticipado;
+        }
 
-
-export const addPago = async (req, res) => {
-  try {
-    const pago = req.body;
-
-    if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago'] || !pago['Fecha de Vencimiento'] || !pago['Ultimo_Plan']) {
-      return res.status(400).json({ message: 'Faltan campos obligatorios' });
+        console.log('Fecha inicio alumno:', fechaInicio.format('DD/MM/YYYY'));
+        console.log('Fecha pago:', fechaPago.format('DD/MM/YYYY'));
+        console.log('Fecha vencimiento:', fechaVencimiento.format('DD/MM/YYYY'));
+        console.log('Antigüedad (años):', antiguedad);
+        console.log('Pago antes de vencimiento:', pagoAntesVencimiento);
+        console.log('Coins por antigüedad:', coinsAntiguedad);
+        console.log('Coins por pago anticipado:', coinsPagoAnticipado);
     }
 
-    await appendPagoToSheet(pago);
+    console.log('=== Cálculo de coins ===');
+    console.log('Alumno:', alumno.Nombre, 'DNI:', alumno.DNI);
+    console.log('Plan pagado:', pago['Ultimo_Plan']);
+    console.log('Coins base plan:', coinsPlan);
 
-    const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find(a => a.DNI === pago['Socio DNI']);
-    if (!alumno) return res.status(404).json({ message: 'Alumno no encontrado para actualizar coins' });
+    console.log('Total coins calculados:', coins);
+    console.log('========================');
 
-    const coinsPorPlan = await obtenerCoinsPorPlan();
+    return coins;
+};
 
-    const coinsASumar = calcularCoinsPorPago(alumno, pago, coinsPorPlan);
+export const addPago = async (req, res) => {
+    try {
+        const pago = req.body;
 
-    const gymCoinsActuales = parseInt(alumno['GymCoins'] || '0', 10);
-    const gymCoinsNuevos = gymCoinsActuales + coinsASumar;
+        if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago'] || !pago['Fecha de Vencimiento'] || !pago['Ultimo_Plan']) {
+            return res.status(400).json({ message: 'Faltan campos obligatorios' });
+        }
 
-    await updateAlumnoByDNI(alumno.DNI, {
-      GymCoins: String(gymCoinsNuevos)
-    });
+        await appendPagoToSheet(pago);
 
-    res.status(201).json({
-      message: 'Pago registrado correctamente y coins actualizados',
-      coinsSumados: coinsASumar,
-      coinsTotales: gymCoinsNuevos,
-    });
+        const alumnos = await getAlumnosFromSheet();
+        const alumno = alumnos.find(a => a.DNI === pago['Socio DNI']);
+        if (!alumno) return res.status(404).json({ message: 'Alumno no encontrado para actualizar coins' });
 
-  } catch (error) {
-    console.error('Error al registrar pago:', error);
-    res.status(500).json({ message: 'Error al registrar el pago' });
-  }
+        const coinsPorPlan = await obtenerCoinsPorPlan();
+
+        const coinsASumar = calcularCoinsPorPago(alumno, pago, coinsPorPlan);
+
+        const gymCoinsActuales = parseInt(alumno['GymCoins'] || '0', 10);
+        const gymCoinsNuevos = gymCoinsActuales + coinsASumar;
+
+        await updateAlumnoByDNI(alumno.DNI, {
+            GymCoins: String(gymCoinsNuevos)
+        });
+
+        res.status(201).json({
+            message: 'Pago registrado correctamente y coins actualizados',
+            coinsSumados: coinsASumar,
+            coinsTotales: gymCoinsNuevos,
+        });
+
+    } catch (error) {
+        console.error('Error al registrar pago:', error);
+        res.status(500).json({ message: 'Error al registrar el pago' });
+    }
 };
 
 // PUT

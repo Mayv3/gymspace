@@ -19,6 +19,12 @@ import { CheckCircle, XCircle } from "lucide-react"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
+
+import utc from "dayjs/plugin/utc"
+import timezone from "dayjs/plugin/timezone"
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 dayjs.extend(isSameOrBefore)
 dayjs.extend(customParseFormat)
 
@@ -200,6 +206,29 @@ export default function MemberDashboard() {
   const progressPercentage = fechaValida
     ? Math.min(100, Math.max(0, (daysLeft / 30) * 100))
     : 0
+
+  const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
+  const hoy = dayjs().locale("es").day(); 
+  const indiceHoy = hoy === 0 ? 6 : hoy - 1; 
+
+  const diasOrden = [
+    ...todosLosDias.slice(indiceHoy),
+    ...todosLosDias.slice(0, indiceHoy),
+  ];
+  const clasesAgrupadas = diasOrden.map((dia) => {
+    const clasesDelDia = clases
+      .filter((clase) => clase.Dia === dia)
+      .sort((a, b) => {
+        const [horaA, minutoA] = a.Hora.split(":").map(Number);
+        const [horaB, minutoB] = b.Hora.split(":").map(Number);
+        return horaA - horaB || minutoA - minutoB;
+      });
+
+    return {
+      dia,
+      clases: clasesDelDia,
+    };
+  });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -533,7 +562,7 @@ export default function MemberDashboard() {
         >
           {user.Tipo_de_plan === "CLASE" ? (
             <Card>
-              <CardHeader className="bg-primary/5 bg">
+              <CardHeader className="bg-primary/5">
                 <div className="flex items-center">
                   <Calendar className="h-5 w-5 text-primary mr-2" />
                   <CardTitle>Inscripción a Clases</CardTitle>
@@ -541,99 +570,97 @@ export default function MemberDashboard() {
                 <CardDescription>Elige tu clase y gestiona tu inscripción.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                {loadingClases
-                  ? <p>Cargando clases...</p>
-                  : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {clases.map((clase, idx) => {
-                        const inscritos = clase.Inscriptos
-                          ? clase.Inscriptos.split(',').map(d => d.trim())
-                          : []
-                        const estaInscripto = inscritos.includes(contextUser!.dni)
+                {loadingClases ? (
+                  <p>Cargando clases...</p>
+                ) : (
+                  clasesAgrupadas.map(({ dia, clases }) => (
+                    <div key={dia} className="mb-8">
+                      <h3 className="text-2xl font-bold mb-4 text-primary">{dia}</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {clases.map((clase) => {
+                          const inscritos = clase.Inscriptos?.split(',').map(d => d.trim()) || [];
+                          const estaInscripto = inscritos.includes(contextUser!.dni);
 
-                        const now = dayjs()
-                        const claseDate = dayjs(clase.Dia, 'D/M/YYYY')
-                          .hour(parseInt(clase.Hora.split(':')[0]))
-                          .minute(parseInt(clase.Hora.split(':')[1]))
-                        const minutosParaClase = claseDate.diff(now, 'minute')
-                        const minutosDesdeClase = now.diff(claseDate, 'minute')
+                          const ARG_TZ = "America/Argentina/Buenos_Aires";
+                          const now = dayjs().tz(ARG_TZ);
 
-                        let estado: string
-                        let puedeActuar = false
+                          const fechaClase = clase.ProximaFecha?.trim() || "";
+                          const [horaStr, minutoStr] = clase.Hora.split(":");
 
-                        if (minutosDesdeClase >= 0) {
-                          estado = "Clase finalizada"
-                        } else if (inscritos.length >= Number(clase['Cupo maximo'])) {
-                          estado = "Cupo completo"
-                        } else if (!estaInscripto && minutosParaClase < 60) {
-                          estado = "Inscripción cerrada"
-                        } else if (estaInscripto && minutosDesdeClase > 60) {
-                          estado = "Desuscripción cerrada"
-                        } else {
-                          estado = estaInscripto ? "Desuscribirse" : "Inscribirse"
-                          puedeActuar = true
-                        }
+                          const claseDate = dayjs(fechaClase, ["D/M/YYYY", "DD/MM/YYYY"])
+                            .hour(parseInt(horaStr, 10))
+                            .minute(parseInt(minutoStr, 10))
+                            .tz(ARG_TZ);
 
-                        return (
-                          <Card
-                            key={clase.ID}
-                            className={`bg-background text-foreground rounded-lg border border-orange-500 transition p-6 flex flex-col justify-between`}
-                          >
-                            <div>
-                              <div className="flex justify-between items-center mb-4 w-full">
-                                <CardTitle className="text-xl font-bold">{clase['Nombre de clase']}</CardTitle>
-                                <Badge variant="outline" className="text-sm font-semibold bg-background text-foreground">
-                                  {clase.Dia} - {clase.ProximaFecha}
-                                </Badge>
+                          const minutosParaClase = claseDate.diff(now, "minute");
+                          const minutosDesdeClase = now.diff(claseDate, "minute");
+
+                          let estado = "";
+                          let puedeActuar = false;
+
+                          if (minutosDesdeClase >= 0) {
+                            estado = "Clase finalizada";
+                          } else if (inscritos.length >= Number(clase['Cupo maximo'])) {
+                            estado = "Cupo completo";
+                          } else if (!estaInscripto && minutosParaClase < 60) {
+                            estado = "Inscripción cerrada";
+                          } else if (estaInscripto && minutosDesdeClase > 60) {
+                            estado = "Desuscripción cerrada";
+                          } else {
+                            estado = estaInscripto ? "Desuscribirse" : "Inscribirse";
+                            puedeActuar = true;
+                          }
+
+                          return (
+                            <Card
+                              key={clase.ID}
+                              className="bg-background text-foreground rounded-lg border border-orange-500 transition p-6 flex flex-col justify-between"
+                            >
+                              <div>
+                                <div className="flex justify-between items-center mb-4 w-full">
+                                  <CardTitle className="text-xl font-bold">{clase['Nombre de clase']}</CardTitle>
+                                  <Badge variant="outline" className="text-sm font-semibold bg-background text-foreground">
+                                    {clase.Dia} - {clase.ProximaFecha}
+                                  </Badge>
+                                </div>
+                                <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
+                                <p className="text-lg">
+                                  <span className="font-semibold">{inscritos.length}</span> / <span className="font-semibold">{clase['Cupo maximo']}</span> Inscriptos
+                                </p>
                               </div>
-                              <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
-                              <p className="text-lg">
-                                <span className="font-semibold">{inscritos.length}</span> /{' '}
-                                <span className="font-semibold">{clase['Cupo maximo']}</span> Inscriptos
-                              </p>
-                            </div>
-                            <div className="mt-4">
-                              <button
-                                onClick={() => puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")}
-                                disabled={!puedeActuar || loadingClaseId === clase.ID}
-                                className={`w-full py-3 rounded-lg font-semibold ${puedeActuar ? estado === "Desuscribirse" ? "bg-red-600 text-white hover:bg-red-700" : "bg-orange-600 text-white hover:bg-orange-700" : "bg-gray-200 text-gray-600 cursor-not-allowed"}`}>
-                                {loadingClaseId === clase.ID ? (
-                                  <div className="flex items-center justify-center">
-                                    <svg
-                                      className="animate-spin mr-2 h-5 w-5 text-white"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                      />
-                                      <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-                                      />
-                                    </svg>
-                                    {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
-                                  </div>
-                                ) : (
-                                  estado
-                                )}
-                              </button>
-                            </div>
-                          </Card>
-                        )
-                      })}
+                              <div className="mt-4">
+                                <button
+                                  onClick={() => puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")}
+                                  disabled={!puedeActuar || loadingClaseId === clase.ID}
+                                  className={`w-full py-3 rounded-lg font-semibold ${puedeActuar
+                                    ? estado === "Desuscribirse"
+                                      ? "bg-red-600 text-white hover:bg-red-700"
+                                      : "bg-orange-600 text-white hover:bg-orange-700"
+                                    : "bg-gray-200 text-gray-600 cursor-not-allowed"}`}
+                                >
+                                  {loadingClaseId === clase.ID ? (
+                                    <div className="flex items-center justify-center">
+                                      <svg className="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
+                                      </svg>
+                                      {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
+                                    </div>
+                                  ) : (
+                                    estado
+                                  )}
+                                </button>
+                              </div>
+                            </Card>
+                          );
+                        })}
+                      </div>
                     </div>
-                  )
-                }
+                  ))
+                )}
               </CardContent>
-            </Card>) : (<></>)}
+            </Card>
+          ) : null}
         </motion.div>
       </div>
     </div>

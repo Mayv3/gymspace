@@ -64,7 +64,7 @@ export default function PlansSection() {
     const handleConfirmCreate = async () => {
         const { Tipo, 'Plan o Producto': plan, Precio, numero_Clases, Coins } = createForm;
 
-        if (!plan || !Precio || !numero_Clases || !Coins ) {
+        if (!plan || !Precio || !numero_Clases || !Coins) {
             notify.error("Por favor, completá todos los campos obligatorios.");
             return;
         }
@@ -302,6 +302,10 @@ export default function PlansSection() {
                                 <SelectContent>
                                     <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
                                     <SelectItem value="CLASE">CLASE</SelectItem>
+                                    <SelectItem value="SERVICIO">SERVICIO</SelectItem>
+                                    <SelectItem value="PRODUCTO">PRODUCTO</SelectItem>
+                                    <SelectItem value="DEUDA GIMNASIO">DEUDA GIMNASIO</SelectItem>
+                                    <SelectItem value="DEUDA CLASES">DEUDA CLASES</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -347,7 +351,6 @@ export default function PlansSection() {
                 </FormEnterToTab>
             </ConfirmDialog>
 
-
             {/* Editar Plan */}
             <ConfirmDialog
                 open={showEditDialog}
@@ -372,6 +375,10 @@ export default function PlansSection() {
                                 <SelectContent>
                                     <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
                                     <SelectItem value="CLASE">CLASE</SelectItem>
+                                    <SelectItem value="SERVICIO">SERVICIO</SelectItem>
+                                    <SelectItem value="PRODUCTO">PRODUCTO</SelectItem>
+                                    <SelectItem value="DEUDA GIMNASIO">DEUDA GIMNASIO</SelectItem>
+                                    <SelectItem value="DEUDA CLASES">DEUDA CLASES</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

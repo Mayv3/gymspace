@@ -127,23 +127,25 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       const parsedDate = parse(formData.expirationDate, "yyyy-MM-dd", new Date())
       const expirationDateFormatted = format(parsedDate, "dd/MM/yyyy")
 
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          Fecha_vencimiento: expirationDateFormatted,
-          Plan: planSeleccionado?.["Plan o Producto"] || "",
-          Clases_pagadas: parseInt(planSeleccionado?.numero_Clases || "0"),
-          Clases_realizadas: "0"
+      if (tipoSeleccionado === "GIMNASIO" || tipoSeleccionado === "CLASE") {
+        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Fecha_vencimiento: expirationDateFormatted,
+            Plan: planSeleccionado?.["Plan o Producto"] || "",
+            Clases_pagadas: parseInt(planSeleccionado?.numero_Clases || "0"),
+            Clases_realizadas: "0"
+          })
         })
-      })
 
-      onMemberUpdated(
-        formData.dni,
-        expirationDateFormatted,
-        planSeleccionado?.["Plan o Producto"] || "",
-        parseInt(planSeleccionado?.numero_Clases || "0")
-      )
+        onMemberUpdated(
+          formData.dni,
+          expirationDateFormatted,
+          planSeleccionado?.["Plan o Producto"] || "",
+          parseInt(planSeleccionado?.numero_Clases || "0")
+        )
+      }
 
       onPaymentAdded()
       notify.success("¡Pago cargado con éxito!")
@@ -277,7 +279,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
               <div className="space-y-2">
                 <Label htmlFor="paymentDate">Fecha de Pago</Label>
                 <DatePicker
-                disabled
+                  disabled
                   date={
                     formData.paymentDate
                       ? parseLocalYMD(formData.paymentDate)

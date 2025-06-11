@@ -29,6 +29,7 @@ import { useAppData } from "@/context/AppDataContext"
 
 import { Member } from "@/models/dashboard"
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
+import { DeudasSection } from "@/components/dashboard/recepcionist/deudas/Deudas"
 
 export default function ReceptionistDashboard() {
   const { user, loading } = useUser()
@@ -175,13 +176,15 @@ export default function ReceptionistDashboard() {
         )}
 
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6 md:w-auto">
+          <TabsList className="grid w-full grid-cols-7 md:w-auto">
             <TabsTrigger value="members">Miembros</TabsTrigger>
             <TabsTrigger value="shift-payments">Pagos</TabsTrigger>
+            <TabsTrigger value="deudas">Deudas</TabsTrigger>
             <TabsTrigger value="assists">Asistencias</TabsTrigger>
             <TabsTrigger value="plans">Planes</TabsTrigger>
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
             <TabsTrigger value="egresos">Egresos</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="members" className="space-y-4">
@@ -236,6 +239,10 @@ export default function ReceptionistDashboard() {
 
           <TabsContent value="egresos" className="space-y-4">
             <EgresosSection />
+          </TabsContent>
+
+          <TabsContent value="deudas" className="space-y-4">
+            <DeudasSection/>
           </TabsContent>
         </Tabs>
       </div>

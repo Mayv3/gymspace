@@ -102,7 +102,7 @@ export async function updateAlumnoByDNI(dni, nuevosDatos) {
   });
 
   const [headers, ...rows] = res.data.values;
-  const index = rows.findIndex((row) => row[1] === dni); // Columna B (índice 1) es el DNI
+  const index = rows.findIndex((row) => row[1] === dni);
 
   if (index === -1) return false;
 
@@ -258,27 +258,6 @@ export async function appendPagoToSheet(pago) {
   });
 }
 
-// Roles 
-
-export async function getRolesFromSheet() {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Roles!A1:C', // Asegurate que el nombre de la hoja sea correcto
-  });
-
-  const [headers, ...rows] = res.data.values;
-
-  const roles = rows.map((row) => {
-    const user = {};
-    headers.forEach((header, i) => {
-      user[header] = row[i] || '';
-    });
-    return user;
-  });
-
-  return roles;
-}
-
 export async function updatePagoByID(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -286,7 +265,7 @@ export async function updatePagoByID(id, nuevosDatos) {
   });
 
   const [headers, ...rows] = res.data.values;
-  const rowIndex = rows.findIndex(row => row[0] === id); // ID está en columna A
+  const rowIndex = rows.findIndex(row => row[0] === id);
 
   if (rowIndex === -1) return false;
 
@@ -320,9 +299,9 @@ export async function deletePagoByID(id) {
         {
           deleteDimension: {
             range: {
-              sheetId: 1211942960, // ✅ tu sheetId real de la hoja Pagos
+              sheetId: 1211942960, 
               dimension: 'ROWS',
-              startIndex: rowIndex + 1, // +1 por headers
+              startIndex: rowIndex + 1,
               endIndex: rowIndex + 2
             }
           }
@@ -333,6 +312,28 @@ export async function deletePagoByID(id) {
 
   return true;
 }
+// Roles 
+
+export async function getRolesFromSheet() {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'Roles!A1:C', // Asegurate que el nombre de la hoja sea correcto
+  });
+
+  const [headers, ...rows] = res.data.values;
+
+  const roles = rows.map((row) => {
+    const user = {};
+    headers.forEach((header, i) => {
+      user[header] = row[i] || '';
+    });
+    return user;
+  });
+
+  return roles;
+}
+
+
 
 // Asistencias 
 
@@ -612,7 +613,7 @@ export async function getPlanesFromSheet() {
 
 export async function appendPlanToSheet(data) {
   const nuevoID = await getNextId('PlanesYprecios!A2:A');
-  console.log(data)
+
   const values = [[
     nuevoID,
     data.Tipo,

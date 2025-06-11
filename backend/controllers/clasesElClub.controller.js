@@ -8,6 +8,14 @@ import {
   eliminarRegistroDeClase
 } from '../services/googleSheets.js';
 
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+
+dayjs.extend(customParseFormat);
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
 const RESPONSES = {
   requiredDni: { status: 400, message: 'DNI requerido' },
   classNotFound: { status: 404, message: 'Clase no encontrada' },
@@ -36,6 +44,8 @@ const DIA_SEMANA_MAP = {
   'Viernes': 5,
   'Sábado': 6
 }
+
+const ARG_TIMEZONE = 'America/Argentina/Buenos_Aires';
 
 function calcularProximaFecha(diaSemana) {
   const hoy = dayjs()
@@ -70,7 +80,7 @@ const limpiarInscriptosPasados = async () => {
     if (!proximaFecha) continue;
 
     const fechaClase = dayjs(`${dayjs(proximaFecha, 'D/M/YYYY').format('YYYY-MM-DD')}T${clase.Hora.padStart(5, '0')}`);
-    
+
     if (fechaClase.isBefore(ahora, 'minute') && clase.Inscriptos && clase.Inscriptos.trim() !== '') {
       await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' });
     }
@@ -80,7 +90,7 @@ const limpiarInscriptosPasados = async () => {
 export const obtenerClasesElClub = async (req, res) => {
   try {
     await limpiarInscriptosPasados();
-    
+
     const clases = await getClasesElClubFromSheet();
 
     const clasesConFecha = clases.map(clase => {
@@ -92,6 +102,12 @@ export const obtenerClasesElClub = async (req, res) => {
         ProximaFecha: proximaFecha,
 
       };
+    });
+
+    clasesConFecha.sort((a, b) => {
+      const fechaA = dayjs(`${a.ProximaFecha} ${a.Hora}`, "D/M/YYYY HH:mm");
+      const fechaB = dayjs(`${b.ProximaFecha} ${b.Hora}`, "D/M/YYYY HH:mm");
+      return fechaA.diff(fechaB);
     });
 
     return sendSuccess(res, clasesConFecha);
@@ -117,11 +133,12 @@ export const updateClaseTableroByID = async (req, res) => {
     if (!alumno) return sendError(res, RESPONSES.alumnoNotFound);
 
     const inscritos = clase.Inscriptos ? clase.Inscriptos.split(',').map(d => d.trim()) : [];
-    const now = dayjs();
+    const now = dayjs().tz(ARG_TIMEZONE);
 
-    const proximaFecha = calcularProximaFecha(clase.Dia); // ✅ ahora sí
+    const proximaFecha = calcularProximaFecha(clase.Dia);
 
-    const classTime = dayjs(`${dayjs(proximaFecha, 'D/M/YYYY').format('YYYY-MM-DD')}T${clase.Hora.padStart(5, '0')}`);
+    const proximaFechaStr = dayjs(proximaFecha, 'D/M/YYYY').format('YYYY-MM-DD');
+    const classTime = dayjs.tz(`${proximaFechaStr}T${clase.Hora.padStart(5, '0')}`, ARG_TIMEZONE);
 
     if (!desuscribir) {
       const vencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
@@ -145,6 +162,8 @@ export const updateClaseTableroByID = async (req, res) => {
       }
 
       if (classTime.diff(now, 'minute') < 60) {
+        console.log("Hora Ahora:", now)
+        console.log("Hora clase:", classTime)
         return sendError(res, RESPONSES.subscribeLate);
       }
 

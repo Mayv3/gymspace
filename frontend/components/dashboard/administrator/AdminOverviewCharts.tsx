@@ -142,7 +142,11 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
     const egresosClases = data.egresosClase || 0;
     const netoGimnasio = data.netoGimnasio || 0;
     const netoClase = data.netoClase || 0;
-    const netoTotal = netoGimnasio + netoClase;
+    const servicio = data.servicio || 0;
+    const producto = data.producto || 0;
+
+    const netoTotal = netoGimnasio + netoClase + servicio + producto;
+
 
     return (
       <div className="p-2 rounded-md shadow text-sm border w-max max-w-[240px] bg-white dark:bg-gray-800 dark:text-white">
@@ -154,6 +158,9 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
         <p>📉 Egreso Clases: ${egresosClases}</p>
         <p className="mb-1 text-green-500">📈 Neto Clases: ${netoClase}</p>
 
+        <p className="font-semibold mt-2">💼 Ingreso Servicios: ${servicio}</p>
+        <p className="font-semibold">🛒 Ingreso Productos: ${producto}</p>
+        
         <hr className="my-2" />
         <p className="font-bold text-orange-500">🧮 Neto Total: ${netoTotal}</p>
       </div>
@@ -656,6 +663,7 @@ export default function AdminOverviewCharts({
       </Card>
 
       {/* 6. Facturación Mensual */}
+
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-3">
         <CardHeader className="flex items-center gap-2">
           <DollarSign className="text-orange-500" />
@@ -694,6 +702,18 @@ export default function AdminOverviewCharts({
                 <Bar dataKey="egresosClase" name="Egreso Clases" stackId="b">
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill="#f87171" /> // rojo más claro
+                  ))}
+                </Bar>
+
+                <Bar dataKey="servicio" name="Ingreso Servicios" stackId="c">
+                  {facturacion.map((_, i) => (
+                    <Cell key={i} fill="#10b981" />
+                  ))}
+                </Bar>
+
+                <Bar dataKey="producto" name="Ingreso Productos" stackId="d">
+                  {facturacion.map((_, i) => (
+                    <Cell key={i} fill="#8b5cf6" />
                   ))}
                 </Bar>
 

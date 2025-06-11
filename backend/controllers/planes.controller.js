@@ -143,14 +143,7 @@ export const getPlanesPersonalizadosPorProfesor = async (req, res) => {
     const alumnos = await getAlumnosFromSheet();
     const pagos = await getPagosFromSheet();
 
-    console.log("Pagos crudos:", pagos);
-
     const pagosFiltrados = pagos.filter((pago) => {
-      console.log({
-        Fecha_de_Pago: pago.Fecha_de_Pago,
-        SocioDNI: pago["Socio DNI"],
-        Tipo: pago.Tipo
-      });
 
       if (!pago.Fecha_de_Pago || !pago["Socio DNI"] || !pago.Tipo) return false;
 
