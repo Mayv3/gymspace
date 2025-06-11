@@ -51,7 +51,7 @@ interface Member {
   Precio: number;
   Tipo_de_plan: string;
   Pagos: Pago[];
-  GymCoins: "";
+  GymCoins: string | number;
 }
 
 interface Clase {
@@ -96,8 +96,10 @@ export default function MemberDashboard() {
   }, [contextUser])
 
   const fetchUser = async () => {
+    if (!contextUser) return;
+
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${contextUser!.dni}`)
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${contextUser.dni}`)
       const raw = res.data
       const member: Member = {
         Nombre: raw.Nombre,
@@ -118,7 +120,8 @@ export default function MemberDashboard() {
 
   const fetchRankingAlumno = async () => {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/posicion/${contextUser!.dni}`);
+      if (!contextUser) return;
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/posicion/${contextUser.dni}`);
       const { data } = res;
       const { posicion } = data
       setRankingAlumno(posicion);
@@ -152,7 +155,9 @@ export default function MemberDashboard() {
   const handleSubscribe = async (claseID: string, desuscribir = false) => {
     try {
       setLoadingClaseId(claseID);
-      const payload: any = { dni: contextUser!.dni }
+
+      if (!contextUser) return;
+      const payload: any = { dni: contextUser.dni }
       if (desuscribir) payload.desuscribir = true
 
       const { data } = await axios.put(
@@ -168,7 +173,7 @@ export default function MemberDashboard() {
             : []
           const newArr = desuscribir
             ? arr.filter(d => d !== contextUser!.dni)
-            : [...arr, contextUser!.dni]
+            : [...arr, contextUser.dni]
           return { ...c, Inscriptos: newArr.join(",") }
         })
       )
@@ -208,8 +213,8 @@ export default function MemberDashboard() {
     : 0
 
   const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
-  const hoy = dayjs().locale("es").day(); 
-  const indiceHoy = hoy === 0 ? 6 : hoy - 1; 
+  const hoy = dayjs().locale("es").day();
+  const indiceHoy = hoy === 0 ? 6 : hoy - 1;
 
   const diasOrden = [
     ...todosLosDias.slice(indiceHoy),
@@ -403,7 +408,7 @@ export default function MemberDashboard() {
                 <div>
                   <div className="text-2xl font-bold flex items-center gap-1 gradient-text">
                     <p className="text-2xl">
-                      #{rankingAlumno} - {planInhabilitado ? "Sin acceso" : user.GymCoins}
+                      #{rankingAlumno ?? "-"} - {planInhabilitado ? "Sin acceso" : (user.GymCoins ?? 0)}
                     </p>
                     <Coins />
                   </div>
@@ -438,7 +443,7 @@ export default function MemberDashboard() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {user?.Tipo_de_plan === "GIMNASIO"
-                ? topAlumnosCoins.top10Gimnasio.map((alumno, index) => {
+                ? (topAlumnosCoins.top10Gimnasio || []).map((alumno, index) => {
                   const esUsuarioActual = alumno.DNI === contextUser?.dni;
                   return (
                     <motion.div
@@ -459,7 +464,7 @@ export default function MemberDashboard() {
                     </motion.div>
                   );
                 })
-                : topAlumnosCoins.top10Clases.map((alumno, index) => {
+                : (topAlumnosCoins.top10Clases || []).map((alumno, index) => {
                   const esUsuarioActual = alumno.DNI === contextUser?.dni;
                   return (
                     <motion.div
