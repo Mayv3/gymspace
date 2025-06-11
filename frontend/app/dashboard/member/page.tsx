@@ -630,7 +630,7 @@ export default function MemberDashboard() {
                                 </div>
                                 <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
                                 <p className="text-lg">
-                                  <span className="font-semibold">{inscritos.length - 1}</span> / <span className="font-semibold">{clase['Cupo maximo']}</span> Inscriptos
+                                  <span className="font-semibold">{inscritos.length}</span> / <span className="font-semibold">{clase['Cupo maximo']}</span> Inscriptos
                                 </p>
                               </div>
                               <div className="mt-4">
