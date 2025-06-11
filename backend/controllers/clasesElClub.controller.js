@@ -133,8 +133,8 @@ export const updateClaseTableroByID = async (req, res) => {
     if (!alumno) return sendError(res, RESPONSES.alumnoNotFound);
 
     const inscritos = clase.Inscriptos ? clase.Inscriptos.split(',').map(d => d.trim()) : [];
-    const now = dayjs().tz(ARG_TIMEZONE);
 
+    const now = dayjs().tz(ARG_TIMEZONE);
     const proximaFecha = calcularProximaFecha(clase.Dia);
 
     const proximaFechaStr = dayjs(proximaFecha, 'D/M/YYYY').format('YYYY-MM-DD');
@@ -142,12 +142,18 @@ export const updateClaseTableroByID = async (req, res) => {
 
     if (!desuscribir) {
       const vencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
-      if (now.isSame(vencimiento, 'day') || now.isAfter(vencimiento, 'day')) {
+
+      if (now.isAfter(vencimiento.endOf('day'))) {
         return sendError(res, {
           status: 403,
           message: `El plan de ${alumno.Nombre} está vencido desde el ${vencimiento.format('DD/MM/YYYY')}`,
         });
       }
+
+      console.log("🕓 Zona horaria detectada (dayjs):", dayjs.tz.guess());
+      console.log('Vencimiento del alumno: ', vencimiento.format('DD/MM/YYYY'))
+      console.log("🌍 Timezone Intl:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("📍 Fecha y hora actual (ARG):", now.format('YYYY-MM-DD HH:mm:ss'));
 
       const esIlimitado = PLANES_ILIMITADOS.includes(alumno.Plan);
       if (!esIlimitado) {
