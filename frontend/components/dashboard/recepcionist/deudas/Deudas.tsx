@@ -325,6 +325,8 @@ export default function DebtsSection() {
                         {Object.entries(createForm).map(([key, value]) => (
                             <div key={key} className="flex flex-col">
                                 <Label>{key}</Label>
+
+                                {/* Select para Tipo y Estado */}
                                 {key === "Tipo" || key === "Estado" ? (
                                     <Select
                                         value={value}
@@ -333,7 +335,7 @@ export default function DebtsSection() {
                                         }
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Seleccionar tipo de deuda..." />
+                                            <SelectValue placeholder={`Seleccionar ${key.toLowerCase()}...`} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {key === "Tipo" ? (
@@ -353,17 +355,19 @@ export default function DebtsSection() {
                                             )}
                                         </SelectContent>
                                     </Select>
+
                                 ) : key === "Responsable" ? (
-                                    <Input value={user?.nombre || ""} disabled />
+                                <Input value={user?.nombre || ""} disabled />
                                 ) : (
-                                    <Input
-                                        type={key === "Monto" ? "number" : "text"}
-                                        value={value}
-                                        onChange={(e) =>
-                                            setCreateForm((p) => ({ ...p, [key]: e.target.value }))
-                                        }
-                                    />
-                                )}
+                                <Input
+                                    type={key === "Monto" || key === "DNI" ? "number" : "text"}
+                                    inputMode={key === "Monto" || key === "DNI" ? "numeric" : undefined}
+                                    value={value}
+                                    onChange={(e) =>
+                                        setCreateForm((p) => ({ ...p, [key]: e.target.value }))
+                                    }
+                                />
+              )}
                             </div>
                         ))}
                     </div>
@@ -418,7 +422,7 @@ export default function DebtsSection() {
                                     <Input value={user?.nombre} disabled />
                                 ) : (
                                     <Input
-                                        type={key === "Monto" ? "number" : "text"}
+                                        type={key === "Monto" || key === "DNI" ? "number" : "text"}
                                         value={value}
                                         onChange={(e) =>
                                             setEditForm((p) => ({ ...p, [key]: e.target.value }))
