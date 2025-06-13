@@ -212,7 +212,7 @@ export default function MemberDashboard() {
     ? Math.min(100, Math.max(0, (daysLeft / 30) * 100))
     : 0
 
-  const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
+  const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
   const hoy = dayjs().locale("es").day();
   const indiceHoy = hoy === 0 ? 6 : hoy - 1;
 
@@ -236,7 +236,7 @@ export default function MemberDashboard() {
 
   const clasesAgrupadas = diasOrden.map((dia) => {
     const clasesDelDia = upcomingClases
-      .filter((clase) => clase.Dia === dia)
+      .filter((clase) => clase.Dia.toLowerCase() === dia.toLowerCase())
       .sort((a, b) => {
         const [horaA, minutoA] = a.Hora.split(":").map(Number);
         const [horaB, minutoB] = b.Hora.split(":").map(Number);
