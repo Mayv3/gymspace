@@ -19,6 +19,9 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        quicksand: ['var(--font-quicksand)', 'sans-serif'],
+      },
       screens: {
         xs: "475px",
       },

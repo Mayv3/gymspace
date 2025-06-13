@@ -32,6 +32,7 @@ import { useAppData } from "@/context/AppDataContext"
 import { Member } from "@/models/dashboard";
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
 import { format } from "date-fns"
+import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 
 
 export default function AdministratorDashboard() {
@@ -221,7 +222,7 @@ export default function AdministratorDashboard() {
         )}
 
         <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-7 md:w-auto">
+          <TabsList className="grid w-full grid-cols-8 md:w-auto">
             <TabsTrigger value="overview" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               <TrendingUp className="mr-2 h-4 w-4" />
               Resumen
@@ -231,6 +232,7 @@ export default function AdministratorDashboard() {
               Miembros
             </TabsTrigger>
             <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Pagos</TabsTrigger>
+            <TabsTrigger value="deudas" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Deudas</TabsTrigger>
             <TabsTrigger value="assists" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Asistencias</TabsTrigger>
             <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Planes</TabsTrigger>
             <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Turnos</TabsTrigger>
@@ -268,6 +270,10 @@ export default function AdministratorDashboard() {
               selectedYear={selectedYear}
               setSelectedYear={setSelectedYear}
             />
+          </TabsContent>
+
+          <TabsContent value="deudas" className="space-y-4">
+            <DebtsSection />
           </TabsContent>
 
           <TabsContent value="assists" className="space-y-4">

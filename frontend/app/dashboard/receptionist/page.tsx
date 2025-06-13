@@ -29,7 +29,7 @@ import { useAppData } from "@/context/AppDataContext"
 
 import { Member } from "@/models/dashboard"
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
-import { DeudasSection } from "@/components/dashboard/recepcionist/deudas/Deudas"
+import DebtsSection, { DeudasSection } from "@/components/dashboard/recepcionist/deudas/Deudas"
 
 export default function ReceptionistDashboard() {
   const { user, loading } = useUser()
@@ -242,7 +242,7 @@ export default function ReceptionistDashboard() {
           </TabsContent>
 
           <TabsContent value="deudas" className="space-y-4">
-            <DeudasSection/>
+            <DebtsSection/>
           </TabsContent>
         </Tabs>
       </div>

@@ -16,6 +16,7 @@ import clasesClubRoutes from './routes/clasesElClub.routes.js';
 import turnosRoutes from './routes/turnos.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js'
 import egresosRoutes from './routes/egresos.routes.js';
+import deudaRoutes from "./routes/deudas.routes.js"
 
 // import './services/recordatorioEmail.js'
 
@@ -37,6 +38,7 @@ app.use('/api/clases-el-club', clasesClubRoutes)
 app.use('/api/turnos', turnosRoutes);
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/egresos', egresosRoutes);
+app.use('/api/deudas', deudaRoutes)
 
 const PORT = process.env.PORT || 3001;
 const server = http.createServer(app);

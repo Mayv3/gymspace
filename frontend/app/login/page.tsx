@@ -61,7 +61,7 @@ const LoginPage = () => {
         />
         <FormEnterToTab>
           <input
-            type="text"
+            type="number"
             value={dni}
             onChange={(e) => setDni(e.target.value)}
             placeholder="Ej: 34023002"
@@ -77,7 +77,7 @@ const LoginPage = () => {
             type="submit"
             className="
             w-full bg-orange-500 hover:bg-orange-600 
-            text-white font-semibold py-3 rounded-lg 
+            text-white py-3 rounded-lg 
             transition
           "
           >

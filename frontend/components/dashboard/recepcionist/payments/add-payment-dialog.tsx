@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useAppData } from "@/context/AppDataContext"
 import { parse, format, addMonths } from "date-fns"
 import { useUser } from "@/context/UserContext"
+import axios from "axios"
 import {
   Dialog,
   DialogContent,
@@ -67,12 +68,50 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
   const dniInputRef = useRef<HTMLInputElement>(null)
 
-  const handleDniBlur = () => {
+  const handleDniBlur = async () => {
     const dni = dniInputRef.current?.value || ""
     const alumno = alumnos.find(a => a.DNI === dni)
+
     if (alumno) {
       setFormData(prev => ({ ...prev, dni, name: alumno.Nombre }))
-      setDniError(`Fecha de vencimiento: ${alumno.Fecha_vencimiento}`)
+      let mensaje = `Fecha de vencimiento: ${alumno.Fecha_vencimiento}`
+
+      try {
+
+        if(!dni){
+          return;
+        }
+
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/deudas/alumno/${dni}`)
+
+
+        const deudaAlumno = data.detalle.filter(
+          (d: any) => d.Tipo === "El alumno le debe al gimnasio" && d.Estado === "No pagado"
+        )
+        const deudaGimnasio = data.detalle.filter(
+          (d: any) => d.Tipo === "El gimnasio le debe al alumno" && d.Estado === "No pagado"
+        )
+
+        if (deudaAlumno.length > 0) {
+          const total = deudaAlumno.reduce((acc: number, d: any) => acc + Number(d.Monto || 0), 0)
+          mensaje += ` | 💰 Deuda pendiente: $${total}`
+        }
+
+        if (deudaGimnasio.length > 0) {
+          const aFavor = deudaGimnasio.reduce((acc: number, d: any) => acc + Number(d.Monto || 0), 0)
+          mensaje += ` | 🟢 A favor del alumno: $${aFavor}`
+        }
+
+        if (deudaAlumno.length === 0 && deudaGimnasio.length === 0) {
+          mensaje += " | ✅ Sin deudas"
+        }
+
+      } catch (error) {
+        console.error("Error al consultar deuda del alumno:", error)
+        mensaje += " | ⚠️ Error al verificar deudas"
+      }
+
+      setDniError(mensaje)
     } else if (dni.length >= 6) {
       setFormData(prev => ({ ...prev, dni, name: "" }))
       setDniError("No se encontró un alumno con ese DNI")
@@ -81,6 +120,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       setDniError("")
     }
   }
+
 
   const handleDateChange = (field: "paymentDate" | "expirationDate", date: Date | undefined) => {
     if (!date) return

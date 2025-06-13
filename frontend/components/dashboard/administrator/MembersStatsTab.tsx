@@ -51,6 +51,9 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
   const [openDelete, setOpenDelete] = useState(false)
   const { planes } = useAppData();
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
   const filteredAlumnos = useMemo(() => {
     return alumnos.filter((a) => {
       const cumpleSexo = !sexo || a.Sexo === sexo
@@ -71,6 +74,8 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
     })
   }, [alumnos, sexo, edadMin, edadMax, profe, plan, nombre])
 
+  const totalPages = Math.ceil(filteredAlumnos.length / itemsPerPage)
+
   function calcularEdad(fecha: string): number {
     const [dia, mes, año] = fecha.split("/")
     const fechaNacimiento = new Date(`${año}-${mes}-${dia}`)
@@ -90,6 +95,15 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
     return edad
   }
 
+  const paginatedAlumnos = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredAlumnos.slice(start, start + itemsPerPage)
+  }, [filteredAlumnos, currentPage])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [sexo, edadMin, edadMax, profe, plan, nombre])
+  
   return (
     <Card>
       <CardHeader>
@@ -181,7 +195,7 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAlumnos.map((a) => (
+              {paginatedAlumnos.map((a) => (
                 <TableRow key={a.DNI}>
                   <TableCell className="text-center">{a.Nombre}</TableCell>
                   <TableCell className="text-center">{a.DNI}</TableCell>
@@ -209,6 +223,27 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
               ))}
             </TableBody>
           </Table>
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            >
+              Siguiente
+            </Button>
+          </div>
         </div>
       </CardContent>
 

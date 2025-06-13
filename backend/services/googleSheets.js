@@ -1146,3 +1146,113 @@ export async function getEgresosByMesYAnio(anio, mes) {
     return fecha.isValid() && fecha.month() + 1 === mes && fecha.year() === anio
   })
 }
+
+// Deudas
+
+export async function getDeudasFromSheet() {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "Deudas!A1:I",
+  })
+
+  const [headers, ...rows] = res.data.values || []
+  return rows.map((row) => {
+    const deuda = {}
+    headers.forEach((h, i) => {
+      deuda[h] = row[i] || ""
+    })
+    return deuda
+  })
+}
+
+export async function appendDeudaToSheet(deuda) {
+  const nuevoID = await getNextId("Deudas!A2:A")
+
+  const deudaConID = {
+    ID: String(nuevoID),
+    ...deuda,
+  }
+
+  const values = [[
+    deudaConID.ID,
+    deudaConID.DNI,
+    deudaConID.Nombre,
+    deudaConID.Tipo,
+    deudaConID.Monto,
+    deudaConID.Motivo,
+    deudaConID.Fecha,
+    deudaConID.Estado,
+    deudaConID.Responsable
+  ]]
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "Deudas!A1:I1",
+    valueInputOption: "USER_ENTERED",
+    insertDataOption: "INSERT_ROWS",
+    resource: { values },
+  })
+
+  return deudaConID
+}
+
+export async function updateDeudaByID(id, nuevosDatos) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "Deudas!A1:I",
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+  const rowIndex = rows.findIndex(row => row[0] === id);
+
+  if (rowIndex === -1) return false;
+
+  const actual = rows[rowIndex];
+
+  const nuevaFila = headers.map((header, i) =>
+    nuevosDatos[header] !== undefined ? nuevosDatos[header] : actual[i]
+  );
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: `Deudas!A${rowIndex + 2}:I${rowIndex + 2}`,
+    valueInputOption: "USER_ENTERED",
+    resource: { values: [nuevaFila] },
+  });
+
+  return true;
+}
+
+export async function deleteDeudaByID(id) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "Deudas!A1:I",
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+  const rowIndex = rows.findIndex(row => row[0] === id);
+
+  if (rowIndex === -1) return false;
+
+  const sheetRowIndex = rowIndex + 2;
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId: '1007013864',
+              dimension: "ROWS",
+              startIndex: sheetRowIndex - 1,
+              endIndex: sheetRowIndex,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return true;
+}
