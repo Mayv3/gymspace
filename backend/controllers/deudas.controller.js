@@ -65,7 +65,8 @@ export const deleteDeuda = async (req, res) => {
     if (!eliminado) return res.status(404).json({ message: "No encontrada" })
     res.json({ message: "Deuda eliminada correctamente" })
   } catch (error) {
-    res.status(500).json({ message: "Error al eliminar deuda" })
+    console.log(error)
+    res.status(500).json({ message: "Error al eliminar deuda", error: error })
   }
 }
 

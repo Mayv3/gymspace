@@ -66,7 +66,6 @@ export default function DebtsSection() {
         currentPage * itemsPerPage
     );
 
-
     const fetchDeudas = async () => {
         try {
             const mes = selectedDate ? dayjs(selectedDate).month() + 1 : new Date().getMonth() + 1

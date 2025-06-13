@@ -1243,7 +1243,7 @@ export async function deleteDeudaByID(id) {
         {
           deleteDimension: {
             range: {
-              sheetId: '1007013864',
+              sheetId: 1774869975,
               dimension: "ROWS",
               startIndex: sheetRowIndex - 1,
               endIndex: sheetRowIndex,
