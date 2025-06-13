@@ -74,7 +74,6 @@ export default function MemberDashboard() {
   const [loadingClaseId, setLoadingClaseId] = useState<string | null>(null);
   const [topAlumnosCoins, setTopAlumnosCoins] = useState([]);
   const [rankingAlumno, setRankingAlumno] = useState<number | null>(null);
-
   const hasFetched = useRef(false)
 
   const { user: contextUser, loading } = useUser()
@@ -193,6 +192,7 @@ export default function MemberDashboard() {
   if (loading || (!contextUser && !user)) {
     return <div className="p-8 text-muted-foreground">Verificando sesión…</div>
   }
+
   if (!user) {
     return <div className="p-8 text-muted-foreground">Cargando datos del usuario...</div>
   }
@@ -208,11 +208,6 @@ export default function MemberDashboard() {
   const agotado = user.Clases_restantes <= 0
   const planInhabilitado = vencido
 
-  console.log("🧾 Fecha raw:", rawFecha)
-  console.log("📅 Fecha vencimiento (parsed):", fechaVencimiento.format("DD/MM/YYYY"))
-  console.log("📆 Hoy:", today.format("DD/MM/YYYY"))
-  console.log("⏱️ Vencido:", vencido)
-  
   const progressPercentage = fechaValida
     ? Math.min(100, Math.max(0, (daysLeft / 30) * 100))
     : 0
@@ -221,12 +216,26 @@ export default function MemberDashboard() {
   const hoy = dayjs().locale("es").day();
   const indiceHoy = hoy === 0 ? 6 : hoy - 1;
 
+  const ARG_TZ = "America/Argentina/Buenos_Aires";
+  const now = dayjs().tz(ARG_TZ);
+
+  const upcomingClases = clases.filter((clase) => {
+    const fechaRaw = clase.ProximaFecha?.trim() || "";
+    const [horaStr, minutoStr] = clase.Hora.split(":");
+    const fechaClase = dayjs(fechaRaw, ["D/M/YYYY", "DD/MM/YYYY"])
+      .hour(parseInt(horaStr, 10))
+      .minute(parseInt(minutoStr, 10))
+      .tz(ARG_TZ);
+    return fechaClase.isAfter(now);
+  });
+
   const diasOrden = [
     ...todosLosDias.slice(indiceHoy),
     ...todosLosDias.slice(0, indiceHoy),
   ];
+
   const clasesAgrupadas = diasOrden.map((dia) => {
-    const clasesDelDia = clases
+    const clasesDelDia = upcomingClases
       .filter((clase) => clase.Dia === dia)
       .sort((a, b) => {
         const [horaA, minutoA] = a.Hora.split(":").map(Number);
