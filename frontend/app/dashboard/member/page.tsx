@@ -75,6 +75,7 @@ export default function MemberDashboard() {
   const [topAlumnosCoins, setTopAlumnosCoins] = useState([]);
   const [rankingAlumno, setRankingAlumno] = useState<number | null>(null);
   const hasFetched = useRef(false)
+  const [roleChecked, setRoleChecked] = useState(false)
 
   const { user: contextUser, loading } = useUser()
   const router = useRouter()
@@ -86,6 +87,14 @@ export default function MemberDashboard() {
   }, [loading, contextUser, router])
 
   useEffect(() => {
+    if (!loading && contextUser) {
+      if (contextUser.rol !== 'Miembro') {
+        router.replace("/")
+      }
+    }
+  }, [loading, contextUser, router])
+
+  useEffect(() => {
     if (!contextUser || hasFetched.current) return
     hasFetched.current = true
     fetchUser();
@@ -93,6 +102,15 @@ export default function MemberDashboard() {
     fetchTopAlumnos();
     fetchRankingAlumno();
   }, [contextUser])
+
+  useEffect(() => {
+    if (!loading && contextUser) {
+      if (contextUser.rol === 'Miembro') {
+        setRoleChecked(true)
+      }
+    }
+  }, [loading, contextUser])
+
 
   const fetchUser = async () => {
     if (!contextUser) return;
@@ -197,6 +215,10 @@ export default function MemberDashboard() {
     return <div className="p-8 text-muted-foreground">Cargando datos del usuario...</div>
   }
 
+  if (!roleChecked) {
+    return <div className="p-8 text-muted-foreground">Verificando permisos…</div>
+  }
+
   const rawFecha = user.Fecha_vencimiento
   const fechaVencimiento = dayjs(rawFecha, ["D/M/YYYY", "DD/MM/YYYY"])
   const today = dayjs().startOf("day")
@@ -248,6 +270,8 @@ export default function MemberDashboard() {
       clases: clasesDelDia,
     };
   });
+
+  const diaHoy = diasOrden[0];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -595,85 +619,119 @@ export default function MemberDashboard() {
                   clasesAgrupadas.map(({ dia, clases }) => (
                     <div key={dia} className="mb-8">
                       <h3 className="text-2xl font-bold mb-4 text-primary">{dia}</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {clases.map((clase) => {
-                          const inscritos = clase.Inscriptos?.split(',').map(d => d.trim()).filter(d => d) || [];
-                          const estaInscripto = inscritos.includes(contextUser!.dni);
 
-                          const ARG_TZ = "America/Argentina/Buenos_Aires";
-                          const now = dayjs().tz(ARG_TZ);
+                      {dia === diaHoy && clases.length === 0 ? (
+                        <p className="text-center text-muted-foreground">
+                          Ya pasaron todas las clases del día.
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {clases.map((clase) => {
+                            const inscritos = clase.Inscriptos
+                              ? clase.Inscriptos.split(",").map(d => d.trim()).filter(Boolean)
+                              : [];
+                            const estaInscripto = inscritos.includes(contextUser!.dni);
 
-                          const fechaClase = clase.ProximaFecha?.trim() || "";
-                          const [horaStr, minutoStr] = clase.Hora.split(":");
+                            const ARG_TZ = "America/Argentina/Buenos_Aires";
+                            const now = dayjs().tz(ARG_TZ);
 
-                          const claseDate = dayjs(fechaClase, ["D/M/YYYY", "DD/MM/YYYY"])
-                            .hour(parseInt(horaStr, 10))
-                            .minute(parseInt(minutoStr, 10))
-                            .tz(ARG_TZ);
+                            const fechaClase = clase.ProximaFecha?.trim() || "";
+                            const [horaStr, minutoStr] = clase.Hora.split(":");
+                            const claseDate = dayjs(fechaClase, ["D/M/YYYY", "DD/MM/YYYY"])
+                              .hour(parseInt(horaStr, 10))
+                              .minute(parseInt(minutoStr, 10))
+                              .tz(ARG_TZ);
 
-                          const minutosParaClase = claseDate.diff(now, "minute");
-                          const minutosDesdeClase = now.diff(claseDate, "minute");
+                            const minutosParaClase = claseDate.diff(now, "minute");
+                            const minutosDesdeClase = now.diff(claseDate, "minute");
 
-                          let estado = "";
-                          let puedeActuar = false;
+                            let estado = "";
+                            let puedeActuar = false;
 
-                          if (minutosDesdeClase >= 0) {
-                            estado = "Clase finalizada";
-                          } else if (inscritos.length >= Number(clase['Cupo maximo'])) {
-                            estado = "Cupo completo";
-                          } else if (!estaInscripto && minutosParaClase < 60) {
-                            estado = "Inscripción cerrada";
-                          } else if (estaInscripto && minutosDesdeClase > 60) {
-                            estado = "Desuscripción cerrada";
-                          } else {
-                            estado = estaInscripto ? "Desuscribirse" : "Inscribirse";
-                            puedeActuar = true;
-                          }
+                            if (minutosDesdeClase >= 0) {
+                              estado = "Clase finalizada";
+                            } else if (inscritos.length >= Number(clase["Cupo maximo"])) {
+                              estado = "Cupo completo";
+                            } else if (!estaInscripto && minutosParaClase < 60) {
+                              estado = "Inscripción cerrada";
+                            } else if (estaInscripto && minutosDesdeClase > 60) {
+                              estado = "Desuscripción cerrada";
+                            } else {
+                              estado = estaInscripto ? "Desuscribirse" : "Inscribirse";
+                              puedeActuar = true;
+                            }
 
-                          return (
-                            <Card
-                              key={clase.ID}
-                              className="bg-background text-foreground rounded-lg border border-orange-500 transition p-6 flex flex-col justify-between"
-                            >
-                              <div>
-                                <div className="flex justify-between items-center mb-4 w-full">
-                                  <CardTitle className="text-xl font-bold">{clase['Nombre de clase']}</CardTitle>
-                                  <Badge variant="outline" className="text-sm font-semibold bg-background text-foreground">
-                                    {clase.Dia} - {clase.ProximaFecha}
-                                  </Badge>
+                            return (
+                              <Card
+                                key={clase.ID}
+                                className="bg-background text-foreground rounded-lg border border-orange-500 transition p-6 flex flex-col justify-between"
+                              >
+                                <div>
+                                  <div className="flex justify-between items-center mb-4 w-full">
+                                    <CardTitle className="text-xl font-bold">
+                                      {clase["Nombre de clase"]}
+                                    </CardTitle>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-sm font-semibold bg-background text-foreground"
+                                    >
+                                      {clase.Dia} - {clase.ProximaFecha}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
+                                  <p className="text-lg">
+                                    <span className="font-semibold">{inscritos.length}</span> /{" "}
+                                    <span className="font-semibold">{clase["Cupo maximo"]}</span>{" "}
+                                    Inscriptos
+                                  </p>
                                 </div>
-                                <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
-                                <p className="text-lg">
-                                  <span className="font-semibold">{inscritos.length}</span> / <span className="font-semibold">{clase['Cupo maximo']}</span> Inscriptos
-                                </p>
-                              </div>
-                              <div className="mt-4">
-                                <button
-                                  onClick={() => puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")}
-                                  disabled={!puedeActuar || loadingClaseId === clase.ID}
-                                  className={`w-full py-3 rounded-lg font-semibold ${puedeActuar
-                                    ? estado === "Desuscribirse"
-                                      ? "bg-red-600 text-white hover:bg-red-700"
-                                      : "bg-orange-600 text-white hover:bg-orange-700"
-                                    : "bg-gray-200 text-gray-600 cursor-not-allowed"}`}
-                                >
-                                  {loadingClaseId === clase.ID ? (
-                                    <div className="flex items-center justify-center">
-                                      <svg className="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
-                                      </svg>
-                                      {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
-                                    </div>
-                                  ) : (
-                                    estado
-                                  )}
-                                </button>
-                              </div>
-                            </Card>
-                          );
-                        })}
-                      </div>
+                                <div className="mt-4">
+                                  <button
+                                    onClick={() =>
+                                      puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")
+                                    }
+                                    disabled={!puedeActuar || loadingClaseId === clase.ID}
+                                    className={`w-full py-3 rounded-lg font-semibold ${puedeActuar
+                                      ? estado === "Desuscribirse"
+                                        ? "bg-red-600 text-white hover:bg-red-700"
+                                        : "bg-orange-600 text-white hover:bg-orange-700"
+                                      : "bg-gray-200 text-gray-600 cursor-not-allowed"
+                                      }`}
+                                  >
+                                    {loadingClaseId === clase.ID ? (
+                                      <div className="flex items-center justify-center">
+                                        <svg
+                                          className="animate-spin mr-2 h-5 w-5 text-white"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                          />
+                                          <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                                          />
+                                        </svg>
+                                        {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
+                                      </div>
+                                    ) : (
+                                      estado
+                                    )}
+                                  </button>
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))
                 )}

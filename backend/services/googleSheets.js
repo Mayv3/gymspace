@@ -841,21 +841,34 @@ export async function deleteAnotacionInSheet(id) {
 // Clases del Club
 
 export async function getClasesElClubFromSheet() {
+  const alumnos = await getAlumnosFromSheet();
+  const alumnosMap = alumnos.reduce((map, alumno) => {
+    map[alumno.DNI] = alumno.Nombre;
+    return map;
+  }, {});
+
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: 'ClasesElClub!A1:F',
   });
-
   const [headers, ...rows] = res.data.values;
-
   if (!headers || !rows) {
     throw new Error('No se encontraron datos en la hoja de Clases del Club.');
   }
 
+  const inscriptosIdx = headers.findIndex(h => h === 'Inscriptos');
+
   return rows.map(row => {
     const clase = {};
     headers.forEach((header, i) => {
-      clase[header] = row[i] || '';
+      const cell = row[i] || '';
+      if (i === inscriptosIdx) {
+        const dniList = cell.split(',').map(s => s.trim()).filter(s => s);
+        const nombreList = dniList.map(dni => alumnosMap[dni] || `(DNI ${dni} no encontrado)`);
+        clase[header] = nombreList.join(', ');
+      } else {
+        clase[header] = cell;
+      }
     });
     return clase;
   });

@@ -72,25 +72,28 @@ async function findAlumno(dni) {
 }
 
 const limpiarInscriptosPasados = async () => {
-  const clases = await getClasesElClubFromSheet();
-  const ahora = dayjs();
+  const clases = await getClasesElClubFromSheet()
+  const hoy = dayjs().tz(ARG_TIMEZONE).startOf('day')
 
   for (const clase of clases) {
-    const proximaFecha = calcularProximaFecha(clase.Dia);
-    if (!proximaFecha) continue;
+    const proximaFecha = calcularProximaFecha(clase.Dia)
+    if (!proximaFecha) continue
 
-    const fechaClase = dayjs(`${dayjs(proximaFecha, 'D/M/YYYY').format('YYYY-MM-DD')}T${clase.Hora.padStart(5, '0')}`);
+    const fechaClase = dayjs(proximaFecha, 'D/M/YYYY')
+      .tz(ARG_TIMEZONE)
+      .startOf('day')
 
-    if (fechaClase.isBefore(ahora, 'minute') && clase.Inscriptos && clase.Inscriptos.trim() !== '') {
-      await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' });
+    if (fechaClase.isBefore(hoy)) {
+      if (clase.Inscriptos?.trim()) {
+        await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' })
+      }
     }
   }
-};
+}
 
 export const obtenerClasesElClub = async (req, res) => {
   try {
-    await limpiarInscriptosPasados();
-
+    await limpiarInscriptosPasados()
     const clases = await getClasesElClubFromSheet();
 
     const clasesConFecha = clases.map(clase => {
@@ -196,7 +199,7 @@ export const updateClaseTableroByID = async (req, res) => {
       });
 
       return sendSuccess(res, {
-        message: `Inscripción exitosa a la clase de ${clase['Nombre de clase']}. Podés desuscribirte hasta una hora después de haberte inscripto. De lo contrario, perderás una clase pagada.`,
+        message: `Inscripción exitosa a la clase de ${clase['Nombre de clase']}. Podés desuscribirte hasta una hora después de haberte inscripto.`,
         clase: clase['Nombre de clase'],
         inscripto: alumno.Nombre,
         timestamp: now.format('YYYY-MM-DD HH:mm:ss')
@@ -227,7 +230,7 @@ export const updateClaseTableroByID = async (req, res) => {
     });
 
     return sendSuccess(res, {
-      message: `Te desuscribiste correctamente de la clase de ${clase['Nombre de clase']}`,
+      message: `Te desuscribiste correctamente de la clase de ${clase['Nombre de clase']}.`,
       clase: clase['Nombre de clase'],
       alumno: alumno.Nombre
     });

@@ -10,14 +10,17 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Users } from 'lucide-react'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 
 dayjs.extend(customParseFormat)
 dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(isSameOrAfter)
 dayjs.locale('es')
 
 interface Clase {
@@ -36,22 +39,38 @@ export const ElClub = () => {
     const [modalOpen, setModalOpen] = useState(false)
     const [dniList, setDniList] = useState<string[]>([])
     const [nombreClase, setNombreClase] = useState("")
+    const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    const hoy = dayjs().locale("es").day();
+    const indiceHoy = hoy === 0 ? 6 : hoy - 1;
 
     const ARG_TZ = "America/Argentina/Buenos_Aires";
     const now = dayjs().tz(ARG_TZ);
 
-    const clasesFiltradas = clases.filter((clase) => {
-        const fechaRaw = clase.ProximaFecha?.trim() || ""
-        if (!fechaRaw || !clase.Hora) return false
+    const upcomingClases = clases.filter((clase) => {
+        const fechaRaw = clase.ProximaFecha?.trim() || "";
+        const [horaStr, minutoStr] = clase.Hora.split(":");
+        const fechaClase = dayjs(fechaRaw, ["D/M/YYYY", "DD/MM/YYYY"])
+            .hour(parseInt(horaStr, 10))
+            .minute(parseInt(minutoStr, 10))
+            .tz(ARG_TZ);
+        return fechaClase.isAfter(now);
+    });
 
-        const fechaHora = `${fechaRaw} ${clase.Hora}`
-        const formatos = ["D/M/YYYY H:mm", "D/M/YYYY HH:mm", "DD/MM/YYYY H:mm", "DD/MM/YYYY HH:mm"]
-        const claseDate = dayjs.tz(fechaHora, formatos, ARG_TZ)
+    const diasOrden = [
+        ...todosLosDias.slice(indiceHoy),
+        ...todosLosDias.slice(0, indiceHoy),
+    ];
 
-        return claseDate.isValid() && claseDate.isAfter(now)
-    })
-
-
+    const clasesAgrupadas = diasOrden.map((dia) => {
+        const clasesDelDia = upcomingClases
+            .filter(c => c.Dia.toLowerCase() === dia.toLowerCase())
+            .sort((a, b) => {
+                const [hA, mA] = a.Hora.split(":").map(Number);
+                const [hB, mB] = b.Hora.split(":").map(Number);
+                return hA - hB || mA - mB;
+            });
+        return { dia, clases: clasesDelDia };
+    });
 
     const fetchClases = async () => {
         try {
@@ -76,6 +95,8 @@ export const ElClub = () => {
         fetchClases()
     }, [])
 
+    const diaHoy = diasOrden[0];
+
     return (
         <>
             <Card className="shadow-md">
@@ -91,11 +112,11 @@ export const ElClub = () => {
                     </div>
                 </CardHeader>
                 <CardContent className="p-4">
-
                     {loading ? (
                         <p className="text-sm text-muted-foreground">Cargando clases...</p>
                     ) : (
                         <>
+                            {/* VISTA ESCRITORIO */}
                             <div className="hidden md:block overflow-x-auto">
                                 <Table className="min-w-[700px] table-fixed w-full">
                                     <TableHeader>
@@ -109,66 +130,108 @@ export const ElClub = () => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {clasesFiltradas.map((clase) => {
-                                            const inscriptos = clase.Inscriptos?.split(',').map(d => d.trim()).filter(d => d) || []
-                                            return (
-                                                <TableRow key={clase.ID}>
-                                                    <TableCell className='text-center w-1/6'>{clase["Nombre de clase"]}</TableCell>
-                                                    <TableCell className='text-center w-1/6'>{clase.Dia}</TableCell>
-                                                    <TableCell className='text-center w-1/6'>{clase.Hora}</TableCell>
-                                                    <TableCell className='text-center w-1/6'>{clase.ProximaFecha}</TableCell>
-                                                    <TableCell className="text-center w-1/6">
-                                                        <span className="font-medium">{inscriptos.length}</span> / {clase["Cupo maximo"]}
-                                                    </TableCell>
-                                                    <TableCell className="text-center w-1/6">
-                                                        <Button
-                                                            variant="secondary"
-                                                            size="sm"
-                                                            onClick={() => handleOpenModal(clase)}
-                                                            disabled={inscriptos.length === 0}
-                                                        >
-                                                            Ver inscriptos
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })}
+                                        {(() => {
+                                            const grupoHoy = clasesAgrupadas.find(g => g.dia === diaHoy);
+                                            if (grupoHoy && grupoHoy.clases.length === 0) {
+                                                return (
+                                                    <TableRow>
+                                                        <TableCell colSpan={6} className="text-center text-muted-foreground">
+                                                            Ya pasaron todas las clases del día.
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+
+                                        {clasesAgrupadas.map(({ dia, clases }) =>
+                                            clases.map(clase => {
+                                                const inscriptos = clase.Inscriptos
+                                                    ?.split(",")
+                                                    .map(d => d.trim())
+                                                    .filter(Boolean) || [];
+
+                                                return (
+                                                    <TableRow key={clase.ID}>
+                                                        <TableCell className="text-center w-1/6">{clase["Nombre de clase"]}</TableCell>
+                                                        <TableCell className="text-center w-1/6">{clase.Dia}</TableCell>
+                                                        <TableCell className="text-center w-1/6">{clase.Hora}</TableCell>
+                                                        <TableCell className="text-center w-1/6">{clase.ProximaFecha}</TableCell>
+                                                        <TableCell className="text-center w-1/6">
+                                                            <span className="font-medium">{inscriptos.length}</span> / {clase["Cupo maximo"]}
+                                                        </TableCell>
+                                                        <TableCell className="text-center w-1/6">
+                                                            <Button
+                                                                variant="secondary"
+                                                                size="sm"
+                                                                onClick={() => handleOpenModal(clase)}
+                                                                disabled={inscriptos.length === 0}
+                                                            >
+                                                                Ver inscriptos
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })
+                                        )}
                                     </TableBody>
                                 </Table>
                             </div>
 
-                            <div className="block md:hidden space-y-4">
-                                {clasesFiltradas.map((clase) => {
-                                    const inscriptos = clase.Inscriptos?.split(',').map(d => d.trim()).filter(d => d) || []
-                                    return (
-                                        <div key={clase.ID} className="h-[200px] border border-orange-300 dark:bg-zinc-900 dark:border-none rounded-lg p-4 shadow-sm flex flex-col justify-between">
+                            <div className="block md:hidden space-y-8">
+                                {clasesAgrupadas.map(({ dia, clases }) => (
+                                    <div key={dia}>
+                                        <h3 className="text-2xl font-bold mb-4 text-primary">{dia}</h3>
 
-                                            <div className="flex justify-between items-center mb-2">
-                                                <h3 className="text-lg font-semibold">{clase["Nombre de clase"]}</h3>
-                                                <span className="text-sm font-semibold">{clase.Dia} - {clase.Hora} <br /> <strong>{clase.ProximaFecha}</strong></span>
-
-                                            </div>
-
-
-                                            <p className="text-lg text-center mb-3">
-                                                <strong>Inscriptos:</strong> {inscriptos.length} / {clase["Cupo maximo"]}
+                                        {dia === diaHoy && clases.length === 0 ? (
+                                            <p className="text-center text-muted-foreground">
+                                                Ya pasaron todas las clases del día.
                                             </p>
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                className="w-full"
-                                                onClick={() => handleOpenModal(clase)}
-                                                disabled={inscriptos.length === 0}
-                                            >
-                                                Ver inscriptos
-                                            </Button>
-                                        </div>
-                                    )
-                                })}
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {clases.map(clase => {
+                                                    const inscriptos = clase.Inscriptos
+                                                        ?.split(",")
+                                                        .map(d => d.trim())
+                                                        .filter(Boolean) || [];
+
+                                                    return (
+                                                        <div
+                                                            key={clase.ID}
+                                                            className="border border-orange-300 dark:bg-zinc-900 dark:border-none rounded-lg p-4 shadow-sm flex flex-col justify-between"
+                                                        >
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <div>
+                                                                    <h3 className="text-lg font-semibold">{clase["Nombre de clase"]}</h3>
+                                                                    <span className="text-sm text-muted-foreground">
+                                                                        {clase.ProximaFecha} — {clase.Hora} hs
+                                                                    </span>
+                                                                </div>
+                                                                <Badge variant="outline" className="text-sm px-2 py-1">
+                                                                    {inscriptos.length} / {clase["Cupo maximo"]}
+                                                                </Badge>
+                                                            </div>
+                                                            <Button
+                                                                variant="secondary"
+                                                                size="sm"
+                                                                className="w-full"
+                                                                onClick={() => handleOpenModal(clase)}
+                                                                disabled={inscriptos.length === 0}
+                                                            >
+                                                                Ver inscriptos
+                                                            </Button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </>
                     )}
                 </CardContent>
+
             </Card>
 
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
