@@ -160,7 +160,7 @@ export async function deleteAlumnoByDNI(dni) {
 export async function reiniciarPuntosAlumnos() {
   try {
     console.log('🔄 Iniciando reinicio de puntos...');
-    
+
     // Leer todas las filas de la columna N a partir de la fila 2
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -299,7 +299,7 @@ export async function deletePagoByID(id) {
         {
           deleteDimension: {
             range: {
-              sheetId: 1211942960, 
+              sheetId: 1211942960,
               dimension: 'ROWS',
               startIndex: rowIndex + 1,
               endIndex: rowIndex + 2
@@ -859,20 +859,26 @@ export async function getClasesElClubFromSheet() {
   const inscriptosIdx = headers.findIndex(h => h === 'Inscriptos');
 
   return rows.map(row => {
-    const clase = {};
-    headers.forEach((header, i) => {
-      const cell = row[i] || '';
-      if (i === inscriptosIdx) {
-        const dniList = cell.split(',').map(s => s.trim()).filter(s => s);
-        const nombreList = dniList.map(dni => alumnosMap[dni] || `(DNI ${dni} no encontrado)`);
-        clase[header] = nombreList.join(', ');
-      } else {
-        clase[header] = cell;
-      }
-    });
+    const clase = headers.reduce((obj, header, i) => {
+      obj[header] = row[i] || '';
+      return obj;
+    }, {});
+
+    const dniList = (clase.Inscriptos || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const nombreList = dniList.map(dni =>
+      alumnosMap[dni] || `(DNI ${dni} no encontrado)`
+    );
+
+    clase.InscriptosNombres = nombreList.join(', ');
+
     return clase;
   });
 }
+
 
 export async function updateClaseElClubInSheet(id, nuevosDatos) {
   const res = await sheets.spreadsheets.values.get({

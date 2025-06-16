@@ -29,7 +29,8 @@ interface Clase {
     Dia: string
     Hora: string
     'Cupo maximo': string
-    Inscriptos: string
+    Inscriptos: string,
+    IncriptosNombre: string,
     ProximaFecha?: string
 }
 
@@ -85,7 +86,7 @@ export const ElClub = () => {
     }
 
     const handleOpenModal = (clase: Clase) => {
-        const lista = clase.Inscriptos?.split(",").map(d => d.trim()).filter(d => d) || []
+        const lista = clase.InscriptosNombres?.split(",").map(d => d.trim()).filter(d => d) || []
         setDniList(lista)
         setNombreClase(clase["Nombre de clase"])
         setModalOpen(true)
