@@ -131,7 +131,7 @@ export default function EgresosSection() {
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between bg-orange-50 rounded-t-lg">
+            <CardHeader className="flex flex-row items-center justify-between bg-orange-50 mb-4 dark:bg-zinc-900 rounded-t-lg">
                 <div>
                     <CardTitle>Egresos</CardTitle>
                     <CardDescription>Listado de egresos filtrado por fecha y tipo</CardDescription>
@@ -223,7 +223,7 @@ export default function EgresosSection() {
                             paginatedShifts.map((e, i) => (
                                 <div
                                     key={i}
-                                    className="rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md"
+                                    className="rounded-lg border bg-white dark:bg-zinc-900 p-4 shadow-sm transition hover:shadow-md"
                                 >
                                     <div className="flex justify-between items-center mb-3">
                                         <div>
@@ -303,7 +303,7 @@ export default function EgresosSection() {
                     onConfirm={handleDeleteEgreso}
                 >
                     {egresoAEliminar && (
-                        <div className="space-y-2 text-lg md:text-sm p-4 bg-gray-100 rounded text-orange-600">
+                        <div className="dark:bg-zinc-900 space-y-2 text-lg md:text-sm p-4 bg-gray-100 rounded text-orange-600">
                             <p><strong>Fecha:</strong> {egresoAEliminar.Fecha}</p>
                             <p className="max-w-xs overflow-hidden text-ellipsis break-words line-clamp-3">
                                 <strong>Motivo:</strong> {egresoAEliminar.Motivo}

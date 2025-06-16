@@ -80,7 +80,7 @@ export default function AssistsSection() {
   return (
     <TabsContent value="assists" className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between bg-orange-50 rounded-t-lg mb-4">
+        <CardHeader className="flex flex-row items-center justify-between bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
           <div>
             <CardTitle>Asistencias</CardTitle>
             <CardDescription>Controla las asistencias registradas en el sistema.</CardDescription>

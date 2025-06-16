@@ -166,7 +166,7 @@ export default function DebtsSection() {
     return (
         <TabsContent value="deudas" className="space-y-4">
             <Card>
-                <CardHeader className="bg-orange-50 rounded-t-lg mb-4">
+                <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
                     <div className="flex justify-between items-center">
                         <div>
                             <CardTitle>Deudas</CardTitle>
@@ -189,7 +189,7 @@ export default function DebtsSection() {
                             <DatePicker date={selectedDate} setDate={setSelectedDate} />
                         </div>
                         <div className="text-right text-sm font-medium ">
-                            <p className={`${totalMes === 0 ? 'bg-green-200' : 'bg-red-100'} rounded p-2 text-lg`}>Total adeudado del mes:{' '}
+                            <p className={`${totalMes === 0 ? 'bg-green-200' : 'bg-red-100'} rounded p-2 text-lg dark:bg-zinc-900`}>Total adeudado del mes:{' '}
                                 <span className={`font-bold ${totalMes === 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     ${totalMes}
                                 </span>
@@ -224,7 +224,7 @@ export default function DebtsSection() {
                                         >
                                             <TableCell>{deuda.DNI}</TableCell>
                                             <TableCell>{deuda.Nombre}</TableCell>
-                                            <TableCell><span className={`font-semibold px-2 py-1 rounded ${deuda.Tipo === "El alumno le debe al gimnasio" ? "bg-red-200" : "bg-orange-300"}`}>
+                                            <TableCell><span className={`font-semibold px-2 dark:bg-zinc-900 py-1 rounded ${deuda.Tipo === "El alumno le debe al gimnasio" ? "bg-red-200" : "bg-orange-300"}`}>
                                                 {deuda.Tipo}
                                             </span></TableCell>
                                             <TableCell>${deuda.Monto}</TableCell>
@@ -232,7 +232,7 @@ export default function DebtsSection() {
                                             <TableCell>{deuda.Fecha}</TableCell>
                                             <TableCell>{deuda.Responsable}</TableCell>
                                             <TableCell>
-                                                <span className={`font-semibold px-2 py-1 rounded ${deuda.Estado === "Pagado" ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}>
+                                                <span className={`font-semibold px-2 dark:bg-zinc-900 py-1 rounded ${deuda.Estado === "Pagado" ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}>
                                                     {deuda.Estado}
                                                 </span>
                                             </TableCell>

@@ -78,8 +78,8 @@ export const ElClub = () => {
 
     return (
         <>
-            <Card className="shadow-md border border-orange-300">
-                <CardHeader className="bg-orange-50 rounded-t-lg">
+            <Card className="shadow-md">
+                <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg">
                     <div className="flex items-center gap-2">
                         <Users className="w-5 h-5 text-orange-600" />
                         <div>
@@ -141,7 +141,7 @@ export const ElClub = () => {
                                 {clasesFiltradas.map((clase) => {
                                     const inscriptos = clase.Inscriptos?.split(',').map(d => d.trim()).filter(d => d) || []
                                     return (
-                                        <div key={clase.ID} className="h-[200px] border border-orange-200 rounded-lg p-4 shadow-sm flex flex-col justify-between">
+                                        <div key={clase.ID} className="h-[200px] border border-orange-300 dark:bg-zinc-900 dark:border-none rounded-lg p-4 shadow-sm flex flex-col justify-between">
 
                                             <div className="flex justify-between items-center mb-2">
                                                 <h3 className="text-lg font-semibold">{clase["Nombre de clase"]}</h3>

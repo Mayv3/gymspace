@@ -60,7 +60,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row bg-orange-50  dark:bg-zinc-900 mb-4 items-center justify-between">
         <div>
           <CardTitle>Gestión de Miembros</CardTitle>
           <CardDescription>Ver y editar información de miembros.</CardDescription>

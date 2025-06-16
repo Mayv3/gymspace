@@ -125,7 +125,7 @@ export function ShiftPaymentsTab({
   return (
     <>
       <Card>
-        <CardHeader className="bg-orange-50 rounded-t-lg mb-4">
+        <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
           <div className="flex justify-between">
             <div>
               <CardTitle>Pagos</CardTitle>

@@ -211,7 +211,7 @@ export default function ShiftsSection() {
     return (
         <TabsContent value="shifts" className="space-y-4">
             <Card>
-                <CardHeader className="bg-orange-50 rounded-t-lg mb-4">
+                <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
                     <div className="flex justify-between">
                         <div>
                             <CardTitle>Turnos</CardTitle>
@@ -346,7 +346,7 @@ export default function ShiftsSection() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
-                                        className="rounded-lg border bg-white shadow-sm p-4 space-y-2"
+                                        className="rounded-lg border bg-white dark:bg-zinc-900 shadow-sm p-4 space-y-2"
                                     >
                                         <div className="flex justify-between items-center">
                                             <div>
@@ -601,15 +601,24 @@ export default function ShiftsSection() {
                 {selectedTurno && (
                     <div className="space-y-4 p-4 bg-muted/50 text-sm rounded-md">
                         <div className="flex justify-between items-center">
-                            <ClipboardList className="h-4 w-4 text-primary mr-2" />
+                            <div className="flex items-center">
+                                <ClipboardList className="h-4 w-4 text-primary mr-2" />
+                                <p>Tipo</p>
+                            </div>
                             {selectedTurno.Tipo}
                         </div>
                         <div className="flex justify-between items-center">
-                            <CalendarDays className="h-4 w-4 text-primary mr-2" />
+                            <div className="flex items-center">
+                                <CalendarDays className="h-4 w-4 text-primary mr-2" />
+                                <p>Fecha: </p>
+                            </div>
                             {selectedTurno.Fecha_turno}
                         </div>
                         <div className="flex justify-between items-center">
-                            <User className="h-4 w-4 text-primary mr-2" />
+                            <div className="flex items-center">
+                                <User className="h-4 w-4 text-primary mr-2" />
+                                <p>Profesional:</p>
+                            </div>
                             {selectedTurno.Profesional}
                         </div>
                     </div>
