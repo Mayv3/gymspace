@@ -9,11 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Dumbbell, LogOut, User, Moon, Sun } from "lucide-react"  // <--- AÑADIMOS Moon y Sun
+import { Dumbbell, LogOut, User, Moon, Sun } from "lucide-react"
 import { motion } from "framer-motion"
 import Cookies from "js-cookie"
 import { useUser } from "@/context/UserContext"
-import { useEffect, useState } from "react"   // <--- AÑADIMOS useState y useEffect
+import { useEffect, useState } from "react"
 
 interface DashboardHeaderProps {
   role: string
@@ -26,7 +26,6 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    // Cuando carga la página, leo si había un modo guardado
     const storedTheme = localStorage.getItem("theme")
     if (storedTheme === "dark") {
       document.documentElement.classList.add("dark")
@@ -66,18 +65,15 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
         <span className="gradient-text hidden xs:inline-block text-lg sm:inline-block">GymSpace</span>
       </Link>
       <div className="ml-auto flex items-center gap-4">
-        {/* BOTÓN DARK MODE */}
         <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
           {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-800" />}
           <span className="sr-only">Toggle dark mode</span>
         </Button>
 
-        {/* Texto conectado */}
         <span className="hidden text-sm text-muted-foreground md:inline-block">
           Conectado como <strong className="text-[#ff6b00]">{user?.nombre}</strong>
         </span>
 
-        {/* Menú de usuario */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="rounded-full border-[#ff6b00]/50">

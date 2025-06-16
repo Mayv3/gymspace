@@ -131,7 +131,7 @@ export default function EgresosSection() {
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between bg-orange-50 rounded-t-lg">
                 <div>
                     <CardTitle>Egresos</CardTitle>
                     <CardDescription>Listado de egresos filtrado por fecha y tipo</CardDescription>
@@ -165,55 +165,106 @@ export default function EgresosSection() {
                     </div>
                 </div>
 
-                <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
-                    <div className="min-w-[800px]">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="text-center w-1/6">Fecha</TableHead>
-                                    <TableHead className="text-center w-1/6">Motivo</TableHead>
-                                    <TableHead className="text-center w-1/6">Monto</TableHead>
-                                    <TableHead className="text-center w-1/6">Responsable</TableHead>
-                                    <TableHead className="text-center w-1/6">Tipo</TableHead>
-                                    <TableHead className="text-center w-1/6">Acciones</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {egresos.length > 0 ? (
-                                    paginatedShifts.map((e, i) => (
-                                        <TableRow key={i}>
-                                            <TableCell className="text-center w-1/6">{e.Fecha}</TableCell>
-                                            <TableCell className="text-center w-1/6">
-                                                <div className="truncate overflow-hidden whitespace-nowrap max-w-[160px] mx-auto">
-                                                    {e.Motivo}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-center w-1/6">${e.Monto}</TableCell>
-                                            <TableCell className="text-center w-1/6">{e.Responsable}</TableCell>
-                                            <TableCell className="text-center w-1/6">{e.Tipo}</TableCell>
-                                            <TableCell className="text-center w-1/6">
-                                                <button
-                                                    onClick={() => {
-                                                        setEgresoAEliminar(e)
-                                                        setShowDeleteDialog(true)
-                                                    }}
-                                                    className="text-red-600 font-medium hover:underline"
-                                                >
-                                                    <Trash className="h-4 w-4 text-destructive" />
-                                                </button>
+                <div className="rounded-md md:border overflow-auto max-w-[calc(100vw-2rem)]">
+                    <div className="hidden md:block">
+                        <div className="min-w-[800px] overflow-x-auto">
+                            <Table className="table-fixed w-full">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="text-center w-1/6">Fecha</TableHead>
+                                        <TableHead className="text-center w-1/6">Motivo</TableHead>
+                                        <TableHead className="text-center w-1/6">Monto</TableHead>
+                                        <TableHead className="text-center w-1/6">Responsable</TableHead>
+                                        <TableHead className="text-center w-1/6">Tipo</TableHead>
+                                        <TableHead className="text-center w-1/6">Acciones</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {egresos.length > 0 ? (
+                                        paginatedShifts.map((e, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="text-center">{e.Fecha}</TableCell>
+                                                <TableCell className="text-center">
+                                                    <div className="truncate overflow-hidden whitespace-nowrap max-w-[160px] mx-auto">
+                                                        {e.Motivo}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-center">${e.Monto}</TableCell>
+                                                <TableCell className="text-center">{e.Responsable}</TableCell>
+                                                <TableCell className="text-center">{e.Tipo}</TableCell>
+                                                <TableCell className="text-center">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEgresoAEliminar(e)
+                                                            setShowDeleteDialog(true)
+                                                        }}
+                                                        className="text-red-600 font-medium hover:underline"
+                                                    >
+                                                        <Trash className="h-4 w-4 text-destructive" />
+                                                    </button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                                                No hay egresos para este mes.
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
-                                            No hay egresos para este mes (selecciona una fecha con el mes que quieres filtrar).
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </div>
+
+                    {/* Vista tipo cards para mobile */}
+                    <div className="block md:hidden space-y-4 mt-4">
+                        {egresos.length > 0 ? (
+                            paginatedShifts.map((e, i) => (
+                                <div
+                                    key={i}
+                                    className="rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md"
+                                >
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div>
+                                            <p className="text-lg font-bold">{e.Tipo}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-medium font-semibold">{e.Fecha} -  ${e.Monto}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div>
+                                            <p className="text-medium font-medium">Responsable: {e.Responsable}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div>
+                                            <i className="text-medium font-medium">{e.Motivo}</i>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end mt-3">
+                                        <button
+                                            onClick={() => {
+                                                setEgresoAEliminar(e)
+                                                setShowDeleteDialog(true)
+                                            }}
+                                            className="text-destructive flex items-center justify-center gap-1 w-full bg-red-500 p-2 rounded-lg text-white"
+                                        >
+                                            <Trash className="w-4 h-4" />
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-sm text-muted-foreground">
+                                No hay egresos para este mes.
+                            </p>
+                        )}
+                    </div>
+
                     {egresos.length > itemsPerPage && (
                         <div className="flex justify-center gap-2 my-4">
                             <Button
@@ -252,7 +303,7 @@ export default function EgresosSection() {
                     onConfirm={handleDeleteEgreso}
                 >
                     {egresoAEliminar && (
-                        <div className="space-y-2 text-sm p-4">
+                        <div className="space-y-2 text-lg md:text-sm p-4 bg-gray-100 rounded text-orange-600">
                             <p><strong>Fecha:</strong> {egresoAEliminar.Fecha}</p>
                             <p className="max-w-xs overflow-hidden text-ellipsis break-words line-clamp-3">
                                 <strong>Motivo:</strong> {egresoAEliminar.Motivo}

@@ -151,7 +151,7 @@ export default function PlansSection() {
     return (
         <TabsContent value="plans" className="space-y-4">
             <Card>
-                <CardHeader>
+                <CardHeader className="bg-orange-50 rounded-t-lg mb-4">
                     <div className="flex justify-between">
                         <div>
                             <CardTitle>Planes</CardTitle>

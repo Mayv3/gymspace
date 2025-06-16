@@ -33,6 +33,7 @@ import { Member } from "@/models/dashboard";
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
 import { format } from "date-fns"
 import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
+import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 
 
 export default function AdministratorDashboard() {
@@ -222,13 +223,11 @@ export default function AdministratorDashboard() {
         )}
 
         <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-8 md:w-auto">
+          <TabsList className="grid w-full grid-cols-3 gap-2 h-auto md:grid-cols-9 md:w-auto">
             <TabsTrigger value="overview" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              <TrendingUp className="mr-2 h-4 w-4" />
               Resumen
             </TabsTrigger>
             <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              <Users className="mr-2 h-4 w-4" />
               Miembros
             </TabsTrigger>
             <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Pagos</TabsTrigger>
@@ -237,6 +236,7 @@ export default function AdministratorDashboard() {
             <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Planes</TabsTrigger>
             <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Turnos</TabsTrigger>
             <TabsTrigger value="egresos" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Egresos</TabsTrigger>
+            <TabsTrigger value="elclub" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">El Club</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" forceMount>
@@ -290,6 +290,10 @@ export default function AdministratorDashboard() {
 
           <TabsContent value="egresos" className="space-y-4">
             <EgresosSection />
+          </TabsContent>
+
+          <TabsContent value="elclub" className="space-y-4">
+            <ElClub />
           </TabsContent>
         </Tabs>
 

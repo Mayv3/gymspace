@@ -166,7 +166,7 @@ export default function DebtsSection() {
     return (
         <TabsContent value="deudas" className="space-y-4">
             <Card>
-                <CardHeader>
+                <CardHeader className="bg-orange-50 rounded-t-lg mb-4">
                     <div className="flex justify-between items-center">
                         <div>
                             <CardTitle>Deudas</CardTitle>
@@ -189,7 +189,7 @@ export default function DebtsSection() {
                             <DatePicker date={selectedDate} setDate={setSelectedDate} />
                         </div>
                         <div className="text-right text-sm font-medium ">
-                            <p className={`${totalMes === 0 ? 'bg-green-200' : 'bg-red-200'} rounded p-2 text-lg`}>Total adeudado del mes:{' '}
+                            <p className={`${totalMes === 0 ? 'bg-green-200' : 'bg-red-100'} rounded p-2 text-lg`}>Total adeudado del mes:{' '}
                                 <span className={`font-bold ${totalMes === 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     ${totalMes}
                                 </span>

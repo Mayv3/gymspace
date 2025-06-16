@@ -125,7 +125,7 @@ export function ShiftPaymentsTab({
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="bg-orange-50 rounded-t-lg mb-4">
           <div className="flex justify-between">
             <div>
               <CardTitle>Pagos</CardTitle>
@@ -136,6 +136,7 @@ export function ShiftPaymentsTab({
               Añadir Pago
             </Button>
           </div>
+
         </CardHeader>
         <CardContent>
           {/* FILTROS */}
@@ -246,7 +247,6 @@ export function ShiftPaymentsTab({
             </div>
 
           )}
-
           <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)] mb-6">
             <div className="min-w-[800px]">
               <Table>
@@ -341,8 +341,13 @@ export function ShiftPaymentsTab({
           </div>
 
           <div className="bg-background rounded-2xl shadow-sm py-6 space-y-6">
-            <div className="flex flex-col md:flex-row md:items-end gap-2 mb-4">
+            <div className="">
               <h2 className="text-2xl">Totales del turno {selectedShift}</h2>
+              <div className="mb-4 text-sm text-muted-foreground">
+                Mostrando pagos del{" "}
+                <span className="font-medium">{selectedDay}/{selectedMonth}/{selectedYear}</span>{" "}
+                - Turno: <span className="font-medium">{selectedShift}</span>
+              </div>
             </div>
             {Object.keys(resumenPorTipo).length > 0 && (
               <div className="grid gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">

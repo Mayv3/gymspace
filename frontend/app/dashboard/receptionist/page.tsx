@@ -30,6 +30,7 @@ import { useAppData } from "@/context/AppDataContext"
 import { Member } from "@/models/dashboard"
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
 import DebtsSection, { DeudasSection } from "@/components/dashboard/recepcionist/deudas/Deudas"
+import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 
 export default function ReceptionistDashboard() {
   const { user, loading } = useUser()
@@ -161,7 +162,6 @@ export default function ReceptionistDashboard() {
             La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
           </div>
         )}
-
         {(!cerrada || !existe) && (
           <CashRegisterSection
             cashRegisterOpen={cashOpen}
@@ -176,7 +176,7 @@ export default function ReceptionistDashboard() {
         )}
 
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-7 md:w-auto">
+          <TabsList className="grid h-auto w-full grid-cols-4 md:grid-cols-8 md:w-auto">
             <TabsTrigger value="members">Miembros</TabsTrigger>
             <TabsTrigger value="shift-payments">Pagos</TabsTrigger>
             <TabsTrigger value="deudas">Deudas</TabsTrigger>
@@ -184,7 +184,7 @@ export default function ReceptionistDashboard() {
             <TabsTrigger value="plans">Planes</TabsTrigger>
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
             <TabsTrigger value="egresos">Egresos</TabsTrigger>
-
+            <TabsTrigger value="elclub">El Club</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="space-y-4">
@@ -199,11 +199,6 @@ export default function ReceptionistDashboard() {
           </TabsContent>
 
           <TabsContent value="shift-payments" className="space-y-4">
-            <div className="mb-4 text-sm text-muted-foreground">
-              Mostrando pagos del{" "}
-              <span className="font-medium">{selectedDay}/{selectedMonth}/{selectedYear}</span>{" "}
-              - Turno: <span className="font-medium">{selectedShift}</span>
-            </div>
             <PaymentsSection
               currentShiftPayments={payments}
               selectedDate={selectedDate}
@@ -242,7 +237,11 @@ export default function ReceptionistDashboard() {
           </TabsContent>
 
           <TabsContent value="deudas" className="space-y-4">
-            <DebtsSection/>
+            <DebtsSection />
+          </TabsContent>
+
+          <TabsContent value="elclub" className="space-y-4">
+            <ElClub/>
           </TabsContent>
         </Tabs>
       </div>

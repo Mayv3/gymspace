@@ -211,8 +211,7 @@ export default function ShiftsSection() {
     return (
         <TabsContent value="shifts" className="space-y-4">
             <Card>
-                <CardHeader>
-
+                <CardHeader className="bg-orange-50 rounded-t-lg mb-4">
                     <div className="flex justify-between">
                         <div>
                             <CardTitle>Turnos</CardTitle>
@@ -222,7 +221,6 @@ export default function ShiftsSection() {
                             <PlusCircle className="mr-2 h-4 w-4" /> Agregar turno
                         </Button>
                     </div>
-
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -253,8 +251,8 @@ export default function ShiftsSection() {
                         </div>
                     </div>
 
-                    <div className="overflow-auto border rounded-md max-w-[calc(100vw-2rem)]">
-                        <div className="min-w-[900px]">
+                    <div className="overflow-auto md:border rounded-md max-w-[calc(100vw-2rem)]">
+                        <div className="min-w-[900px] hidden md:block">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -338,6 +336,74 @@ export default function ShiftsSection() {
                                     )}
                                 </TableBody>
                             </Table>
+                        </div>
+
+                        <div className="block md:hidden space-y-4">
+                            {paginatedShifts.length > 0 ? (
+                                paginatedShifts.map((turno, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="rounded-lg border bg-white shadow-sm p-4 space-y-2"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-lg font-bold">{turno.Tipo}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-medium font-semibold">{turno.Hora} - {turno.Fecha_turno}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1 text-foreground">
+                                            <div>
+                                                <p>Profesional: {turno.Profesional}</p>
+                                            </div>
+                                            <div>
+                                                <p>Responsable: {turno.Responsable}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 pt-2">
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="sm: w-full bg-orange-200"
+                                                onClick={() => {
+                                                    setEditingTurno(turno)
+                                                    setEditForm({
+                                                        Tipo: turno.Tipo,
+                                                        Fecha_turno: parse(turno.Fecha_turno, "dd/MM/yyyy", new Date(), { locale: es }),
+                                                        Profesional: turno.Profesional,
+                                                        Responsable: turno.Responsable,
+                                                        Hora: turno.Hora,
+                                                    })
+                                                    setShowEditDialog(true)
+                                                }}
+                                            >
+                                                <Edit className="h-4 w-4 text-primary" />
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="sm: w-full bg-red-200"
+                                                onClick={() => {
+                                                    setSelectedTurno(turno)
+                                                    setShowDeleteDialog(true)
+                                                }}
+                                            >
+                                                <Trash className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                ))
+                            ) : (
+                                <p className="text-center text-sm text-muted-foreground">
+                                    No hay turnos registrados.
+                                </p>
+                            )}
                         </div>
 
                         {filteredTurnos.length > itemsPerPage && (
