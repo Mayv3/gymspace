@@ -98,17 +98,19 @@ const limpiarInscriptosPasados = async () => {
     if (fechaHoraClase.isBefore(ahora)) {
       if (clase.Inscriptos?.trim()) {
         console.log(
-          `✅ [SIMULACIÓN] Borraría inscriptos de la clase ${clase.ID} porque ` +
-          `${fechaHoraClase.format('D/M/YYYY HH:mm')} < ${ahora.format('D/M/YYYY HH:mm')}`
+          `➡️ Borrando inscriptos de la clase ${clase.ID} ` +
+          `porque ${fechaHoraClase.format('D/M/YYYY HH:mm')} < ${ahora.format('D/M/YYYY HH:mm')}`
         );
+        await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' });
       } else {
-        console.log(`⚪️ [SIMULACIÓN] Clase ${clase.ID} no tenía inscriptos.`);
+        console.log(`– Clase ${clase.ID} no tenía inscriptos.`);
       }
     } else {
-      console.log(`⏳ [SIMULACIÓN] Clase ${clase.ID} aún no pasó.`);
+      console.log(`👍 Clase ${clase.ID} aún no pasó.`);
     }
   }
 };
+
 
 
 export const obtenerClasesElClub = async (req, res) => {
