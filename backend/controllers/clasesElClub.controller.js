@@ -82,7 +82,7 @@ const limpiarInscriptosPasados = async () => {
     const fechaClase = dayjs(proximaFecha, 'D/M/YYYY')
       .tz(ARG_TIMEZONE)
       .startOf('day')
-
+      
     if (fechaClase.isBefore(hoy)) {
       if (clase.Inscriptos?.trim()) {
         await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' })
@@ -93,32 +93,41 @@ const limpiarInscriptosPasados = async () => {
 
 export const obtenerClasesElClub = async (req, res) => {
   try {
-    await limpiarInscriptosPasados()
+    const clasesRaw = await getClasesElClubFromSheet();
+
+    const ARG_TZ = "America/Argentina/Buenos_Aires";
+    const hoy = dayjs().tz(ARG_TZ).startOf("day");
+
+    const hayPasadas = clasesRaw.some(clase => {
+      const prox = calcularProximaFecha(clase.Dia);
+      if (!prox) return false;
+      const fechaClase = dayjs(prox, "D/M/YYYY").tz(ARG_TZ).startOf("day");
+      return fechaClase.isBefore(hoy);
+    });
+
+    if (hayPasadas) {
+      await limpiarInscriptosPasados();
+    }
+
     const clases = await getClasesElClubFromSheet();
-
     const clasesConFecha = clases.map(clase => {
-      const diaSemana = clase.Dia;
-      const proximaFecha = calcularProximaFecha(diaSemana);
-
-      return {
-        ...clase,
-        ProximaFecha: proximaFecha,
-
-      };
+      const proximaFecha = calcularProximaFecha(clase.Dia);
+      return { ...clase, ProximaFecha: proximaFecha };
     });
 
     clasesConFecha.sort((a, b) => {
-      const fechaA = dayjs(`${a.ProximaFecha} ${a.Hora}`, "D/M/YYYY HH:mm");
-      const fechaB = dayjs(`${b.ProximaFecha} ${b.Hora}`, "D/M/YYYY HH:mm");
-      return fechaA.diff(fechaB);
+      const fa = dayjs(`${a.ProximaFecha} ${a.Hora}`, "D/M/YYYY HH:mm");
+      const fb = dayjs(`${b.ProximaFecha} ${b.Hora}`, "D/M/YYYY HH:mm");
+      return fa.diff(fb);
     });
 
     return sendSuccess(res, clasesConFecha);
   } catch (error) {
-    console.error('Error al obtener clases del club:', error);
+    console.error("Error al obtener clases del club:", error);
     return sendError(res, RESPONSES.fetchClasesError);
   }
 };
+
 
 export const updateClaseTableroByID = async (req, res) => {
   try {

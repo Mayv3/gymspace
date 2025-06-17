@@ -123,7 +123,7 @@ export default function MemberDashboard() {
 
     console.log(`Faltan ${totalMinutes} minutos y ${remainingSeconds} segundos hasta medianoche.`);
     const timer = setTimeout(() => {
-      fetchClases()
+      fetchClases();
     }, ms);
 
     return () => clearTimeout(timer);
