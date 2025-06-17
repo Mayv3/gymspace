@@ -111,7 +111,6 @@ export default function MemberDashboard() {
     }
   }, [loading, contextUser])
 
-
   useEffect(() => {
     const ARG_TZ = "America/Argentina/Buenos_Aires";
     const now = dayjs().tz(ARG_TZ);
@@ -124,7 +123,7 @@ export default function MemberDashboard() {
 
     console.log(`Faltan ${totalMinutes} minutos y ${remainingSeconds} segundos hasta medianoche.`);
     const timer = setTimeout(() => {
-      setLoadingClases(l => !l);
+      fetchClases()
     }, ms);
 
     return () => clearTimeout(timer);
