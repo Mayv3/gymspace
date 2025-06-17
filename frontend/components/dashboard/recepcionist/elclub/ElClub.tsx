@@ -244,9 +244,9 @@ export const ElClub = () => {
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
                     <DialogContent className="rounded-lg">
                         <DialogHeader>
-                            <DialogTitle className="text-xl sm:text-2xl flex justify-between p-3">
-                                <p className='text-2xl md:text-3xl'>“{nombreClase}”</p>
-                                <Badge variant="outline" className="text-base px-2 py-1 bg-orange-200">
+                            <DialogTitle className="text-lg sm:text-2xl flex justify-between items-center p-3">
+                                <p className='text-sm md:text-2xl'>{nombreClase}</p>
+                                <Badge variant="outline" className="text-sm px-2 py-1 bg-orange-200">
                                     {classDateTime}
                                 </Badge>
                             </DialogTitle>
@@ -254,7 +254,7 @@ export const ElClub = () => {
                         <div className="mt-4 flex flex-wrap gap-2">
                             {dniList.length > 0 ? (
                                 dniList.map((dni, index) => (
-                                    <Badge key={index} variant="outline" className="text-lg md:text-xl px-2 py-1">
+                                    <Badge key={index} variant="outline" className="text-sm md:text-xl px-2 py-1">
                                         {dni}
                                     </Badge>
                                 ))
