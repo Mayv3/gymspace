@@ -105,10 +105,6 @@ export const obtenerClasesElClub = async (req, res) => {
       return fechaClase.isBefore(hoy);
     });
 
-    if (hayPasadas) {
-      await limpiarInscriptosPasados();
-    }
-
     const clases = await getClasesElClubFromSheet();
     const clasesConFecha = clases.map(clase => {
       const proximaFecha = calcularProximaFecha(clase.Dia);
@@ -127,7 +123,6 @@ export const obtenerClasesElClub = async (req, res) => {
     return sendError(res, RESPONSES.fetchClasesError);
   }
 };
-
 
 export const updateClaseTableroByID = async (req, res) => {
   try {
