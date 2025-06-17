@@ -71,10 +71,12 @@ async function findAlumno(dni) {
   return alumnos.find(a => a.DNI === dni);
 }
 
+const ARG_TZ = 'America/Argentina/Cordoba'
+
 const limpiarInscriptosPasados = async () => {
   const clases = await getClasesElClubFromSheet();
 
-  const ahora = dayjs().tz(ARG_TIMEZONE);
+  const ahora = dayjs().tz(ARG_TZ);
   console.log('▶️ Ahora es:', ahora.format('D/M/YYYY HH:mm'));
 
   for (const clase of clases) {
@@ -84,10 +86,11 @@ const limpiarInscriptosPasados = async () => {
       continue;
     }
 
-    const fechaHoraClase = dayjs(
+    const fechaHoraClase = dayjs.tz(
       `${proximaFecha} ${clase.Hora}`,
-      'D/M/YYYY HH:mm'
-    ).tz(ARG_TIMEZONE);
+      'D/M/YYYY HH:mm',
+      ARG_TZ
+    )
 
     console.log(
       `Clase ${clase.ID} (“${clase['Nombre de clase']}”):`,
@@ -110,8 +113,6 @@ const limpiarInscriptosPasados = async () => {
     }
   }
 };
-
-
 
 export const obtenerClasesElClub = async (req, res) => {
   limpiarInscriptosPasados()
