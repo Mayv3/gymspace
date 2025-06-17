@@ -112,6 +112,25 @@ export default function MemberDashboard() {
   }, [loading, contextUser])
 
 
+  useEffect(() => {
+    const ARG_TZ = "America/Argentina/Buenos_Aires";
+    const now = dayjs().tz(ARG_TZ);
+    const mañana = now.add(1, "day").startOf("day");
+    const ms = mañana.diff(now);
+
+    const totalSeconds = Math.floor(ms / 1000);
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const remainingSeconds = totalSeconds % 60;
+
+    console.log(`Faltan ${totalMinutes} minutos y ${remainingSeconds} segundos hasta medianoche.`);
+    const timer = setTimeout(() => {
+      setLoadingClases(l => !l);
+    }, ms);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+
   const fetchUser = async () => {
     if (!contextUser) return;
 
@@ -271,6 +290,7 @@ export default function MemberDashboard() {
       clases: clasesDelDia,
     };
   });
+
 
   const diaHoy = diasOrden[0];
 
