@@ -72,26 +72,47 @@ async function findAlumno(dni) {
 }
 
 const limpiarInscriptosPasados = async () => {
-  const clases = await getClasesElClubFromSheet()
-  const hoy = dayjs().tz(ARG_TIMEZONE).startOf('day')
+  const clases = await getClasesElClubFromSheet();
+
+  const ahora = dayjs().tz(ARG_TIMEZONE);
+  console.log('▶️ Ahora es:', ahora.format('D/M/YYYY HH:mm'));
 
   for (const clase of clases) {
-    const proximaFecha = calcularProximaFecha(clase.Dia)
-    if (!proximaFecha) continue
+    const proximaFecha = calcularProximaFecha(clase.Dia);
+    if (!proximaFecha) {
+      console.log(`❌ Clase ${clase.ID}: no se pudo calcular la próxima fecha`);
+      continue;
+    }
 
-    const fechaClase = dayjs(proximaFecha, 'D/M/YYYY')
-      .tz(ARG_TIMEZONE)
-      .startOf('day')
-      
-    if (fechaClase.isBefore(hoy)) {
+    const fechaHoraClase = dayjs(
+      `${proximaFecha} ${clase.Hora}`,
+      'D/M/YYYY HH:mm'
+    ).tz(ARG_TIMEZONE);
+
+    console.log(
+      `Clase ${clase.ID} (“${clase['Nombre de clase']}”):`,
+      'fechaHoraClase=', fechaHoraClase.format('D/M/YYYY HH:mm'),
+      '| ahora=', ahora.format('D/M/YYYY HH:mm')
+    );
+
+    if (fechaHoraClase.isBefore(ahora)) {
       if (clase.Inscriptos?.trim()) {
-        await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' })
+        console.log(
+          `✅ [SIMULACIÓN] Borraría inscriptos de la clase ${clase.ID} porque ` +
+          `${fechaHoraClase.format('D/M/YYYY HH:mm')} < ${ahora.format('D/M/YYYY HH:mm')}`
+        );
+      } else {
+        console.log(`⚪️ [SIMULACIÓN] Clase ${clase.ID} no tenía inscriptos.`);
       }
+    } else {
+      console.log(`⏳ [SIMULACIÓN] Clase ${clase.ID} aún no pasó.`);
     }
   }
-}
+};
+
 
 export const obtenerClasesElClub = async (req, res) => {
+  limpiarInscriptosPasados()
   try {
     const clasesRaw = await getClasesElClubFromSheet();
 
