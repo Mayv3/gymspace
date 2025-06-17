@@ -43,6 +43,7 @@ export const ElClub = () => {
     const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     const hoy = dayjs().locale("es").day();
     const indiceHoy = hoy === 0 ? 6 : hoy - 1;
+    const [classDateTime, setClassDateTime] = useState<string>('');
 
     const ARG_TZ = "America/Argentina/Buenos_Aires";
     const now = dayjs().tz(ARG_TZ);
@@ -86,10 +87,14 @@ export const ElClub = () => {
     }
 
     const handleOpenModal = (clase: Clase) => {
-        const lista = clase.InscriptosNombres?.split(",").map(d => d.trim()).filter(d => d) || []
-        setDniList(lista)
-        setNombreClase(clase["Nombre de clase"])
-        setModalOpen(true)
+        const lista = clase.InscriptosNombres
+            ?.split(',')
+            .map(d => d.trim())
+            .filter(Boolean) || [];
+        setDniList(lista);
+        setNombreClase(clase['Nombre de clase']);
+        setClassDateTime(`${clase.ProximaFecha} — ${clase.Hora} hs`);
+        setModalOpen(true);
     }
 
     useEffect(() => {
@@ -167,6 +172,7 @@ export const ElClub = () => {
                                                                 size="sm"
                                                                 onClick={() => handleOpenModal(clase)}
                                                                 disabled={inscriptos.length === 0}
+                                                                className='bg-orange-200'
                                                             >
                                                                 Ver inscriptos
                                                             </Button>
@@ -236,24 +242,27 @@ export const ElClub = () => {
             </Card>
 
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-                <DialogContent className="max-w-md sm:max-w-lg rounded-lg">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl sm:text-2xl">
-                            Inscriptos en "{nombreClase}"
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        {dniList.length > 0 ? (
-                            dniList.map((dni, index) => (
-                                <Badge key={index} variant="outline" className="text-sm px-2 py-1">
-                                    {dni}
+                    <DialogContent className="rounded-lg">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl sm:text-2xl flex justify-between p-3">
+                                <p className='text-2xl md:text-3xl'>“{nombreClase}”</p>
+                                <Badge variant="outline" className="text-base px-2 py-1 bg-orange-200">
+                                    {classDateTime}
                                 </Badge>
-                            ))
-                        ) : (
-                            <p className="text-muted-foreground text-sm">No hay inscriptos.</p>
-                        )}
-                    </div>
-                </DialogContent>
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {dniList.length > 0 ? (
+                                dniList.map((dni, index) => (
+                                    <Badge key={index} variant="outline" className="text-lg md:text-xl px-2 py-1">
+                                        {dni}
+                                    </Badge>
+                                ))
+                            ) : (
+                                <p className="text-muted-foreground text-sm">No hay inscriptos.</p>
+                            )}
+                        </div>
+                    </DialogContent>
             </Dialog>
         </>
     )
