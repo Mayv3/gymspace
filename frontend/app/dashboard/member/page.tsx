@@ -234,12 +234,13 @@ export default function MemberDashboard() {
     ? Math.min(100, Math.max(0, (daysLeft / 30) * 100))
     : 0
 
-  const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
-  const hoy = dayjs().locale("es").day();
-  const indiceHoy = hoy === 0 ? 6 : hoy - 1;
-
   const ARG_TZ = "America/Argentina/Buenos_Aires";
   const now = dayjs().tz(ARG_TZ);
+
+  const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+
+  const hoy = now.locale("es").day();
+  const indiceHoy = hoy === 0 ? 6 : hoy - 1;
 
   const upcomingClases = clases.filter((clase) => {
     const fechaRaw = clase.ProximaFecha?.trim() || "";
