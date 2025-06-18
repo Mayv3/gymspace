@@ -79,6 +79,7 @@ export default function AsistenciaPage() {
           />
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 text-lg rounded-xl transition"
           >
             {loading ? "Registrando..." : "Registrar asistencia"}
