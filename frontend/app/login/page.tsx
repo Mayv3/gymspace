@@ -73,6 +73,7 @@ const LoginPage = () => {
           "
           />
           <button
+            disabled={loading}
             onClick={handleLogin}
             type="submit"
             className="
