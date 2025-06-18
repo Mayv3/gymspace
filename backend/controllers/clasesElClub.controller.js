@@ -75,9 +75,7 @@ const ARG_TZ = 'America/Argentina/Cordoba'
 
 const limpiarInscriptosPasados = async () => {
   const clases = await getClasesElClubFromSheet();
-
   const ahora = dayjs().tz(ARG_TZ);
-  console.log('▶️ Ahora es:', ahora.format('D/M/YYYY HH:mm'));
 
   for (const clase of clases) {
     const proximaFecha = calcularProximaFecha(clase.Dia);
@@ -91,12 +89,6 @@ const limpiarInscriptosPasados = async () => {
       'D/M/YYYY HH:mm',
       ARG_TZ
     )
-
-    console.log(
-      `Clase ${clase.ID} (“${clase['Nombre de clase']}”):`,
-      'fechaHoraClase=', fechaHoraClase.format('D/M/YYYY HH:mm'),
-      '| ahora=', ahora.format('D/M/YYYY HH:mm')
-    );
 
     if (fechaHoraClase.isBefore(ahora)) {
       if (clase.Inscriptos?.trim()) {
