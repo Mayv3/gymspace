@@ -81,7 +81,6 @@ export default function AdministratorDashboard() {
 
   const { dialogs, selection, closeDialog, onDeletePayment, onShowAddPayment } = useDialogManager(cashOpen)
 
-
   const handleOpenCashRegister = () => {
     const now = new Date()
     setSelectedDay(now.getDate())
@@ -144,13 +143,16 @@ export default function AdministratorDashboard() {
   };
 
   useEffect(() => {
-    if (!loading && (!user?.dni || !user?.rol)) {
-      router.push("/login")
+    if (!loading) {
+      if (user?.rol !== "Administrador" || !user?.rol) {
+        router.replace("/login")
+      }
     }
   }, [user, loading, router])
 
-
   useEffect(() => {
+    if (loading || user?.rol !== "Administrador") return
+
     const formattedMembers: Member[] = alumnos.map(alumno => ({
       id: alumno.ID,
       Nombre: alumno.Nombre,
@@ -170,6 +172,7 @@ export default function AdministratorDashboard() {
   }, [alumnos]);
 
   useEffect(() => {
+    if (loading || user?.rol !== "Administrador") return
     async function fetchOpenCaja() {
       try {
         const hoy = format(new Date(), "d/M/yyyy")
@@ -187,11 +190,31 @@ export default function AdministratorDashboard() {
       }
     }
     fetchOpenCaja()
-  }, [])
+  }, [loading, user])
 
   useEffect(() => {
+    if (loading || user?.rol !== "Administrador") return
     refreshPayments(buildCurrentFilters())
   }, [cashOpen])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <span className="text-lg">Cargando…</span>
+      </div>
+    )
+  }
+
+  if (!user || user.rol !== "Administrador") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <span className="text-red-600 text-center">
+          No estás autorizado.<br />
+          Redirigiendo al login…
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

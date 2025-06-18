@@ -29,7 +29,7 @@ import { useAppData } from "@/context/AppDataContext"
 
 import { Member } from "@/models/dashboard"
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
-import DebtsSection, { DeudasSection } from "@/components/dashboard/recepcionist/deudas/Deudas"
+import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 
 export default function ReceptionistDashboard() {
@@ -124,12 +124,8 @@ export default function ReceptionistDashboard() {
   }
 
   useEffect(() => {
-    if (!loading && (!user?.dni || !user?.rol)) {
-      router.push("/login")
-    }
-  }, [user, loading, router])
+    if (loading || user?.rol !== "Recepcionista") return
 
-  useEffect(() => {
     const formattedMembers: Member[] = alumnos.map(alumno => ({
       id: alumno.ID,
       Nombre: alumno.Nombre,
@@ -148,10 +144,36 @@ export default function ReceptionistDashboard() {
     setMembers(formattedMembers)
   }, [alumnos])
 
-
   useEffect(() => {
+    if (loading || user?.rol !== "Recepcionista") return
     refreshPayments(buildCurrentFilters())
   }, [cashOpen])
+
+  useEffect(() => {
+    if (!loading && user?.rol !== "Recepcionista") {
+      const t = setTimeout(() => router.replace("/login"), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [user, loading, router])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <span className="text-lg">Cargando…</span>
+      </div>
+    )
+  }
+
+  if (!user || user.rol !== "Recepcionista") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <span className="text-red-600 text-center">
+          No estás autorizado.<br />
+          Redirigiendo al login…
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -241,7 +263,7 @@ export default function ReceptionistDashboard() {
           </TabsContent>
 
           <TabsContent value="elclub" className="space-y-4">
-            <ElClub/>
+            <ElClub />
           </TabsContent>
         </Tabs>
       </div>
