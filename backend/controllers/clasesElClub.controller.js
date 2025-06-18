@@ -100,16 +100,8 @@ const limpiarInscriptosPasados = async () => {
 
     if (fechaHoraClase.isBefore(ahora)) {
       if (clase.Inscriptos?.trim()) {
-        console.log(
-          `➡️ Borrando inscriptos de la clase ${clase.ID} ` +
-          `porque ${fechaHoraClase.format('D/M/YYYY HH:mm')} < ${ahora.format('D/M/YYYY HH:mm')}`
-        );
         await updateClaseElClubInSheet(clase.ID, { Inscriptos: '' });
-      } else {
-        console.log(`– Clase ${clase.ID} no tenía inscriptos.`);
       }
-    } else {
-      console.log(`👍 Clase ${clase.ID} aún no pasó.`);
     }
   }
 };
@@ -180,11 +172,6 @@ export const updateClaseTableroByID = async (req, res) => {
           message: `El plan de ${alumno.Nombre} está vencido desde el ${vencimiento.format('DD/MM/YYYY')}`,
         });
       }
-
-      console.log("🕓 Zona horaria detectada (dayjs):", dayjs.tz.guess());
-      console.log('Vencimiento del alumno: ', vencimiento.format('DD/MM/YYYY'))
-      console.log("🌍 Timezone Intl:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-      console.log("📍 Fecha y hora actual (ARG):", now.format('YYYY-MM-DD HH:mm:ss'));
 
       const esIlimitado = PLANES_ILIMITADOS.includes(alumno.Plan);
       if (!esIlimitado) {
