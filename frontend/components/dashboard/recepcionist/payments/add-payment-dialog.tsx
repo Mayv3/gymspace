@@ -62,6 +62,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   const handleSelectPlan = (planID: string) => {
     const selected = planes.find(p => p.ID === planID)
     setPlanSeleccionado(selected)
+    console.log(selected)
     handleChange("amount", selected?.Precio || "")
     handleChange("concept", selected?.["Plan o Producto"] || "")
   }
@@ -120,7 +121,6 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       setDniError("")
     }
   }
-
 
   const handleDateChange = (field: "paymentDate" | "expirationDate", date: Date | undefined) => {
     if (!date) return
