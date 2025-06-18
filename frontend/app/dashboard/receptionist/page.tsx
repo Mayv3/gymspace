@@ -124,8 +124,6 @@ export default function ReceptionistDashboard() {
   }
 
   useEffect(() => {
-    if (loading || user?.rol !== "Recepcionista") return
-
     const formattedMembers: Member[] = alumnos.map(alumno => ({
       id: alumno.ID,
       Nombre: alumno.Nombre,
@@ -145,7 +143,6 @@ export default function ReceptionistDashboard() {
   }, [alumnos])
 
   useEffect(() => {
-    if (loading || user?.rol !== "Recepcionista") return
     refreshPayments(buildCurrentFilters())
   }, [cashOpen])
 

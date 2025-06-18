@@ -151,8 +151,6 @@ export default function AdministratorDashboard() {
   }, [user, loading, router])
 
   useEffect(() => {
-    if (loading || user?.rol !== "Administrador") return
-
     const formattedMembers: Member[] = alumnos.map(alumno => ({
       id: alumno.ID,
       Nombre: alumno.Nombre,
@@ -173,6 +171,7 @@ export default function AdministratorDashboard() {
 
   useEffect(() => {
     if (loading || user?.rol !== "Administrador") return
+    
     async function fetchOpenCaja() {
       try {
         const hoy = format(new Date(), "d/M/yyyy")
@@ -193,7 +192,6 @@ export default function AdministratorDashboard() {
   }, [loading, user])
 
   useEffect(() => {
-    if (loading || user?.rol !== "Administrador") return
     refreshPayments(buildCurrentFilters())
   }, [cashOpen])
 
