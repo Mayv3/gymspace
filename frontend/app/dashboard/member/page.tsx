@@ -78,7 +78,9 @@ export default function MemberDashboard() {
   const [roleChecked, setRoleChecked] = useState(false)
 
   const { user: contextUser, loading } = useUser()
-  const router = useRouter()
+  const router = useRouter();
+
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     if (!loading && !contextUser) {
@@ -295,6 +297,57 @@ export default function MemberDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col">
+
+      {showBanner && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.8 }}
+            className="bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-xl max-w-md w-[90vw] text-center"
+          >
+            <h2 className="text-2xl font-bold mb-4">¡Gran Inauguración!</h2>
+
+            <span className="inline-block bg-orange-100 text-orange-600 font-semibold px-3 py-1 rounded-full mb-4">
+              VIERNES 20 — 17:00 HS
+            </span>
+
+            <div className="flex items-center justify-center text-sm text-zinc-700 dark:text-zinc-300 mb-6">
+              <svg
+                className="w-5 h-5 text-red-500 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6zm0 8a2 2 0 110-4 2 2 0 010 4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Humahuaca 41
+            </div>
+
+            <p className="mb-6 text-zinc-800 dark:text-zinc-200">
+              Mañana celebramos la apertura de nuestra nueva sede.
+              ¡Te esperamos con amigos para compartir merienda y disfrutar de cosas ricas!
+            </p>
+
+            <button
+              onClick={() => setShowBanner(false)}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
+            >
+              ¡Nos vemos allí!
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+
+
       <AnimatePresence>
         {showFeedback && (
           <motion.div
@@ -684,18 +737,18 @@ export default function MemberDashboard() {
                             return (
                               <Card
                                 key={clase.ID}
-                                className="bg-background text-foreground rounded-lg border border-orange-500 transition p-6 flex flex-col justify-between"
+                                className="bg-background text-foreground rounded-lg border border-orange-500 transition p-7 flex flex-col justify-between"
                               >
                                 <div>
-                                  <div className="flex justify-between items-center mb-4 w-full">
-                                    <CardTitle className="text-xl font-bold">
+                                  <div className="flex items-start space-x-2 mb-4 w-full">
+                                    <CardTitle className="text-[16px] font-bold flex-1 min-w-0">
                                       {clase["Nombre de clase"]}
                                     </CardTitle>
                                     <Badge
                                       variant="outline"
-                                      className="text-sm font-semibold bg-background text-foreground"
+                                      className="text-sm font-semibold bg-background flex-shrink-0 whitespace-nowrap"
                                     >
-                                      {clase.Dia} - {clase.ProximaFecha}
+                                      {clase.Dia} — {clase.ProximaFecha}
                                     </Badge>
                                   </div>
                                   <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
