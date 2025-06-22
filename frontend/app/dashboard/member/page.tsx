@@ -80,7 +80,7 @@ export default function MemberDashboard() {
   const { user: contextUser, loading } = useUser()
   const router = useRouter();
 
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
     if (!loading && !contextUser) {
