@@ -257,7 +257,7 @@ export default function MemberDashboard() {
   const ARG_TZ = "America/Argentina/Buenos_Aires";
   const now = dayjs().tz(ARG_TZ);
 
-  const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+  const todosLosDias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
 
   const hoy = now.locale("es").day();
   const indiceHoy = hoy === 0 ? 6 : hoy - 1;
