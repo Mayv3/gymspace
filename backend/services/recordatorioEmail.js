@@ -43,7 +43,7 @@ const enviarEmailVencido = async (alumno) => {
     from: `"Gymspace" <${process.env.EMAIL_USER}>`,
     to: alumno.Email,
     subject: '📛 Tu plan ha vencido - Gymspace',
-    text: `Hola ${alumno.Nombre}, te informamos que tu plan venció hoy (${alumno.Fecha_vencimiento}). ¡Esperamos que vuelvas pronto para seguir entrenando! 💪`,
+    text: `Hola ${alumno.Nombre}, te informamos que tu plan vence hoy (${alumno.Fecha_vencimiento}). ¡Esperamos que lo renueves pronto para seguir entrenando! 💪`,
   }
 
   try {
@@ -55,7 +55,6 @@ const enviarEmailVencido = async (alumno) => {
 }
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
-
 
 export default transporter;
 
