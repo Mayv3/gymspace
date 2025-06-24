@@ -17,8 +17,9 @@ import turnosRoutes from './routes/turnos.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js'
 import egresosRoutes from './routes/egresos.routes.js';
 import deudaRoutes from "./routes/deudas.routes.js"
+import { getAlumnosFromSheet } from './services/googleSheets.js';
 
-// import './services/recordatorioEmail.js'
+import { enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
 
 dotenv.config();
 
@@ -39,13 +40,25 @@ app.use('/api/turnos', turnosRoutes);
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/egresos', egresosRoutes);
 app.use('/api/deudas', deudaRoutes)
+app.get('/ping', (req, res) => res.sendStatus(200));
+
+app.post('/api/trigger-recordatorios', async (req, res) => {
+  try {
+    const alumnos = await getAlumnosFromSheet();
+    await enviarRecordatoriosPorLotes(alumnos);
+    return res.status(200).send('Envío ejecutado');
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send('Error interno');
+  }
+});
 
 const PORT = process.env.PORT || 3001;
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", 
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });

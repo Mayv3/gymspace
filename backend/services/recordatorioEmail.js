@@ -48,7 +48,7 @@ const enviarEmailVencido = async (alumno) => {
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-const enviarRecordatoriosPorLotes = async (alumnos, loteSize = 10, delayEntreLotes = 30000) => {
+export const enviarRecordatoriosPorLotes = async (alumnos, loteSize = 10, delayEntreLotes = 30000) => {
   const hoy = dayjs().startOf('day')
   const alumnosPorVencer = []
   const alumnosVencenHoy = []
@@ -97,5 +97,3 @@ export const probarRecordatoriosEmail = async () => {
   const alumnos = await getAlumnosFromSheet()
   await enviarRecordatoriosPorLotes(alumnos)
 }
-
-probarRecordatoriosEmail()
