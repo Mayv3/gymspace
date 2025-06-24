@@ -7,12 +7,21 @@ dotenv.config()
 
 // Configurar Gmail
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-})
+  logger: true,
+  debug: true,
+});
+
+transporter.verify(err => {
+  if (err) console.error('✉️ SMTP VERIFY ERROR:', err);
+  else console.log('✉️ SMTP conectado y listo para enviar');
+});
 
 const enviarEmail = async (alumno) => {
   const mailOptions = {
