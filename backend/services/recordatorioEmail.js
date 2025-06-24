@@ -18,10 +18,9 @@ const transporter = nodemailer.createTransport({
   debug: true,
 });
 
-transporter.verify(err => {
-  if (err) console.error('✉️ SMTP VERIFY ERROR:', err);
-  else console.log('✉️ SMTP conectado y listo para enviar');
-});
+console.log('🔍 EMAIL_USER=', process.env.EMAIL_USER);
+console.log('🔍 EMAIL_PASS length=', process.env.EMAIL_PASS?.length);
+console.log('🔍 EMAIL_PASS starts with=', process.env.EMAIL_PASS?.slice(0,4) + '…');
 
 const enviarEmail = async (alumno) => {
   const mailOptions = {
