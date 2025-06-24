@@ -27,7 +27,7 @@ const enviarEmail = async (alumno) => {
     from: `"Gymspace" <${process.env.EMAIL_USER}>`,
     to: alumno.Email,
     subject: '📢 Vencimiento de tu plan - Gymspace',
-    text: `Hola ${alumno.Nombre}, te recordamos que tu plan vence en 4 dias! ${alumno.Fecha_vencimiento}. ¡Renoválo para seguir entrenando! 💪`,
+    text: `Hola ${alumno.Nombre}, te recordamos que tu plan vence en 5 dias! ${alumno.Fecha_vencimiento}. ¡Renoválo para seguir entrenando! 💪`,
   }
 
   try {
