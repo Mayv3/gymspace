@@ -6,7 +6,7 @@ import { getAlumnosFromSheet } from './googleSheets.js'
 dotenv.config()
 
 // Configurar Gmail
-export const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
   secure: true,
@@ -20,7 +20,7 @@ export const transporter = nodemailer.createTransport({
 
 console.log('🔍 EMAIL_USER=', process.env.EMAIL_USER);
 console.log('🔍 EMAIL_PASS length=', process.env.EMAIL_PASS?.length);
-console.log('🔍 EMAIL_PASS starts with=', process.env.EMAIL_PASS?.slice(0,4) + '…');
+console.log('🔍 EMAIL_PASS starts with=', process.env.EMAIL_PASS?.slice(0, 4) + '…');
 
 const enviarEmail = async (alumno) => {
   const mailOptions = {
@@ -55,6 +55,9 @@ const enviarEmailVencido = async (alumno) => {
 }
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+
+export default transporter;
 
 export const enviarRecordatoriosPorLotes = async (alumnos, loteSize = 10, delayEntreLotes = 30000) => {
   const hoy = dayjs().startOf('day')
