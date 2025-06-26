@@ -725,7 +725,7 @@ export default function MemberDashboard() {
                               estado = "Clase finalizada";
                             } else if (inscritos.length >= Number(clase["Cupo maximo"])) {
                               estado = "Cupo completo";
-                            } else if (!estaInscripto && minutosParaClase < 60) {
+                            } else if (!estaInscripto && minutosParaClase < 30) {
                               estado = "Inscripción cerrada";
                             } else if (estaInscripto && minutosDesdeClase > 60) {
                               estado = "Desuscripción cerrada";
