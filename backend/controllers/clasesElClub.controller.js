@@ -21,7 +21,7 @@ const RESPONSES = {
   classNotFound: { status: 404, message: 'Clase no encontrada' },
   alumnoNotFound: { status: 404, message: 'Alumno no encontrado' },
   classDone: { status: 400, message: 'La clase ya se ha realizado' },
-  subscribeLate: { status: 400, message: 'Solo se puede inscribir hasta una hora antes del horario de la clase' },
+  subscribeLate: { status: 400, message: 'Solo se puede inscribir hasta media hora antes del horario de la clase' },
   alreadySubscribed: { status: 409, message: 'El DNI ya está inscripto en esta clase' },
   fullCapacity: { status: 400, message: 'La clase ya alcanzó el cupo máximo' },
   notSubscribed: { status: 400, message: 'El DNI no está inscripto en esta clase' },
@@ -177,7 +177,7 @@ export const updateClaseTableroByID = async (req, res) => {
         }
       }
 
-      if (classTime.diff(now, 'minute') < 60) {
+      if (classTime.diff(now, 'minute') < 30) {
         console.log("Hora Ahora:", now)
         console.log("Hora clase:", classTime)
         return sendError(res, RESPONSES.subscribeLate);
