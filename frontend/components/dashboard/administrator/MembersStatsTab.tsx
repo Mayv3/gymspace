@@ -33,7 +33,10 @@ interface Alumno {
 interface MembersStatsTabProps {
   members: Member[];
   onMemberAdded: (newMember: Member) => void;
-  topAlumnos: Array<[]>
+  topAlumnos: {
+    top10Clases: any[];
+    top10Gimnasio: any[];
+  };
 }
 
 export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabProps) {
@@ -340,8 +343,8 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
       <RankingDialog
         open={openRanking}
         onOpenChange={setOpenRanking}
-        top10Clases={topAlumnos.top10Clases}
-        top10Gimnasio={topAlumnos.top10Gimnasio}
+        top10Clases={topAlumnos?.top10Clases || []}
+        top10Gimnasio={topAlumnos?.top10Gimnasio || []}
       />
 
 

@@ -387,7 +387,6 @@ export default function DebtsSection() {
                             </Card>
                         ))}
 
-                        {/* opcional: paginación mobile */}
                         {deudas.length > itemsPerPage && (
                             <div className="flex justify-center gap-2 my-2">
                                 <Button
