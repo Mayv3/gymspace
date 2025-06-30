@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { TabsContent } from "@/components/ui/tabs"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -178,18 +178,19 @@ export default function DebtsSection() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex justify-between items-start">
-                        <div className="flex justify-end mb-4 gap-2">
+                    <div className="grid grid-cols-2 md:flex justify-between gap-2 items-start mb-3">
+                        <div className="gap-2 md:flex">
                             <Input
                                 placeholder="Nombre o DNI..."
                                 value={searchTerm}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className="max-w-sm"
+                                className="max-w-sm mb-2"
                             />
                             <DatePicker date={selectedDate} setDate={setSelectedDate} />
                         </div>
-                        <div className="text-right text-sm font-medium ">
-                            <p className={`${totalMes === 0 ? 'bg-green-200' : 'bg-red-100'} rounded p-2 text-lg dark:bg-zinc-900`}>Total adeudado del mes:{' '}
+
+                        <div className="text-center text-sm font-medium h-full">
+                            <p className={`${totalMes === 0 ? 'bg-green-200' : 'md:bg-red-100'} h-full rounded p-2 text-lg dark:bg-zinc-900`}>Total adeudado del mes:{' '}
                                 <span className={`font-bold ${totalMes === 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     ${totalMes}
                                 </span>
@@ -197,7 +198,7 @@ export default function DebtsSection() {
                         </div>
                     </div>
 
-                    <div className="overflow-auto border rounded-md">
+                    <div className="hidden md:block overflow-auto border rounded-md">
                         <Table className="w-full">
                             <TableHeader>
                                 <TableRow className="grid grid-cols-9 text-sm pt-3">
@@ -306,6 +307,113 @@ export default function DebtsSection() {
                             </div>
                         )}
                     </div>
+
+                    <div className="block md:hidden space-y-4">
+                        {paginatedDeudas.map((deuda, idx) => (
+                            <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
+                                {/* Header: Nombre y Estado */}
+                                <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
+                                    <h3 className="font-semibold text-base">{deuda.Nombre}</h3>
+                                    <span
+                                        className={`text-sm font-semibold px-2 py-1 rounded ${deuda.Estado === "Pagado"
+                                            ? "bg-green-100 text-green-600"
+                                            : "bg-red-100 text-red-600"
+                                            }`}
+                                    >
+                                        {deuda.Estado}
+                                    </span>
+                                </div>
+
+                                <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div>
+                                        <p className="font-medium text-gray-600">DNI</p>
+                                        <p className="text-gray-800">{deuda.DNI}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-600">Tipo</p>
+                                        <p className="text-gray-800">{deuda.Tipo}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-600">Monto</p>
+                                        <p className="text-gray-800">${deuda.Monto}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-600">Fecha</p>
+                                        <p className="text-gray-800">{deuda.Fecha}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="font-medium text-gray-600">Motivo</p>
+                                        <p className="text-gray-800">{deuda.Motivo}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="font-medium text-gray-600">Responsable</p>
+                                        <p className="text-gray-800">{deuda.Responsable}</p>
+                                    </div>
+                                </CardContent>
+
+                                <CardFooter className="bg-white flex items-end gap-2 px-4 py-3 space-y-2">
+                                    <Button
+                                        size="sm"
+                                        variant="orange"
+                                        className="w-full"
+                                        onClick={() => {
+                                            setEditingDeuda(deuda)
+                                            setEditForm({
+                                                DNI: deuda.DNI,
+                                                Nombre: deuda.Nombre,
+                                                Tipo: deuda.Tipo,
+                                                Monto: deuda.Monto,
+                                                Motivo: deuda.Motivo,
+                                                Estado: deuda.Estado,
+                                                Responsable: deuda.Responsable,
+                                            })
+                                            setShowEditDialog(true)
+                                        }}
+                                    >
+                                        Editar
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="w-full"
+                                        onClick={() => {
+                                            setSelectedDeuda(deuda)
+                                            setShowDeleteDialog(true)
+                                        }}
+                                    >
+                                        Eliminar
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
+
+                        {/* opcional: paginación mobile */}
+                        {deudas.length > itemsPerPage && (
+                            <div className="flex justify-center gap-2 my-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Anterior
+                                </Button>
+                                <span className="flex items-center px-2 text-sm">
+                                    {currentPage} / {Math.ceil(deudas.length / itemsPerPage)}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    onClick={() =>
+                                        setCurrentPage((p) =>
+                                            p < Math.ceil(deudas.length / itemsPerPage) ? p + 1 : p
+                                        )
+                                    }
+                                    disabled={currentPage >= Math.ceil(deudas.length / itemsPerPage)}
+                                >
+                                    Siguiente
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
 
@@ -357,17 +465,17 @@ export default function DebtsSection() {
                                     </Select>
 
                                 ) : key === "Responsable" ? (
-                                <Input value={user?.nombre || ""} disabled />
+                                    <Input value={user?.nombre || ""} disabled />
                                 ) : (
-                                <Input
-                                    type={key === "Monto" || key === "DNI" ? "number" : "text"}
-                                    inputMode={key === "Monto" || key === "DNI" ? "numeric" : undefined}
-                                    value={value}
-                                    onChange={(e) =>
-                                        setCreateForm((p) => ({ ...p, [key]: e.target.value }))
-                                    }
-                                />
-              )}
+                                    <Input
+                                        type={key === "Monto" || key === "DNI" ? "number" : "text"}
+                                        inputMode={key === "Monto" || key === "DNI" ? "numeric" : undefined}
+                                        value={value}
+                                        onChange={(e) =>
+                                            setCreateForm((p) => ({ ...p, [key]: e.target.value }))
+                                        }
+                                    />
+                                )}
                             </div>
                         ))}
                     </div>

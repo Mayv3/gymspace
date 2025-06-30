@@ -368,10 +368,6 @@ export default function AdminOverviewCharts({
     const parsedDate = parse(fechaRaw, "d/M/yyyy", new Date());
     const fechaFormateada = isValid(parsedDate) ? format(parsedDate, "dd/MM/yyyy") : "Invalid Date";
 
-    console.log("Fecha cruda:", caja.Fecha);
-    console.log("Unicode:", [...fechaRaw].map(c => c.charCodeAt(0)));
-    console.log("Fecha formateada:", fechaFormateada);
-
     const turno = caja.Turno?.toLowerCase();
     const monto = limpiarNumero(caja["Total Final"]);
 

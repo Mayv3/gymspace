@@ -34,6 +34,7 @@ import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosS
 import { format } from "date-fns"
 import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
+import axios from "axios"
 
 
 export default function AdministratorDashboard() {
@@ -46,6 +47,7 @@ export default function AdministratorDashboard() {
   const { updateAttendance } = useMembers()
   const { alumnos, setAlumnos } = useAppData();
   const [members, setMembers] = useState<Member[]>([]);
+  const [topAlumnosCoins, setTopAlumnosCoins] = useState();
 
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("todos")
@@ -142,6 +144,16 @@ export default function AdministratorDashboard() {
     closeDialog("deleteMember");
   };
 
+  const fetchTopAlumnos = async () => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/topAlumnosCoins`)
+      setTopAlumnosCoins(res.data)
+      console.log(res.data)
+    } catch (err) {
+      console.error("Error fetching user:", err)
+    }
+  }
+
   useEffect(() => {
     if (!loading) {
       if (user?.rol !== "Administrador" || !user?.rol) {
@@ -171,7 +183,7 @@ export default function AdministratorDashboard() {
 
   useEffect(() => {
     if (loading || user?.rol !== "Administrador") return
-    
+
     async function fetchOpenCaja() {
       try {
         const hoy = format(new Date(), "d/M/yyyy")
@@ -194,6 +206,10 @@ export default function AdministratorDashboard() {
   useEffect(() => {
     refreshPayments(buildCurrentFilters())
   }, [cashOpen])
+
+  useEffect(()=>{
+    fetchTopAlumnos();
+  },[])
 
   if (loading) {
     return (
@@ -267,6 +283,7 @@ export default function AdministratorDashboard() {
           <TabsContent value="members" className="space-y-4">
             <MembersStatsTab
               members={members}
+              topAlumnos={topAlumnosCoins}
               onMemberAdded={onMemberAdded}
             />
           </TabsContent>

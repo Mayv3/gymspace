@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { TabsContent } from "@/components/ui/tabs"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, Trash, Edit, Tag, Box, DollarSign, CalendarDays, FileText, Coins } from "lucide-react"
@@ -174,7 +174,7 @@ export default function PlansSection() {
                         />
                     </div>
 
-                    <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
+                    <div className="hidden md:block rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
                         <div className="min-w-[800px]">
                             <Table>
                                 <TableHeader>
@@ -274,6 +274,80 @@ export default function PlansSection() {
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    <div className="block md:hidden space-y-4 mb-6">
+                        {paginatedPlanes.map((plan, idx) => (
+                            <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
+                                {/* Header */}
+                                <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
+                                    <h3 className="font-semibold text-base">{plan['Plan o Producto']}</h3>
+                                    <span className="text-sm text-gray-500">{plan.Tipo}</span>
+                                </div>
+
+                                {/* Cuerpo: grid 2 columnas */}
+                                <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div>
+                                        <p className="font-medium text-gray-600">Precio</p>
+                                        <p className="text-gray-800">${plan.Precio}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-600">Clases</p>
+                                        <p className="text-gray-800">{plan.numero_Clases}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-600">Coins</p>
+                                        <p className="text-gray-800">{plan.Coins}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-600">Registrado Por</p>
+                                        <p className="text-gray-800">{plan.Responsable || "—"}</p>
+                                    </div>
+                                </CardContent>
+
+                                <CardFooter className="grid grid-cols-3 gap-2 items-end space-y-2">
+                                    <Button
+                                        size="sm"
+                                        variant="orange"
+                                        className="w-full p-0 m-0"
+                                        onClick={() => {
+                                            setEditingPlan(plan)
+                                            setEditForm({
+                                                Tipo: plan.Tipo,
+                                                'Plan o Producto': plan['Plan o Producto'],
+                                                Precio: plan.Precio,
+                                                numero_Clases: `${plan.numero_Clases}`,
+                                                Coins: plan.Coins
+                                            })
+                                            setShowEditDialog(true)
+                                        }}
+                                    >
+                                        Editar
+                                    </Button>
+
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => handleShowAumentos(plan)}
+                                    >
+                                        Aumentos
+                                    </Button>
+
+                                    <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="w-full "
+                                        onClick={() => {
+                                            setSelectedPlan(plan)
+                                            setShowDeleteDialog(true)
+                                        }}
+                                    >
+                                        Eliminar
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
                     </div>
                 </CardContent>
             </Card>

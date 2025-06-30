@@ -12,6 +12,7 @@ import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/ed
 import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/delete-member-dialog"
 import { useAppData } from "@/context/AppDataContext"
 import { Member } from "@/models/dashboard"
+import { RankingDialog } from "../recepcionist/members/Ranking-dialog"
 
 interface Alumno {
   ID: string
@@ -32,9 +33,10 @@ interface Alumno {
 interface MembersStatsTabProps {
   members: Member[];
   onMemberAdded: (newMember: Member) => void;
+  topAlumnos: Array<[]>
 }
 
-export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
+export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabProps) {
   const { alumnos, setAlumnos } = useAppData()
   const total = alumnos.length;
 
@@ -49,6 +51,8 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
   const [openAdd, setOpenAdd] = useState(false)
   const [openEdit, setOpenEdit] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
+  const [openRanking, setOpenRanking] = useState(false)
+
   const { planes } = useAppData();
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -103,28 +107,28 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
   useEffect(() => {
     setCurrentPage(1)
   }, [sexo, edadMin, edadMax, profe, plan, nombre])
-  
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Estadísticas de Alumnos</CardTitle>
+      <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
+        <CardTitle className="pb-3">Estadísticas de Alumnos</CardTitle>
         <div className="flex flex-wrap justify-between gap-4 mt-4">
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:flex gap-2">
             <Input
               placeholder="Nombre"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-[180px]"
+              className="w-full md:w-[150px]"
             />
             <Input
               placeholder="Profesor"
               value={profe}
               onChange={(e) => setProfe(e.target.value)}
-              className="w-[180px]"
+              className="w-full md:w-[150px]"
             />
 
             <Select onValueChange={setSexo}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full md:w-[150px]">
                 <SelectValue placeholder="Sexo" />
               </SelectTrigger>
               <SelectContent>
@@ -134,7 +138,7 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
             </Select>
 
             <Select onValueChange={setPlan} value={plan}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full md:w-[150px]">
                 <SelectValue placeholder="Seleccionar plan" />
               </SelectTrigger>
               <SelectContent>
@@ -146,7 +150,8 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex flex-col items-start">
+
+            <div className="flex flex-col items-start mt-3 md:mt-0">
               <label className="text-sm">Edad mínima: {edadMin || 0}</label>
               <input
                 type="range"
@@ -154,11 +159,11 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
                 max={100}
                 value={edadMin}
                 onChange={(e) => setEdadMin(e.target.value)}
-                className="w-[130px] accent-orange-500"
+                className="w-full md:w-[150px] accent-orange-500"
               />
             </div>
 
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-start mt-3 md:mt-0">
               <label className="text-sm">Edad máxima: {edadMax || 100}</label>
               <input
                 type="range"
@@ -166,12 +171,17 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
                 max={100}
                 value={edadMax}
                 onChange={(e) => setEdadMax(e.target.value)}
-                className="w-[130px] accent-orange-500"
+                className="w-full md:w-[150px] accent-orange-500"
               />
             </div>
           </div>
-          <div>
-            <Button onClick={() => setOpenAdd(true)} variant="orange">
+          <div className="flex w-full md:w-[320px] mx-3 gap-2">
+            <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-full justify-center">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Ranking Alumnos
+            </Button>
+
+            <Button onClick={() => setOpenAdd(true)} variant="orange" className="w-full justify-center">
               <PlusCircle className="w-4 h-4 mr-2" />
               Añadir Miembro
             </Button>
@@ -182,7 +192,7 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
         <p className="mb-2 text-sm text-muted-foreground">
           Total de alumnos: {total} | Filtrados: {filteredAlumnos.length}
         </p>
-        <div className="overflow-auto">
+        <div className="overflow-auto hidden md:block overflow-auto">
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
@@ -245,6 +255,78 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
             </Button>
           </div>
         </div>
+
+        <div className="block md:hidden space-y-4">
+          {paginatedAlumnos.map((a) => (
+            <Card key={a.DNI} className="shadow-sm rounded-lg overflow-hidden">
+              <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
+                <h3 className="font-semibold text-base">{a.Nombre}</h3>
+              </div>
+
+              {/* Cuerpo con fondo gris claro */}
+              <div className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <div>
+                  <p className="font-bold text-gray-600">DNI</p>
+                  <p className="text-gray-800">{a.DNI}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-gray-600">Plan</p>
+                  <p className="text-gray-800">{a.Plan}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-gray-600">Profesional</p>
+                  <p className="text-gray-800">{a.Profesor_asignado}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-gray-600">Vencimiento</p>
+                  <p className="text-gray-800">{a.Fecha_vencimiento}</p>
+                </div>
+              </div>
+
+              <div className=" flex justify-center items-center gap-2 px-3 pb-4 bg-white">
+                <Button
+                  size="sm"
+                  variant="orange"
+                  className="w-full justify-center"
+                  onClick={() => { setSelectedAlumno(a); setOpenEdit(true) }}
+                >
+                  Editar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="w-full justify-center"
+                  onClick={() => { setSelectedAlumno(a); setOpenDelete(true) }}
+                >
+                  Eliminar
+                </Button>
+              </div>
+            </Card>
+          ))}
+
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            >
+              Siguiente
+            </Button>
+          </div>
+        </div>
+
       </CardContent>
 
       <AddMemberDialog
@@ -254,6 +336,15 @@ export function MembersStatsTab({ onMemberAdded }: MembersStatsTabProps) {
           setAlumnos((prev) => [...prev, newAlumno])
         }}
       />
+
+      <RankingDialog
+        open={openRanking}
+        onOpenChange={setOpenRanking}
+        top10Clases={topAlumnos.top10Clases}
+        top10Gimnasio={topAlumnos.top10Gimnasio}
+      />
+
+
       {selectedAlumno && (
         <>
           <EditMemberDialog

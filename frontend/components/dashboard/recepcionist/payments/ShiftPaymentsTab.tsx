@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -141,32 +141,35 @@ export function ShiftPaymentsTab({
         <CardContent>
           {/* FILTROS */}
           {!cashOpen && (
-            <div className="flex flex-wrap justify-between pb-4">
-              <div className="flex gap-4">
-                <div className="max-w-sm">
-                  <Label htmlFor="search">Buscar por nombre</Label>
-                  <Input
-                    id="search"
-                    type="text"
-                    placeholder="Alumno o plan"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+            <div className="flex flex-wrap justify-between bg pb-4">
+              <div className="flex  w-full  flex-col md:flex-row md:w-[50%]">
+                <div className="grid grid-cols-2 gap-2 ">
+                  <div className="max-w-sm">
+                    <Label htmlFor="search">Buscar por nombre</Label>
+                    <Input
+                      id="search"
+                      type="text"
+                      placeholder="Alumno o plan"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="w-full md:w-36">
+                    <Label>Tipo</Label>
+                    <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todos">Todos</SelectItem>
+                        <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
+                        <SelectItem value="CLASE">CLASE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="w-36">
-                  <Label>Tipo</Label>
-                  <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
-                      <SelectItem value="CLASE">CLASE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-4">
+
+                <div className="flex gap-2">
                   <div className="w-24">
                     <Label>Día</Label>
                     <Input
@@ -227,6 +230,7 @@ export function ShiftPaymentsTab({
                 </div>
               </div>
 
+
               <div className="w-32">
                 <Label>Turno</Label>
                 <Select
@@ -247,7 +251,8 @@ export function ShiftPaymentsTab({
             </div>
 
           )}
-          <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)] mb-6">
+
+          <div className="hidden md:block rounded-md border overflow-auto max-w-[calc(100vw-2rem)] mb-6">
             <div className="min-w-[800px]">
               <Table>
                 <TableHeader>
@@ -267,7 +272,6 @@ export function ShiftPaymentsTab({
                 </TableHeader>
 
                 <TableBody>
-
                   {paginatedPayments.length > 0 ? (
                     paginatedPayments.map((payment, idx) => (
                       <motion.tr
@@ -313,32 +317,99 @@ export function ShiftPaymentsTab({
                 </TableBody>
               </Table>
             </div>
-            {filteredPayments.length > itemsPerPage && (
-              <div className="flex justify-center gap-2 my-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Anterior
-                </Button>
-                <span className="flex items-center px-2 text-sm">
-                  Página {currentPage} de {Math.ceil(filteredPayments.length / itemsPerPage)}
-                </span>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      prev < Math.ceil(filteredPayments.length / itemsPerPage) ? prev + 1 : prev
-                    )
-                  }
-                  disabled={currentPage >= Math.ceil(filteredPayments.length / itemsPerPage)}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            )}
           </div>
+
+          <div className="block md:hidden space-y-4 mb-6">
+            {paginatedPayments.map((p, idx) => (
+              <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
+                {/* Header */}
+                <CardHeader className="bg-white px-4 py-3 flex border-b">
+                  <div className="flex items-end justify-between">
+                    <CardTitle className="text-base font-semibold">{p.Nombre}</CardTitle>
+                    <p className="text-sm text-gray-500">{p.Hora || "—"} hs</p>
+                  </div>
+
+                </CardHeader>
+
+                {/* Content: grid dos columnas */}
+                <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div>
+                    <p className="font-bold text-gray-600">Monto</p>
+                    <p className="text-green-600 font-medium">${p.Monto}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600">Método</p>
+                    <p>{p.Metodo_de_Pago}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600">Fecha Pago</p>
+                    <p>{p.Fecha_de_Pago}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600">Vencimiento</p>
+                    <p>{p.Fecha_de_Vencimiento}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600">Tipo</p>
+                    <p>{p.Tipo}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600">Turno</p>
+                    <p>{p.Turno}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600">Plan Pagado</p>
+                    <p>{p.Ultimo_Plan || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600">Registrado Por</p>
+                    <p>{p.Responsable}</p>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="bg-white px-4 py-3 space-y-2">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="w-full justify-center"
+                    onClick={() => {
+                      setSelectedPaymentToDelete(p)
+                      setShowDeletePaymentDialog(true)
+                    }}
+                  >
+                    Eliminar
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+
+          </div>
+
+          {filteredPayments.length > itemsPerPage && (
+            <div className="flex justify-center gap-2 my-4">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </Button>
+              <span className="flex items-center px-2 text-sm">
+                Página {currentPage} de {Math.ceil(filteredPayments.length / itemsPerPage)}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    prev < Math.ceil(filteredPayments.length / itemsPerPage) ? prev + 1 : prev
+                  )
+                }
+                disabled={currentPage >= Math.ceil(filteredPayments.length / itemsPerPage)}
+              >
+                Siguiente
+              </Button>
+            </div>
+          )}
 
           <div className="bg-background rounded-2xl shadow-sm py-6 space-y-6">
             <div className="">
