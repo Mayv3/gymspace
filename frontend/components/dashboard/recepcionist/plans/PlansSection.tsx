@@ -155,7 +155,7 @@ export default function PlansSection() {
                     <div className="flex justify-between">
                         <div>
                             <CardTitle>Planes</CardTitle>
-                            <CardDescription>Gestiona tus planes y productos.</CardDescription>
+                            <CardDescription className="hidden md:block">Gestiona tus planes y productos.</CardDescription>
                         </div>
                         <Button variant="orange" onClick={() => setShowCreateDialog(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Agregar plan

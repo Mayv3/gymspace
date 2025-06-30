@@ -179,14 +179,13 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
             </div>
           </div>
           <div className="flex w-full md:w-[320px] md:mx-3 gap-2">
-            <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-full justify-center">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Ranking Alumnos
+            <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-[50%] justify-center text-center">
+              <p>Rankings</p>
             </Button>
 
-            <Button onClick={() => setOpenAdd(true)} variant="orange" className="w-full justify-center">
+            <Button onClick={() => setOpenAdd(true)} variant="orange" className="w-[50%] justify-center">
               <PlusCircle className="w-4 h-4 mr-2" />
-              Añadir Miembro
+              Añadir
             </Button>
           </div>
         </div>

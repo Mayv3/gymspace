@@ -129,7 +129,7 @@ export function ShiftPaymentsTab({
           <div className="flex justify-between">
             <div>
               <CardTitle>Pagos</CardTitle>
-              <CardDescription>Visualiza y gestiona los pagos del turno actual.</CardDescription>
+              <CardDescription className="hidden md:block">Visualiza y gestiona los pagos del turno actual.</CardDescription>
             </div>
             <Button variant="orange" onClick={() => setShowAddPayment(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />

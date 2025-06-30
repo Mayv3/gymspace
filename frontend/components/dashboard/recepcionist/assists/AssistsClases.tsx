@@ -80,13 +80,13 @@ export default function AssistsSection() {
   return (
     <TabsContent value="assists" className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
+        <CardHeader className="flex flex-col md:flex-row gap-2 items-center justify-between bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
           <div>
             <CardTitle>Asistencias</CardTitle>
-            <CardDescription>Controla las asistencias registradas en el sistema.</CardDescription>
+            <CardDescription className="hidden md:block">Controla las asistencias registradas en el sistema.</CardDescription>
           </div>
           <Button variant="orange" onClick={() => setShowAddDialog(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Registrar presentes de una clase
+            <PlusCircle className="mr-2 h-4 w-4" /> Registrar presentes
           </Button>
         </CardHeader>
         <CardContent>

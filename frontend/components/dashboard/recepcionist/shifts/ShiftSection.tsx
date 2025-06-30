@@ -215,7 +215,7 @@ export default function ShiftsSection() {
                     <div className="flex justify-between">
                         <div>
                             <CardTitle>Turnos</CardTitle>
-                            <CardDescription>Gestiona los turnos agendados.</CardDescription>
+                            <CardDescription className="hidden md:block">Gestiona los turnos agendados.</CardDescription>
                         </div>
                         <Button variant="orange" onClick={() => setShowCreateDialog(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Agregar turno

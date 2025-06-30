@@ -108,9 +108,8 @@ export const ElClub = () => {
             <Card className="shadow-md">
                 <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg">
                     <div className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-orange-600" />
                         <div>
-                            <CardTitle className="text-orange-700 text-lg sm:text-xl">Listado de Clases</CardTitle>
+                            <CardTitle className="text-xl sm:text-xl">Listado de Clases</CardTitle>
                             <CardDescription className="text-muted-foreground text-sm">
                                 Visualizá todas las clases y consultá los inscriptos.
                             </CardDescription>

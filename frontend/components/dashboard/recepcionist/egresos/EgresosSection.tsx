@@ -134,7 +134,7 @@ export default function EgresosSection() {
             <CardHeader className="flex flex-row items-center justify-between bg-orange-50 mb-4 dark:bg-zinc-900 rounded-t-lg">
                 <div>
                     <CardTitle>Egresos</CardTitle>
-                    <CardDescription>Listado de egresos filtrado por fecha y tipo</CardDescription>
+                    <CardDescription className="hidden md:block">Listado de egresos filtrado por fecha y tipo</CardDescription>
                 </div>
                 <Button onClick={() => setShowCreateDialog(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
