@@ -178,7 +178,7 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
               />
             </div>
           </div>
-          <div className="flex w-full md:w-[320px] mx-3 gap-2">
+          <div className="flex w-full md:w-[320px] md:mx-3 gap-2">
             <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-full justify-center">
               <PlusCircle className="w-4 h-4 mr-2" />
               Ranking Alumnos
