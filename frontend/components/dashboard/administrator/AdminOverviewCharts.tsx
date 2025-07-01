@@ -712,10 +712,7 @@ export default function AdminOverviewCharts({
                     <Cell key={i} fill="#8b5cf6" />
                   ))}
                 </Bar>
-
-                {/* Líneas de neto (superpuestas) */}
-                <Line type="monotone" dataKey="netoGimnasio" name="Neto Gimnasio" stroke="#22c55e" strokeWidth={2} />
-                <Line type="monotone" dataKey="netoClase" name="Neto Clases" stroke="#3b82f6" strokeWidth={2} />
+                
               </BarChart>
             </ResponsiveContainer>
           )}
