@@ -63,7 +63,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
       <CardHeader className="flex flex-row bg-orange-50  dark:bg-zinc-900 mb-4 items-center justify-between">
         <div>
           <CardTitle>Gestión de Miembros</CardTitle>
-          <CardDescription>Ver y editar información de miembros.</CardDescription>
+          <CardDescription className="hidden md:block">Ver y editar información de miembros.</CardDescription>
         </div>
         <Button variant="orange" onClick={onAddMember}>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -80,7 +80,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
+        <div className="hidden md:block rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
           <div className="min-w-[800px]">
             <Table className="table-fixed w-full">
               <TableHeader>
@@ -162,31 +162,121 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
             </Table>
           </div>
         </div>
-        {filteredMembers.length > itemsPerPage && (
-          <div className="flex justify-center mt-4 gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              Anterior
-            </Button>
-            <span className="flex items-center px-2 text-sm">
-              Página {currentPage} de {Math.ceil(filteredMembers.length / itemsPerPage)}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setCurrentPage((prev) =>
-                  prev < Math.ceil(filteredMembers.length / itemsPerPage) ? prev + 1 : prev
-                )
-              }
-              disabled={currentPage >= Math.ceil(filteredMembers.length / itemsPerPage)}
-            >
-              Siguiente
-            </Button>
-          </div>
-        )}
+        <div className="block md:hidden space-y-4">
+          {paginatedMembers.map((m, idx) => (
+            <Card key={m.DNI} className="shadow-sm rounded-lg overflow-hidden">
+              <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
+                <h3 className="font-semibold text-base">{m.Nombre}</h3>
+                {(() => {
+                  const hoy = dayjs();
+                  const venc = dayjs(m.Fecha_vencimiento, ["D/M/YYYY", "DD/MM/YYYY"]);
+                  if (venc.isValid() && venc.isSameOrBefore(hoy, "day")) {
+                    return <Badge variant="destructive">Expirado</Badge>;
+                  }
+                  if (+m.Clases_realizadas >= +m.Clases_pagadas) {
+                    return <Badge variant="destructive">Límite</Badge>;
+                  }
+                  return <Badge variant="success">Activo</Badge>;
+                })()}
+              </div>
+
+              {/* Cuerpo: grid 2 cols */}
+              <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <div>
+                  <p className="font-medium text-gray-600">DNI</p>
+                  <p className="text-gray-800">{m.DNI}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Email</p>
+                  <p className="text-gray-800 truncate">{m.Email}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Teléfono</p>
+                  <p className="text-gray-800">{m.Telefono}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Nac.</p>
+                  <p className="text-gray-800">{m.Fecha_nacimiento}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Inicio</p>
+                  <p className="text-gray-800">{m.Fecha_inicio}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Venc.</p>
+                  <p className="text-gray-800">{m.Fecha_vencimiento}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Pagadas</p>
+                  <p className="text-gray-800">{m.Clases_pagadas}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Realizadas</p>
+                  <p className="text-gray-800">{m.Clases_realizadas}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Profesor</p>
+                  <p className="text-gray-800">{m.Profesor_asignado}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Plan</p>
+                  <p className="text-sm text-gray-800">{m.Plan}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="font-medium text-gray-600">GymCoins</p>
+                  <p className="text-gray-800">{m.GymCoins}</p>
+                </div>
+              </CardContent>
+
+              <div className="bg-white px-4 py-3 space-y-2">
+                <Button
+                  size="sm"
+                  variant="orange"
+                  className="w-full justify-center"
+                  onClick={() => onEdit(m)}
+                >
+                  Editar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="w-full justify-center"
+                  onClick={() => onDelete(m)}
+                >
+                  Eliminar
+                </Button>
+              </div>
+            </Card>
+          ))}
+
+          {filteredMembers.length > itemsPerPage && (
+            <div className="flex justify-center mt-4 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </Button>
+              <span className="flex items-center px-2 text-sm">
+                {currentPage} / {Math.ceil(filteredMembers.length / itemsPerPage)}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((p) =>
+                    p < Math.ceil(filteredMembers.length / itemsPerPage) ? p + 1 : p
+                  )
+                }
+                disabled={currentPage >= Math.ceil(filteredMembers.length / itemsPerPage)}
+              >
+                Siguiente
+              </Button>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   )
