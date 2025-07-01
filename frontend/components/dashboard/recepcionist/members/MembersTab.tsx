@@ -183,56 +183,56 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
               {/* Cuerpo: grid 2 cols */}
               <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div>
-                  <p className="font-medium text-gray-600">DNI</p>
+                  <p className="font-bold text-gray-600">DNI</p>
                   <p className="text-gray-800">{m.DNI}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Email</p>
+                  <p className="font-bold text-gray-600">Email</p>
                   <p className="text-gray-800 truncate">{m.Email}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Teléfono</p>
+                  <p className="font-bold text-gray-600">Teléfono</p>
                   <p className="text-gray-800">{m.Telefono}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Nac.</p>
+                  <p className="font-bold text-gray-600">Nac.</p>
                   <p className="text-gray-800">{m.Fecha_nacimiento}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Inicio</p>
+                  <p className="font-bold text-gray-600">Inicio</p>
                   <p className="text-gray-800">{m.Fecha_inicio}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Venc.</p>
+                  <p className="font-bold text-gray-600">Venc.</p>
                   <p className="text-gray-800">{m.Fecha_vencimiento}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Pagadas</p>
+                  <p className="font-bold text-gray-600">Pagadas</p>
                   <p className="text-gray-800">{m.Clases_pagadas}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Realizadas</p>
+                  <p className="font-bold text-gray-600">Realizadas</p>
                   <p className="text-gray-800">{m.Clases_realizadas}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Profesor</p>
+                  <p className="font-bold text-gray-600">Profesor</p>
                   <p className="text-gray-800">{m.Profesor_asignado}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600">Plan</p>
+                  <p className="font-bold text-gray-600">Plan</p>
                   <p className="text-sm text-gray-800">{m.Plan}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="font-medium text-gray-600">GymCoins</p>
+                  <p className="font-bold text-gray-600">GymCoins</p>
                   <p className="text-gray-800">{m.GymCoins}</p>
                 </div>
               </CardContent>
 
-              <div className="bg-white px-4 py-3 space-y-2">
+              <div className="bg-white px-4 py-3 space-y-2 flex items-end gap-2">
                 <Button
                   size="sm"
                   variant="orange"
-                  className="w-full justify-center"
+                  className="w-1/2 justify-center"
                   onClick={() => onEdit(m)}
                 >
                   Editar
@@ -240,7 +240,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 <Button
                   size="sm"
                   variant="destructive"
-                  className="w-full justify-center"
+                  className="w-1/2 justify-center"
                   onClick={() => onDelete(m)}
                 >
                   Eliminar
@@ -248,35 +248,34 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
               </div>
             </Card>
           ))}
-
-          {filteredMembers.length > itemsPerPage && (
-            <div className="flex justify-center mt-4 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                Anterior
-              </Button>
-              <span className="flex items-center px-2 text-sm">
-                {currentPage} / {Math.ceil(filteredMembers.length / itemsPerPage)}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setCurrentPage((p) =>
-                    p < Math.ceil(filteredMembers.length / itemsPerPage) ? p + 1 : p
-                  )
-                }
-                disabled={currentPage >= Math.ceil(filteredMembers.length / itemsPerPage)}
-              >
-                Siguiente
-              </Button>
-            </div>
-          )}
         </div>
+        {filteredMembers.length > itemsPerPage && (
+          <div className="flex justify-center mt-4 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </Button>
+            <span className="flex items-center px-2 text-sm">
+              {currentPage} / {Math.ceil(filteredMembers.length / itemsPerPage)}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentPage((p) =>
+                  p < Math.ceil(filteredMembers.length / itemsPerPage) ? p + 1 : p
+                )
+              }
+              disabled={currentPage >= Math.ceil(filteredMembers.length / itemsPerPage)}
+            >
+              Siguiente
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
