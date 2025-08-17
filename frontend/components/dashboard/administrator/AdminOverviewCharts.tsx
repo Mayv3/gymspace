@@ -252,7 +252,7 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
 
     return (
       <div
-        className="p-2 rounded-md shadow text-sm border w-max max-w-[00px]"
+        className="p-2 rounded-md shadow text-sm border w-max max-w-[300px]"
         style={{
           backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
           color: isDark ? "hsl(0, 0%, 95%)" : "#000",
@@ -279,7 +279,6 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
   }
   return null;
 };
-
 
 export default function AdminOverviewCharts({
   isVisible,
