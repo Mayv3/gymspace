@@ -170,7 +170,7 @@ export const getPlanesPersonalizadosPorProfesor = async (req, res) => {
       const planRaw = alumno.Plan || "";
       const plan = planRaw.trim().toLowerCase();
 
-      if (plan !== "personalizado") return acc;
+      if (!plan.includes("personalizado")) return acc;
 
       const profesor = alumno.Profesor_asignado || "Sin profesor";
       const nombre = alumno.Nombre || "Alumno sin nombre";

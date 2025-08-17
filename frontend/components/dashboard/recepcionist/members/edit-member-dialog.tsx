@@ -209,7 +209,20 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
 
             <div className="space-y-2">
               <Label htmlFor="Profesor_asignado">Profesor Asignado</Label>
-              <Input capitalizeFirst id="Profesor_asignado" value={editedMember.Profesor_asignado || ""} onChange={(e) => handleChange("Profesor_asignado", e.target.value)} />
+              <Select
+                value={editedMember.Profesor_asignado || ""}
+                onValueChange={(value) => handleChange("Profesor_asignado", value)}
+              >
+                <SelectTrigger id="Profesor_asignado">
+                  <SelectValue placeholder="Seleccionar profesor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Anyo">Anyo</SelectItem>
+                  <SelectItem value="Anto">Anto</SelectItem>
+                  <SelectItem value="Rami">Rami</SelectItem>
+                  <SelectItem value="Yaco">Yaco</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex justify-end">
