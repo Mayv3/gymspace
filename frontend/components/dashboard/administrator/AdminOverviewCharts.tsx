@@ -551,7 +551,7 @@ export default function AdminOverviewCharts({
         <CardHeader className="flex items-center flex-col">
           <div className="flex flex-col items-center pb-4">
             <Users className="text-orange-500" />
-            <CardTitle>Asistencias por Hora</CardTitle>
+            <CardTitle>Asistencias por hora (gimnasio)</CardTitle>
           </div>
           <div className="flex justify-end w-full">
             <div className="w-auto">
@@ -578,11 +578,12 @@ export default function AdminOverviewCharts({
       </Card>
 
       {/* 5. Promedio por Rango */}
+      
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
         <CardHeader className="flex flex-col">
           <div className="flex items-center flex-col pb-4">
             <CalendarCheck className="text-orange-500" />
-            <CardTitle>Promedio por Año ({selectedYear})</CardTitle>
+            <CardTitle>Promedio de asistencias (gimnasio)</CardTitle>
           </div>
           <div className="flex flex-wrap justify-between">
             <div className="flex gap-2">

@@ -3,7 +3,8 @@ import {
   getAsistenciasFromSheet,
   appendAsistenciaToSheet,
   updateAlumnoByDNI,
-  getClasesElClubFromSheet
+  getClasesElClubFromSheet,
+  getPlanesFromSheet
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween.js'
@@ -158,9 +159,17 @@ export const getAsistenciasPorHora = async (req, res) => {
     const { dia, mes, anio } = req.params;
     const fechaFormateada = dayjs(`${anio}-${mes}-${dia}`, "YYYY-M-D").format("DD/MM/YYYY");
 
-    const asistencias = await getAsistenciasFromSheet();
-    const conteoHoras = {};
+    const [asistencias, planes] = await Promise.all([
+      getAsistenciasFromSheet(),
+      getPlanesFromSheet()
+    ]);
 
+    const planesGimnasio = planes.filter(p => p.Tipo?.toUpperCase() === "GIMNASIO");
+    const nombresPlanesGimnasio = new Set(
+      planesGimnasio.map(p => p["Plan o Producto"]?.toLowerCase())
+    );
+
+    const conteoHoras = {};
     for (let h = 7; h <= 22; h++) {
       const hora = `${h.toString().padStart(2, "0")}:00`;
       conteoHoras[hora] = 0;
@@ -168,9 +177,13 @@ export const getAsistenciasPorHora = async (req, res) => {
 
     for (const asistencia of asistencias) {
       const fecha = dayjs(asistencia.Fecha, ['D/M/YYYY', 'DD/MM/YYYY'], true);
+
       if (fecha.isValid() && fecha.format("DD/MM/YYYY") === fechaFormateada) {
-        const [h, _] = asistencia.Hora.split(":");
+        if (!nombresPlanesGimnasio.has(asistencia.Plan?.toLowerCase())) continue;
+
+        const [h] = asistencia.Hora.split(":");
         const horaClave = `${h.padStart(2, "0")}:00`;
+
         if (conteoHoras[horaClave] !== undefined) {
           conteoHoras[horaClave] += 1;
         }
@@ -183,6 +196,7 @@ export const getAsistenciasPorHora = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
 
 export const getPromediosRangosHorarios = async (req, res) => {
   try {
@@ -257,7 +271,7 @@ export const getPromedios = async (req, res) => {
     const mesNum = mes ? parseInt(mes, 10) : null
     const semanaNum = semana ? parseInt(semana, 10) : null
     if (mes && isNaN(mesNum)) return res.status(400).json({ message: 'Mes inválido' })
-    if (semana && isNaN(semanaNum)) return res.status(400).json({ message: 'Semana inválida' })
+    if (semana && isNaN(semanaNum)) return res.status(400).json({ message: 'Semana inválido' })
 
     let useDateRange = false
     let startDate, endDate
@@ -268,7 +282,14 @@ export const getPromedios = async (req, res) => {
       useDateRange = true
     }
 
-    const asistencias = await getAsistenciasFromSheet()
+    const [asistencias, planes] = await Promise.all([
+      getAsistenciasFromSheet(),
+      getPlanesFromSheet()
+    ])
+
+    const planesGimnasio = planes.filter(p => p.Tipo?.toUpperCase() === "GIMNASIO")
+    const nombresPlanesGimnasio = new Set(planesGimnasio.map(p => p["Plan o Producto"]?.toLowerCase()))
+
     const rangos = { manana: 0, tarde: 0, noche: 0 }
     const diasConAsistencias = new Set()
 
@@ -286,6 +307,8 @@ export const getPromedios = async (req, res) => {
         if (semanaNum && f.week() !== semanaNum) continue
       }
 
+      if (!nombresPlanesGimnasio.has(a.Plan?.toLowerCase())) continue
+
       diasConAsistencias.add(f.format('YYYY-MM-DD'))
 
       if (h >= 7 && h < 12) rangos.manana++
@@ -296,9 +319,9 @@ export const getPromedios = async (req, res) => {
     const totalDias = diasConAsistencias.size || 1
 
     const promedios = {
-      manana: { total: rangos.manana, promedio: (rangos.manana / totalDias).toFixed(2), dias: totalDias },
-      tarde: { total: rangos.tarde, promedio: (rangos.tarde / totalDias).toFixed(2), dias: totalDias },
-      noche: { total: rangos.noche, promedio: (rangos.noche / totalDias).toFixed(2), dias: totalDias },
+      manana: { total: rangos.manana, promedio: Math.round(rangos.manana / totalDias), dias: totalDias },
+      tarde: { total: rangos.tarde, promedio: Math.round(rangos.tarde / totalDias), dias: totalDias },
+      noche: { total: rangos.noche, promedio: Math.round(rangos.noche / totalDias), dias: totalDias },
     }
 
     res.json(promedios)
@@ -307,3 +330,6 @@ export const getPromedios = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor' })
   }
 }
+
+
+
