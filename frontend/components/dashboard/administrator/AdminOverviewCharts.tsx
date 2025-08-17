@@ -176,7 +176,6 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
   return null;
 };
 
-
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
@@ -198,7 +197,7 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
 
   return (
 
-    
+
     <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
       <p className="font-bold mb-1">
         📅 {isValid(parse(data.fecha, "dd/MM/yyyy", new Date()))
@@ -242,6 +241,41 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
 
     </div>
   );
+};
+
+const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const isDark =
+      typeof window !== "undefined" &&
+      document.documentElement.classList.contains("dark");
+
+    return (
+      <div
+        className="p-2 rounded-md shadow text-sm border w-max max-w-[240px]"
+        style={{
+          backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
+          color: isDark ? "hsl(0, 0%, 95%)" : "#000",
+        }}
+      >
+        <p className="font-semibold mb-1">
+          👨‍🏫 {data.profesor}: {data.cantidad} alumnos
+        </p>
+
+        {data.alumnos?.length > 0 && (
+          <div className="mt-2">
+            <p className="font-semibold text-xs mb-1">👥 Lista de alumnos:</p>
+            <ul className="list-disc list-inside text-xs space-y-0.5">
+              {data.alumnos.map((alumno: string, i: number) => (
+                <li key={i}>{alumno}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
 };
 
 export default function AdminOverviewCharts({
@@ -779,7 +813,7 @@ export default function AdminOverviewCharts({
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <p className="text-sm max-w-[220px] text-center">
-                      Se muestran la cantidad de alumnos de tipo GIMNASIO con plan PERSONALIZADO
+                      Se muestra la cantidad de alumnos de tipo GIMNASIO con plan que contenga PERSONALIZADO
                       que pagaron en el mes y año seleccionado con cada profesor.
                     </p>
                   </TooltipContent>
@@ -799,7 +833,7 @@ export default function AdminOverviewCharts({
               <BarChart data={planesPorProfesor}>
                 <XAxis dataKey="profesor" />
                 <YAxis />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltipProfesores />} />
                 <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
                   {planesPorProfesor.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />

@@ -221,6 +221,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
                   <SelectItem value="Anto">Anto</SelectItem>
                   <SelectItem value="Rami">Rami</SelectItem>
                   <SelectItem value="Yaco">Yaco</SelectItem>
+                  <SelectItem value="Fede">Fede</SelectItem>
                 </SelectContent>
               </Select>
             </div>
