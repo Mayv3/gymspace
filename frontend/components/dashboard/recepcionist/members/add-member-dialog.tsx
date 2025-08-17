@@ -139,7 +139,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
       resetForm()
       onMemberAdded(response.data)
-      
+
       notify.success("¡Alumno agregado con éxito!")
       onOpenChange(false)
     } catch (error: any) {
@@ -268,7 +268,17 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
             <div className="space-y-2">
               <Label htmlFor="profesorAsignado">Profesor Asignado</Label>
-              <Input capitalizeFirst id="profesorAsignado" placeholder="Nombre del profesor" value={formData.profesorAsignado} onChange={(e) => handleChange("profesorAsignado", e.target.value)} />
+              <Select value={formData.profesorAsignado} onValueChange={(value) => handleChange("profesorAsignado", value)}>
+                <SelectTrigger id="profesorAsignado">
+                  <SelectValue placeholder="Seleccionar profesor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Anyo">Anyo</SelectItem>
+                  <SelectItem value="Rami">Rami</SelectItem>
+                  <SelectItem value="Anto">Anto</SelectItem>
+                  <SelectItem value="Yaco">Yaco</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
