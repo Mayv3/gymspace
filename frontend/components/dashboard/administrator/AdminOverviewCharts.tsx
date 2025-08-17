@@ -252,24 +252,26 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
 
     return (
       <div
-        className="p-2 rounded-md shadow text-sm border w-max max-w-[240px]"
+        className="p-2 rounded-md shadow text-sm border w-max max-w-[300px]"
         style={{
           backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
           color: isDark ? "hsl(0, 0%, 95%)" : "#000",
         }}
       >
-        <p className="font-semibold mb-1">
+        <p className="font-semibold mb-2">
           👨‍🏫 {data.profesor}: {data.cantidad} alumnos
         </p>
 
         {data.alumnos?.length > 0 && (
-          <div className="mt-2">
+          <div className="mt-1">
             <p className="font-semibold text-xs mb-1">👥 Lista de alumnos:</p>
-            <ul className="list-disc list-inside text-xs space-y-0.5">
+            <div className="grid grid-cols-5 gap-x-2 gap-y-1 text-xs">
               {data.alumnos.map((alumno: string, i: number) => (
-                <li key={i}>{alumno}</li>
+                <span key={i} className="truncate">
+                  {alumno}
+                </span>
               ))}
-            </ul>
+            </div>
           </div>
         )}
       </div>
@@ -277,6 +279,7 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
   }
   return null;
 };
+
 
 export default function AdminOverviewCharts({
   isVisible,
