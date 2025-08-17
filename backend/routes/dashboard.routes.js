@@ -39,7 +39,5 @@ router.get('/datosBase', async (req, res) => {
       res.status(500).json({ message: 'Error cargando dashboard', error: err });
     }
   });
-  
-  
 
 export default router

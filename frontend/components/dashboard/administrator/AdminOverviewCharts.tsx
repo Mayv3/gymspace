@@ -145,11 +145,13 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
     const servicio = data.servicio || 0;
     const producto = data.producto || 0;
 
+    const tarjeta = data.tarjeta || 0;
+    const efectivo = data.efectivo || 0;
+
     const netoTotal = netoGimnasio + netoClase + servicio + producto;
 
-
     return (
-      <div className="p-2 rounded-md shadow text-sm border w-max max-w-[240px] bg-white dark:bg-gray-800 dark:text-white">
+      <div className="p-2 rounded-md shadow text-sm border w-max max-w-[260px] bg-white dark:bg-gray-800 dark:text-white">
         <p className="font-semibold mb-1">💵 Ingreso Gimnasio: ${gimnasio}</p>
         <p>📉 Egreso Gimnasio: ${egresosGimnasio}</p>
         <p className="mb-1 text-green-500">📈 Neto Gimnasio: ${netoGimnasio}</p>
@@ -160,7 +162,11 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
 
         <p className="font-semibold mt-2">💼 Ingreso Servicios: ${servicio}</p>
         <p className="font-semibold">🛒 Ingreso Productos: ${producto}</p>
-        
+
+        <hr className="my-2" />
+        <p className="font-semibold text-blue-500">💳 Pagos con Tarjeta: ${tarjeta}</p>
+        <p className="font-semibold text-green-600">💵 Pagos en Efectivo: ${efectivo}</p>
+
         <hr className="my-2" />
         <p className="font-bold text-orange-500">🧮 Neto Total: ${netoTotal}</p>
       </div>
@@ -169,6 +175,7 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
 
   return null;
 };
+
 
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
@@ -190,6 +197,8 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
   const montoClase = (data["mañana_clases"] || 0) + (data["tarde_clases"] || 0);
 
   return (
+
+    
     <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
       <p className="font-bold mb-1">
         📅 {isValid(parse(data.fecha, "dd/MM/yyyy", new Date()))
@@ -230,6 +239,7 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
       <div className="border-t mt-2 pt-2 text-sm font-semibold">
         🧾 Total del día: ${totalDia}
       </div>
+
     </div>
   );
 };
@@ -578,7 +588,7 @@ export default function AdminOverviewCharts({
       </Card>
 
       {/* 5. Promedio por Rango */}
-      
+
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
         <CardHeader className="flex flex-col">
           <div className="flex items-center flex-col pb-4">
@@ -686,7 +696,7 @@ export default function AdminOverviewCharts({
 
                 <Bar dataKey="egresosGimnasio" name="Egreso Gimnasio" stackId="a">
                   {facturacion.map((_, i) => (
-                    <Cell key={i} fill="#ef4444" /> // rojo claro
+                    <Cell key={i} fill="#ef4444" />
                   ))}
                 </Bar>
 
@@ -698,7 +708,7 @@ export default function AdminOverviewCharts({
 
                 <Bar dataKey="egresosClase" name="Egreso Clases" stackId="b">
                   {facturacion.map((_, i) => (
-                    <Cell key={i} fill="#f87171" /> // rojo más claro
+                    <Cell key={i} fill="#f87171" />
                   ))}
                 </Bar>
 
@@ -713,7 +723,7 @@ export default function AdminOverviewCharts({
                     <Cell key={i} fill="#8b5cf6" />
                   ))}
                 </Bar>
-                
+
               </BarChart>
             </ResponsiveContainer>
           )}

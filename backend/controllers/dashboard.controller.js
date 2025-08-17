@@ -163,6 +163,8 @@ export const getDashboardCompleto = async (req, res) => {
       egresosClase: 0,
       netoGimnasio: 0,
       netoClase: 0,
+      tarjeta: 0,
+      efectivo: 0
     }));
 
     for (const e of egresos) {
@@ -192,6 +194,13 @@ export const getDashboardCompleto = async (req, res) => {
         const mesIndex = fechaPago.month();
         const tipo = (p.Tipo || "").trim().toUpperCase();
         const monto = parseFloat(p.Monto || "0");
+        const metodo = (p.Metodo_de_Pago || "").trim().toUpperCase();
+
+        if (metodo === "TARJETA") {
+          meses[mesIndex].tarjeta += monto;
+        } else if (metodo === "EFECTIVO") {
+          meses[mesIndex].efectivo += monto;
+        }
 
         if (["GIMNASIO", "DEUDA GIMNASIO"].includes(tipo)) {
           meses[mesIndex].gimnasio += monto;
