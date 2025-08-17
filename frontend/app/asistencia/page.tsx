@@ -29,7 +29,7 @@ export default function AsistenciaPage() {
 
       const id = setTimeout(() => {
         setData(null)
-      }, 20000)
+      }, 3000)
       setTimeoutId(id)
 
       setLoading(false)
@@ -74,7 +74,25 @@ export default function AsistenciaPage() {
             type="number"
             value={dni}
             onChange={(e) => setDni(e.target.value)}
-            placeholder="Ej: 45082808"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                const form = e.currentTarget.form
+                if (!form) return
+
+                const elements = Array.from(form.elements) as HTMLElement[]
+                const index = elements.indexOf(e.currentTarget)
+                const next = elements[index + 1]
+
+                if (next) {
+                  next.focus()
+                  if (next.tagName === "BUTTON" && (next as HTMLButtonElement).type === "submit") {
+                    ; (next as HTMLButtonElement).click()
+                  }
+                }
+              }
+            }}
+            placeholder="Ej: 45082803"
             className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
           />
           <button
