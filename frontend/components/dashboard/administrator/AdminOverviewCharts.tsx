@@ -250,9 +250,19 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
       typeof window !== "undefined" &&
       document.documentElement.classList.contains("dark");
 
+    const chunkArray = (arr: string[], size: number) => {
+      const result: string[][] = [];
+      for (let i = 0; i < arr.length; i += size) {
+        result.push(arr.slice(i, i + size));
+      }
+      return result;
+    };
+
+    const filas = chunkArray(data.alumnos || [], 10);
+
     return (
       <div
-        className="p-2 rounded-md shadow text-sm border w-max max-w-[400px]"
+        className="p-2 rounded-md shadow text-sm border w-max max-w-[600px]"
         style={{
           backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
           color: isDark ? "hsl(0, 0%, 95%)" : "#000",
@@ -262,14 +272,16 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
           👨‍🏫 {data.profesor}: {data.cantidad} alumnos
         </p>
 
-        {data.alumnos?.length > 0 && (
+        {filas.length > 0 && (
           <div className="mt-1">
             <p className="font-semibold text-xs mb-1">👥 Lista de alumnos:</p>
-            <div className="grid grid-cols-5 gap-x-2 gap-y-1 text-xs">
-              {data.alumnos.map((alumno: string, i: number) => (
-                <span key={i} className="truncate">
-                  {alumno}
-                </span>
+            <div className="space-y-1 text-xs">
+              {filas.map((fila, i) => (
+                <div key={i} className="flex flex-wrap gap-x-2">
+                  {fila.map((alumno, j) => (
+                    <span key={j}>{alumno}</span>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
@@ -279,6 +291,7 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
   }
   return null;
 };
+
 
 
 export default function AdminOverviewCharts({
