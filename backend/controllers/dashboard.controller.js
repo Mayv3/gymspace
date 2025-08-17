@@ -151,8 +151,9 @@ export const getDashboardCompleto = async (req, res) => {
       noche: { total: rangos.noche, promedio: +(rangos.noche / 31).toFixed(2) }
     };
 
-    // ---- Facturación Anual (Ingresos - Egresos) ----
+    // ---- Facturación Anual (Ingresos - Egresos) ---
     const anioActual = hoy.year();
+
     const meses = Array.from({ length: 12 }, (_, i) => ({
       mes: dayjs().month(i).locale('es').format('MMMM'),
       gimnasio: 0,
