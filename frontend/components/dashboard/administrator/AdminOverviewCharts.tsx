@@ -24,6 +24,7 @@ import {
   CalendarCheck,
   PieChart as PieIcon,
   DollarSign,
+  BarChart3Icon,
 } from "lucide-react";
 import { PlanSelect } from "@/components/PlanSelect";
 import {
@@ -73,7 +74,6 @@ interface Factura {
   netoGimnasio: number;
   netoClase: number;
 }
-
 
 type TipoPlan = "TODOS" | "GIMNASIO" | "CLASE";
 
@@ -274,6 +274,34 @@ const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ activ
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+  return null;
+};
+
+export const CustomTooltipPlanes: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+
+    return (
+      <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
+        <p className="font-semibold">📋 Plan: {data.plan}</p>
+        <p>👥 Alumnos: {data.cantidad}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+export const CustomTooltipEdades: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+
+    return (
+      <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
+        <p className="font-semibold">🎂 Edad: {data.edad}</p>
+        <p>👥 Alumnos: {data.cantidad}</p>
       </div>
     );
   }
@@ -540,9 +568,9 @@ export default function AdminOverviewCharts({
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={edadDistribucion}>
-                <XAxis dataKey="edad" />
+                <XAxis dataKey="edad" tick={false} />
                 <YAxis />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltipEdades />} />
                 <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
                   {edadDistribucion.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -557,7 +585,7 @@ export default function AdminOverviewCharts({
       {/* 3. Alumnos por Plan */}
       <Card className="shadow-lg hover:shadow-xl transition-all">
         <CardHeader className="flex items-center gap-2">
-          <PieIcon className="text-orange-500" />
+          <BarChart3Icon className="text-orange-500" /> {/* cambié el ícono */}
           <CardTitle>Alumnos por Plan</CardTitle>
         </CardHeader>
         <CardContent>
@@ -571,22 +599,17 @@ export default function AdminOverviewCharts({
               No hay datos disponibles.
             </p>
           ) : (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={planesFiltrados}
-                  dataKey="cantidad"
-                  nameKey="plan"
-                  outerRadius={100}
-                  label
-                  stroke="none"
-                >
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={planesFiltrados}>
+                <XAxis dataKey="plan" tick={false} />
+                <YAxis />
+                <Tooltip content={<CustomTooltipPlanes />} />
+                <Bar dataKey="cantidad" radius={[6, 6, 0, 0]}>
                   {planesFiltrados.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           )}
         </CardContent>
@@ -724,37 +747,37 @@ export default function AdminOverviewCharts({
                 <YAxis />
                 <Tooltip content={<CustomTooltipFacturacion />} />
 
-                <Bar dataKey="gimnasio" name="Ingreso Gimnasio" stackId="a">
+                <Bar dataKey="gimnasio" name="Ingreso Gimnasio" stackId="a" >
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill={COLORS[0]} />
                   ))}
                 </Bar>
 
-                <Bar dataKey="egresosGimnasio" name="Egreso Gimnasio" stackId="a">
+                <Bar dataKey="egresosGimnasio" name="Egreso Gimnasio" stackId="a" radius={[6, 6, 0, 0]}>
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill="#ef4444" />
                   ))}
                 </Bar>
 
-                <Bar dataKey="clase" name="Ingreso Clases" stackId="b">
+                <Bar dataKey="clase" name="Ingreso Clases" stackId="b" >
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill={COLORS[2]} />
                   ))}
                 </Bar>
 
-                <Bar dataKey="egresosClase" name="Egreso Clases" stackId="b">
+                <Bar dataKey="egresosClase" name="Egreso Clases" stackId="b" radius={[6, 6, 0, 0]}>
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill="#f87171" />
                   ))}
                 </Bar>
 
-                <Bar dataKey="servicio" name="Ingreso Servicios" stackId="c">
+                <Bar dataKey="servicio" name="Ingreso Servicios" stackId="c" radius={[6, 6, 0, 0]}>
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill="#10b981" />
                   ))}
                 </Bar>
 
-                <Bar dataKey="producto" name="Ingreso Productos" stackId="d">
+                <Bar dataKey="producto" name="Ingreso Productos" stackId="d" radius={[6, 6, 0, 0]}>
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill="#8b5cf6" />
                   ))}
