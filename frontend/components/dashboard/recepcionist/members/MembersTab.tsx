@@ -2,11 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Edit, Trash, PlusCircle } from "lucide-react"
+import { Search, Edit, Trash, PlusCircle, History, CoinsIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import { useState, useEffect } from "react"
+import { PuntosModal } from "./details-member"
 
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
@@ -41,6 +42,8 @@ interface MembersTabProps {
 export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelete, onAddMember }: MembersTabProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const [dniHistorial, setDniHistorial] = useState<string | null>(null)
+  const [nombreHistorial, setNombreHistorial] = useState<string>("")
 
   const filteredMembers = members.filter((member) =>
     member.Nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -53,6 +56,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedMembers = filteredMembers.slice(startIndex, endIndex)
+
 
   useEffect(() => {
     setCurrentPage(1)
@@ -154,6 +158,16 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                         <Button size="icon" variant="ghost" onClick={() => onDelete(member)}>
                           <Trash className="h-4 w-4 text-destructive" />
                         </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            setDniHistorial(member.DNI)
+                            setNombreHistorial(member.Nombre)
+                          }}
+                        >
+                          <CoinsIcon className="h-4 w-4 text-yellow-500" />
+                        </Button>
                       </div>
                     </TableCell>
                   </motion.tr>
@@ -232,7 +246,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 <Button
                   size="sm"
                   variant="orange"
-                  className="w-1/2 justify-center"
+                  className="w-1/3 justify-center"
                   onClick={() => onEdit(m)}
                 >
                   Editar
@@ -240,15 +254,34 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 <Button
                   size="sm"
                   variant="destructive"
-                  className="w-1/2 justify-center"
+                  className="w-1/3 justify-center"
                   onClick={() => onDelete(m)}
                 >
                   Eliminar
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="w-1/3 justify-center bg-yellow-200"
+                  onClick={() => {
+                    setDniHistorial(m.DNI)
+                    setNombreHistorial(m.Nombre)
+                  }}
+                >
+                  <CoinsIcon className="h-4 w-4 text-yellow-500" />
                 </Button>
               </div>
             </Card>
           ))}
         </div>
+        {dniHistorial && (
+          <PuntosModal
+            dni={dniHistorial}
+            nombre={nombreHistorial}
+            open={!!dniHistorial}
+            onClose={() => setDniHistorial(null)}
+          />
+        )}
         {filteredMembers.length > itemsPerPage && (
           <div className="flex justify-center mt-4 gap-2">
             <Button

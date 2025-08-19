@@ -346,7 +346,7 @@ export async function deletePagoByID(id) {
             {
               deleteDimension: {
                 range: {
-                  sheetId: 918768373,
+                  sheetId: 784450678,
                   dimension: "ROWS",
                   startIndex: rowIndexPuntos + 1,
                   endIndex: rowIndexPuntos + 2,
