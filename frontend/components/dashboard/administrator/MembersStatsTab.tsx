@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash, PlusCircle } from "lucide-react"
+import { Edit, Trash, PlusCircle, CoinsIcon } from "lucide-react"
 
 import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add-member-dialog"
 import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
@@ -13,6 +13,7 @@ import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/
 import { useAppData } from "@/context/AppDataContext"
 import { Member } from "@/models/dashboard"
 import { RankingDialog } from "../recepcionist/members/Ranking-dialog"
+import { PuntosModal } from "../recepcionist/members/details-member"
 
 interface Alumno {
   ID: string
@@ -49,6 +50,8 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
   const [profe, setProfe] = useState("")
   const [plan, setPlan] = useState("")
   const [nombre, setNombre] = useState("")
+  const [dniHistorial, setDniHistorial] = useState<string | null>(null)
+  const [nombreHistorial, setNombreHistorial] = useState<string>("")
 
   const [selectedAlumno, setSelectedAlumno] = useState<Alumno | null>(null)
   const [openAdd, setOpenAdd] = useState(false)
@@ -224,10 +227,20 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
                   <TableCell className="text-center">
                     <div className="flex justify-center gap-2">
                       <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenEdit(true) }}>
-                        <Edit className="w-4 h-4 text-primary" />
+                        <Edit className="w-1/3 h-4 text-primary" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenDelete(true) }}>
-                        <Trash className="w-4 h-4 text-destructive" />
+                        <Trash className="w-1/3 h-4 text-destructive" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          setDniHistorial(a.DNI)
+                          setNombreHistorial(a.Nombre)
+                        }}
+                      >
+                        <CoinsIcon className="h-4 w-4 text-yellow-500" />
                       </Button>
                     </div>
                   </TableCell>
@@ -289,7 +302,7 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
                 <Button
                   size="sm"
                   variant="orange"
-                  className="w-full justify-center"
+                  className="w-1/3 justify-center"
                   onClick={() => { setSelectedAlumno(a); setOpenEdit(true) }}
                 >
                   Editar
@@ -297,10 +310,21 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
                 <Button
                   size="sm"
                   variant="destructive"
-                  className="w-full justify-center"
+                  className="w-1/3 justify-center"
                   onClick={() => { setSelectedAlumno(a); setOpenDelete(true) }}
                 >
                   Eliminar
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="w-1/3 justify-center bg-yellow-200"
+                  onClick={() => {
+                    setDniHistorial(a.DNI)
+                    setNombreHistorial(a.Nombre)
+                  }}
+                >
+                  <CoinsIcon className="h-4 w-4 text-yellow-500" />
                 </Button>
               </div>
             </Card>
@@ -330,6 +354,15 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
         </div>
 
       </CardContent>
+
+      {dniHistorial && (
+        <PuntosModal
+          dni={dniHistorial}
+          nombre={nombreHistorial}
+          open={!!dniHistorial}
+          onClose={() => setDniHistorial(null)}
+        />
+      )}
 
       <AddMemberDialog
         open={openAdd}
