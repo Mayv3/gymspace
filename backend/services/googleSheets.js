@@ -351,7 +351,7 @@ export async function deletePagoByID(id) {
             {
               deleteDimension: {
                 range: {
-                  sheetId: 1279938571,
+                  sheetId: 784450678,
                   dimension: "ROWS",
                   startIndex: rowIndexPuntos + 1,
                   endIndex: rowIndexPuntos + 2,
@@ -363,6 +363,7 @@ export async function deletePagoByID(id) {
       });
     }
   }
+
 
   // --- Buscar puntos del plan y restar al alumno ---
   const planes = await getPlanesFromSheet();
