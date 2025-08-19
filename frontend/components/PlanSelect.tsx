@@ -5,7 +5,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { ChevronDown } from "lucide-react";
 
 interface PlanSelectProps {
   tipoPlan: string;

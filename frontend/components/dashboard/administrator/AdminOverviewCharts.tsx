@@ -939,14 +939,14 @@ export default function AdminOverviewCharts({
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
-                <Line
-                  type="monotone"
-                  dataKey="mañana_monto"
-                  name="Mañana"
-                  stroke={COLORS[0]}
-                  strokeWidth={2}
-                  dot={{ r: 4 }} p
-                />
+                                 <Line
+                   type="monotone"
+                   dataKey="mañana_monto"
+                   name="Mañana"
+                   stroke={COLORS[0]}
+                   strokeWidth={2}
+                   dot={{ r: 4 }}
+                 />
               </LineChart>
             </ResponsiveContainer>
           )}

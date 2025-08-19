@@ -256,6 +256,23 @@ export async function appendPagoToSheet(pago) {
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
   });
+
+  const planes = await getPlanesFromSheet();
+  const plan = planes.find(p => p['Plan o Producto'] === pago['Ultimo_Plan']);
+  const coins = plan ? Number(plan.Coins) || 0 : 0;
+
+  if (coins > 0) {
+    await appendRegistroPuntoToSheet({
+      DNI: pago['Socio DNI'],
+      Nombre: pago.Nombre,
+      Puntos: coins,
+      Motivo: `Pago del plan ${pago['Ultimo_Plan']}`,
+      Responsable: pago.Responsable,
+      PagoID: String(nuevoID)
+    });
+  }
+
+  return { id: nuevoID, ...pago };
 }
 
 export async function updatePagoByID(id, nuevosDatos) {
@@ -284,7 +301,7 @@ export async function updatePagoByID(id, nuevosDatos) {
 export async function deletePagoByID(id) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A1:H',
+    range: 'Pagos!A1:L',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -310,6 +327,37 @@ export async function deletePagoByID(id) {
     }
   });
 
+  const puntosRes = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "RegistroPuntos!A1:H",
+  });
+
+  const [headersPuntos, ...rowsPuntos] = puntosRes.data.values || [];
+  const pagoIdIndex = headersPuntos.indexOf("PagoID");
+
+  if (pagoIdIndex !== -1) {
+    const rowIndexPuntos = rowsPuntos.findIndex((r) => r[pagoIdIndex] === id);
+
+    if (rowIndexPuntos !== -1) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        requestBody: {
+          requests: [
+            {
+              deleteDimension: {
+                range: {
+                  sheetId: 918768373,
+                  dimension: "ROWS",
+                  startIndex: rowIndexPuntos + 1,
+                  endIndex: rowIndexPuntos + 2,
+                },
+              },
+            },
+          ],
+        },
+      });
+    }
+  }
   return true;
 }
 // Roles 
@@ -333,8 +381,6 @@ export async function getRolesFromSheet() {
   return roles;
 }
 
-
-
 // Asistencias 
 
 export async function appendAsistenciaToSheet(asistencia) {
@@ -357,12 +403,20 @@ export async function appendAsistenciaToSheet(asistencia) {
     insertDataOption: 'INSERT_ROWS',
     resource: { values },
   });
+
+  await appendRegistroPuntoToSheet({
+    DNI: asistencia.DNI,
+    Nombre: asistencia.Nombre,
+    Puntos: 25,
+    Motivo: "Asistencia registrada",
+    Responsable: asistencia.Responsable
+  });
 }
 
 export async function getAsistenciasFromSheet() {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Asistencias!A1:G', // Ajustalo según tu hoja real
+    range: 'Asistencias!A1:G',
   });
 
   const [headers, ...rows] = res.data.values;
@@ -1274,4 +1328,85 @@ export async function deleteDeudaByID(id) {
   });
 
   return true;
+}
+
+// Puntos
+
+export async function getRegistroPuntosFromSheet() {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'RegistroPuntos!A1:H',
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+
+  return rows.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = row[i] || '';
+    });
+    return obj;
+  });
+}
+
+export async function appendRegistroPuntoToSheet(data) {
+  const nuevoID = await getNextId('RegistroPuntos!A2:A');
+
+  const values = [[
+    String(nuevoID),
+    data.DNI || '',
+    data.Nombre || '',
+    dayjs().format("YYYY-MM-DD"),
+    data.Puntos || '0',
+    data.Motivo || '',
+    data.Responsable || '',
+    data.PagoID || ''
+  ]];
+
+  sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: 'RegistroPuntos!A1:H1',
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    resource: { values },
+  });
+
+  return { id: nuevoID, ...data };
+}
+
+export async function getHistorialPuntosByDNI(dni) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "RegistroPuntos!A1:H",
+  });
+
+  const [headers, ...rows] = res.data.values || [];
+
+  const registros = rows.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = row[i] || "";
+    });
+    return obj;
+  });
+
+  const now = dayjs();
+  const currentMonth = now.month();
+  const currentYear = now.year();
+  return registros.filter(r => {
+    if (r.DNI !== dni) return false;
+
+    const fecha = dayjs(r.Fecha, [
+      "YYYY-MM-DD HH:mm",
+      "YYYY-MM-DD",
+      "DD/MM/YYYY",
+      "D/M/YYYY",
+    ], true);
+
+    return (
+      fecha.isValid() &&
+      fecha.month() === currentMonth &&
+      fecha.year() === currentYear
+    );
+  });
 }
