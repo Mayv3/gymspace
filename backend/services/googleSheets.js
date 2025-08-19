@@ -1436,7 +1436,8 @@ export async function getHistorialPuntosByDNI(dni) {
   const now = dayjs();
   const currentMonth = now.month();
   const currentYear = now.year();
-  return registros.filter(r => {
+
+  const filtrados = registros.filter(r => {
     if (r.DNI !== dni) return false;
 
     const fecha = dayjs(r.Fecha, [
@@ -1452,4 +1453,6 @@ export async function getHistorialPuntosByDNI(dni) {
       fecha.year() === currentYear
     );
   });
+
+  return filtrados.reverse();
 }
