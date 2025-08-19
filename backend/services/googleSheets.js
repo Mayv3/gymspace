@@ -309,6 +309,11 @@ export async function deletePagoByID(id) {
 
   if (rowIndex === -1) return false;
 
+  const pago = rows[rowIndex];
+  const dniAlumno = pago[1];
+  const planNombre = pago[11];
+
+  // --- Eliminar pago ---
   await sheets.spreadsheets.batchUpdate({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     requestBody: {
@@ -327,6 +332,7 @@ export async function deletePagoByID(id) {
     }
   });
 
+  // --- Eliminar en RegistroPuntos si tiene PagoID ---
   const puntosRes = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: "RegistroPuntos!A1:H",
@@ -337,7 +343,6 @@ export async function deletePagoByID(id) {
 
   if (pagoIdIndex !== -1) {
     const rowIndexPuntos = rowsPuntos.findIndex((r) => r[pagoIdIndex] === id);
-
     if (rowIndexPuntos !== -1) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -346,7 +351,7 @@ export async function deletePagoByID(id) {
             {
               deleteDimension: {
                 range: {
-                  sheetId: 784450678,
+                  sheetId: 1279938571,
                   dimension: "ROWS",
                   startIndex: rowIndexPuntos + 1,
                   endIndex: rowIndexPuntos + 2,
@@ -358,8 +363,45 @@ export async function deletePagoByID(id) {
       });
     }
   }
+
+  // --- Buscar puntos del plan y restar al alumno ---
+  const planes = await getPlanesFromSheet();
+  const plan = planes.find(p => p["Plan o Producto"] === planNombre);
+  const puntosARestar = plan ? Number(plan.Coins) : 0;
+
+  if (puntosARestar > 0 && dniAlumno) {
+    const alumnosRes = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: "Alumnos!A1:O",
+    });
+
+    const [headersAlumnos, ...rowsAlumnos] = alumnosRes.data.values;
+    const dniIndex = headersAlumnos.indexOf("DNI");
+    const coinsIndex = headersAlumnos.indexOf("GymCoins");
+
+    const alumnoRowIndex = rowsAlumnos.findIndex(r => r[dniIndex] === dniAlumno);
+
+    if (alumnoRowIndex !== -1) {
+      const alumno = rowsAlumnos[alumnoRowIndex];
+      const coinsActuales = Number(alumno[coinsIndex] || 0);
+      const nuevoTotal = Math.max(coinsActuales - puntosARestar, 0);
+
+      const rowNumber = alumnoRowIndex + 2;
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        range: `Alumnos!${String.fromCharCode(65 + coinsIndex)}${rowNumber}`,
+        valueInputOption: "RAW",
+        requestBody: {
+          values: [[nuevoTotal]]
+        }
+      });
+    }
+  }
+
   return true;
 }
+
+
 // Roles 
 
 export async function getRolesFromSheet() {
