@@ -227,10 +227,10 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
                   <TableCell className="text-center">
                     <div className="flex justify-center gap-2">
                       <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenEdit(true) }}>
-                        <Edit className="w-1/3 h-4 text-primary" />
+                        <Edit className="w-4 h-4 text-primary" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenDelete(true) }}>
-                        <Trash className="w-1/3 h-4 text-destructive" />
+                        <Trash className="w-4 h-4 text-destructive" />
                       </Button>
                       <Button
                         size="icon"
