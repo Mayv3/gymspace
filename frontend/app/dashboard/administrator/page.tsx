@@ -35,6 +35,7 @@ import { format } from "date-fns"
 import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import axios from "axios"
+import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
 
 
 export default function AdministratorDashboard() {
@@ -207,9 +208,9 @@ export default function AdministratorDashboard() {
     refreshPayments(buildCurrentFilters())
   }, [cashOpen])
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchTopAlumnos();
-  },[])
+  }, [])
 
   if (loading) {
     return (
@@ -260,7 +261,7 @@ export default function AdministratorDashboard() {
         )}
 
         <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 gap-2 h-auto md:grid-cols-9 md:w-auto">
+          <TabsList className="grid w-full grid-cols-5 gap-2 h-auto md:grid-cols-10 md:w-auto">
             <TabsTrigger value="overview" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
               Resumen
             </TabsTrigger>
@@ -274,6 +275,7 @@ export default function AdministratorDashboard() {
             <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Turnos</TabsTrigger>
             <TabsTrigger value="egresos" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Egresos</TabsTrigger>
             <TabsTrigger value="elclub" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">El Club</TabsTrigger>
+            <TabsTrigger value="difusion" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Difusion</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" forceMount>
@@ -332,6 +334,11 @@ export default function AdministratorDashboard() {
 
           <TabsContent value="elclub" className="space-y-4">
             <ElClub />
+          </TabsContent>
+
+
+          <TabsContent value="difusion" className="space-y-4">
+            <EmailBroadcast />
           </TabsContent>
         </Tabs>
 

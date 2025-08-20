@@ -1,12 +1,19 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Mail } from 'lucide-react'
-import Picker from 'emoji-picker-react'
+import Picker from "@emoji-mart/react"
+import data from "@emoji-mart/data"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+
 import {
     Dialog,
     DialogContent,
@@ -33,9 +40,37 @@ export default function EmailBroadcast() {
     const [message, setMessage] = useState('')
     const [loading, setLoading] = useState(false)
     const [preview, setPreview] = useState<any | null>(null)
-    const [showEmoji, setShowEmoji] = useState(false)
     const [openPreview, setOpenPreview] = useState(false)
     const [cooldown, setCooldown] = useState(false)
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+
+        const saved = localStorage.getItem("emailBroadcastForm")
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved)
+                if (parsed.tipo) setTipo(parsed.tipo)
+                if (parsed.emailParticular) setEmailParticular(parsed.emailParticular)
+                if (parsed.subject) setSubject(parsed.subject)
+                if (parsed.message) setMessage(parsed.message)
+            } catch (err) {
+                console.error("Error parseando localStorage:", err)
+            }
+        }
+    }, [])
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+
+        const payload = {
+            tipo,
+            emailParticular,
+            subject,
+            message,
+        }
+        localStorage.setItem("emailBroadcastForm", JSON.stringify(payload))
+    }, [tipo, emailParticular, subject, message])
 
     const isFormValid = () => {
         if (!tipo) return false
@@ -47,10 +82,6 @@ export default function EmailBroadcast() {
 
     const insertPlaceholder = (value: string) => {
         setMessage(prev => prev + ' ' + value)
-    }
-
-    const handleEmojiClick = (emojiObject: any) => {
-        setMessage(prev => prev + emojiObject.emoji)
     }
 
     const handleSend = async (dryRun = false) => {
@@ -89,7 +120,13 @@ export default function EmailBroadcast() {
                     notify.error("No hay datos para previsualizar")
                 }
             } else {
-                notify.success(`Se enviaron ${data.sent} mails, fallaron ${data.failed}`)
+                notify.success(`Se están mandando los mails en los próximos minutos`)
+
+                setTipo('')
+                setEmailParticular('')
+                setSubject('')
+                setMessage('')
+                localStorage.removeItem("emailBroadcastForm")
             }
         } catch (err) {
             console.error(err)
@@ -161,19 +198,34 @@ export default function EmailBroadcast() {
                                             {p.label}
                                         </Button>
                                     ))}
-                                    <Button type="button" size="sm" variant="secondary" onClick={() => setShowEmoji(!showEmoji)}>
-                                        😀 Emoji
-                                    </Button>
+
+                                    {/* Botón con popover para emojis */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                className="border border-orange-400 text-orange-500 hover:bg-orange-50 rounded-full px-3"
+                                            >
+                                                Insertar emoji 😀
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="p-0 w-auto">
+                                            <Picker
+                                                data={data}
+                                                onEmojiSelect={(emoji: any) => setMessage(prev => prev + emoji.native)}
+                                                locale="es"
+                                                previewPosition="none"
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
-                                {showEmoji && (
-                                    <div className="mt-2">
-                                        <Picker onEmojiClick={handleEmojiClick} />
-                                    </div>
-                                )}
                             </div>
                         </div>
 
                         {/* Columna derecha */}
+
                         <div className="flex flex-col space-y-4">
                             <div className="space-y-1">
                                 <label className="text-sm font-medium">Mensaje</label>
@@ -212,6 +264,7 @@ export default function EmailBroadcast() {
             </Card>
 
             {/* Modal Vista Previa */}
+
             <Dialog open={openPreview} onOpenChange={setOpenPreview}>
                 <DialogContent className="max-w-lg">
                     <DialogHeader>

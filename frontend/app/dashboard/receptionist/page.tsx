@@ -196,7 +196,7 @@ export default function ReceptionistDashboard() {
         )}
 
         <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid h-auto w-full grid-cols-4 md:grid-cols-8 md:w-auto">
+          <TabsList className="grid h-auto w-full grid-cols-3 md:grid-cols-9 md:w-auto">
             <TabsTrigger value="members">Miembros</TabsTrigger>
             <TabsTrigger value="shift-payments">Pagos</TabsTrigger>
             <TabsTrigger value="deudas">Deudas</TabsTrigger>
@@ -205,7 +205,7 @@ export default function ReceptionistDashboard() {
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
             <TabsTrigger value="egresos">Egresos</TabsTrigger>
             <TabsTrigger value="elclub">El Club</TabsTrigger>
-            {/* <TabsTrigger value="difusion">Difusion</TabsTrigger> */}
+            <TabsTrigger value="difusion">Difusion</TabsTrigger> 
           </TabsList>
 
           <TabsContent value="members" className="space-y-4">
@@ -265,9 +265,9 @@ export default function ReceptionistDashboard() {
             <ElClub />
           </TabsContent>
 
-          {/* <TabsContent value="difusion" className="space-y-4">
+           <TabsContent value="difusion" className="space-y-4">
             <EmailBroadcast />
-          </TabsContent> */}
+          </TabsContent>
 
         </Tabs>
       </div>

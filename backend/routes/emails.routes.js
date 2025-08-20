@@ -9,10 +9,10 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS_MAILING
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS_MAILING
     }
-  })
+})
 
 
 const delay = (ms) => new Promise(r => setTimeout(r, ms))
@@ -33,9 +33,9 @@ emailsRouter.post('/broadcast', async (req, res) => {
             subject,
             text,
             html,
-            filters = {}, // { tipo: 'GIMNASIO' | 'CLASE' }
-            onlyEmails,
+            filters = {},
             dryRun = false,
+            onlyEmails,
             batch = { size: 10, perEmailDelayMs: 1000, betweenBatchesMs: 30000 },
         } = req.body || {}
 
@@ -43,7 +43,6 @@ emailsRouter.post('/broadcast', async (req, res) => {
             return res.status(400).json({ ok: false, error: 'Faltan "subject" y text/html.' })
         }
 
-        // 1) Traer alumnos y planes
         const [alumnosRaw, planesRaw] = await Promise.all([
             getAlumnosFromSheet(),
             getPlanesFromSheet()
@@ -53,7 +52,7 @@ emailsRouter.post('/broadcast', async (req, res) => {
         const clasePlans = new Set()
 
         for (const p of planesRaw || []) {
-            const tipo = String(p?.Tipo || '').trim().toUpperCase() // GIMNASIO | CLASE
+            const tipo = String(p?.Tipo || '').trim().toUpperCase()
             const planName = norm(p?.['Plan o Producto'] || '')
             if (!planName) continue
 
@@ -85,7 +84,7 @@ emailsRouter.post('/broadcast', async (req, res) => {
         if (Array.isArray(onlyEmails) && onlyEmails.length) {
             const allow = new Set(onlyEmails.map(e => e.toLowerCase().trim()))
             alumnos = alumnos.filter(a => allow.has(String(a.Email).toLowerCase().trim()))
-        
+
             if (alumnos.length === 0) {
                 return res.status(400).json({ ok: false, error: 'El email no corresponde a ningún alumno registrado' })
             }
@@ -99,61 +98,86 @@ emailsRouter.post('/broadcast', async (req, res) => {
         const destinatarios = Array.from(dedup.values())
 
         if (dryRun) {
-            const preview = destinatarios.slice(0, 20).map(a => ({
+            if (destinatarios.length === 0) {
+                return res.status(400).json({ ok: false, error: 'No hay alumnos para previsualizar' })
+            }
+
+            const preview = destinatarios.slice(0, 2).map(a => ({
                 Nombre: a.Nombre,
                 Email: a.Email,
                 Plan: a.Plan,
                 PlanTipo: a.__PlanTipo,
                 Texto: text ? applyTemplate(text, a) : undefined,
-                Html: html ? applyTemplate(html, a) : undefined
+                Html: html ? applyTemplate(html, a) : undefined,
             }))
+
             return res.json({
                 ok: true,
                 total: destinatarios.length,
-                gimnasioPlans: Array.from(gimnasioPlans),
-                clasePlans: Array.from(clasePlans),
+                sent: 0,
+                failed: 0,
                 preview
             })
         }
-        // 7) Envío
-        const size = Number(batch.size) || 10
-        const perEmailDelayMs = Number(batch.perEmailDelayMs) || 1000
-        const betweenBatchesMs = Number(batch.betweenBatchesMs) || 30000
 
-        const results = { sent: 0, failed: 0, errors: [] }
+        res.json({
+            ok: true,
+            message: "Envío iniciado en background",
+            total: destinatarios.length,
+            sent: 0,
+            failed: 0
+        })
 
-        for (let i = 0; i < destinatarios.length; i += size) {
-            const lote = destinatarios.slice(i, i + size)
+        setImmediate(() => {
+            enviarEnLotes(destinatarios, { subject, text, html, batch })
+        })
 
-            for (const alumno of lote) {
-                const mailOptions = {
-                    from: `"Gymspace" <${process.env.EMAIL_USER}>`,
-                    to: alumno.Email,
-                    subject,
-                    text: text ? applyTemplate(text, alumno) : undefined,
-                    html: html ? applyTemplate(html, alumno) : undefined
-                }
-
-                try {
-                    await transporter.sendMail(mailOptions)
-                    results.sent++
-                } catch (err) {
-                    results.failed++
-                    results.errors.push({ email: alumno.Email, message: err?.message || 'Unknown error' })
-                }
-                if (perEmailDelayMs > 0) await delay(perEmailDelayMs)
-            }
-
-            if (i + size < destinatarios.length && betweenBatchesMs > 0) {
-                await delay(betweenBatchesMs)
-            }
-        }
-
-        return res.json({ ok: true, total: destinatarios.length, ...results })
     } catch (error) {
         console.error('Broadcast error:', error)
         return res.status(500).json({ ok: false, error: error?.message || 'Unexpected error' })
     }
 })
+
+
+async function enviarEnLotes(destinatarios, { subject, text, html, batch }) {
+    const size = Number(batch.size) || 10
+    const perEmailDelayMs = Number(batch.perEmailDelayMs) || 1000
+    const betweenBatchesMs = Number(batch.betweenBatchesMs) || 30000
+
+    const results = { sent: 0, failed: 0 }
+
+    for (let i = 0; i < destinatarios.length; i += size) {
+        const lote = destinatarios.slice(i, i + size)
+        console.log(`📦 Procesando lote ${Math.floor(i / size) + 1} con ${lote.length} alumnos`)
+
+        for (const alumno of lote) {
+            const mailOptions = {
+                from: `"Gymspace" <${process.env.EMAIL_USER}>`,
+                to: alumno.Email,
+                subject,
+                text: text ? applyTemplate(text, alumno) : undefined,
+                html: html ? applyTemplate(html, alumno) : undefined,
+            }
+
+            try {
+                await transporter.sendMail(mailOptions)
+                results.sent++
+                console.log(`✅ OK → ${alumno.Nombre} (${alumno.Email})`)
+            } catch (err) {
+                results.failed++
+                console.error(`❌ FAIL → ${alumno.Nombre} (${alumno.Email}) → ${err.message}`)
+            }
+
+            if (perEmailDelayMs > 0) await delay(perEmailDelayMs)
+        }
+
+        if (i + size < destinatarios.length && betweenBatchesMs > 0) {
+            console.log(`⏸ Pausa de ${betweenBatchesMs / 1000}s antes del próximo lote...`)
+            await delay(betweenBatchesMs)
+        }
+    }
+
+    console.log("📩 Envío finalizado →", results)
+}
 
 export default emailsRouter
