@@ -218,9 +218,14 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Anyo">Anyo</SelectItem>
-                  <SelectItem value="Anto">Anto</SelectItem>
                   <SelectItem value="Rami">Rami</SelectItem>
+                  <SelectItem value="Anto">Anto</SelectItem>
                   <SelectItem value="Yaco">Yaco</SelectItem>
+                  <SelectItem value="Almen">Almen</SelectItem>
+                  <SelectItem value="Almen/Lu">Almen/Lu</SelectItem>
+                  <SelectItem value="Lu">Lu</SelectItem>
+                  <SelectItem value="Lu/Anto">Lu/Anto</SelectItem>
+                  <SelectItem value="Nacho/Agus">Nacho/Agus</SelectItem>
                 </SelectContent>
               </Select>
             </div>

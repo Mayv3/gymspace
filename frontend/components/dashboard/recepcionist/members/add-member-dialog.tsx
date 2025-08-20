@@ -277,6 +277,9 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
                   <SelectItem value="Rami">Rami</SelectItem>
                   <SelectItem value="Anto">Anto</SelectItem>
                   <SelectItem value="Yaco">Yaco</SelectItem>
+                  <SelectItem value="Almen">Almen</SelectItem>
+                  <SelectItem value="Lu/Anto">Lu/Anto</SelectItem>
+                  <SelectItem value="Nacho/Agus">Nacho/Agus</SelectItem>
                 </SelectContent>
               </Select>
             </div>
