@@ -222,10 +222,10 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
                   <SelectItem value="Anto">Anto</SelectItem>
                   <SelectItem value="Yaco">Yaco</SelectItem>
                   <SelectItem value="Almen">Almen</SelectItem>
-                  <SelectItem value="Almen/Lu">Almen/Lu</SelectItem>
                   <SelectItem value="Lu">Lu</SelectItem>
-                  <SelectItem value="Lu/Anto">Lu/Anto</SelectItem>
+                  <SelectItem value="Almen/Lu">Almen/Lu</SelectItem>
                   <SelectItem value="Nacho/Agus">Nacho/Agus</SelectItem>
+                  <SelectItem value="Anto/Lu/Yaco">Anto/Lu/Yaco</SelectItem>
                 </SelectContent>
               </Select>
             </div>
