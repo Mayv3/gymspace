@@ -6,7 +6,7 @@ import { getAlumnosFromSheet } from './googleSheets.js'
 dotenv.config()
 
 // Configurar Gmail
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
   secure: true,
@@ -107,5 +107,3 @@ export const probarRecordatoriosEmail = async () => {
   const alumnos = await getAlumnosFromSheet()
   await enviarRecordatoriosPorLotes(alumnos)
 }
-
-

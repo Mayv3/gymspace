@@ -18,6 +18,7 @@ import dashboardRoutes from './routes/dashboard.routes.js'
 import egresosRoutes from './routes/egresos.routes.js';
 import deudaRoutes from "./routes/deudas.routes.js"
 import puntosRoutes from "./routes/puntos.routes.js";
+import { emailsRouter } from './routes/emails.routes.js'
 
 import { getAlumnosFromSheet } from './services/googleSheets.js';
 
@@ -44,6 +45,7 @@ app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/egresos', egresosRoutes);
 app.use('/api/deudas', deudaRoutes)
 app.use("/api/puntos", puntosRoutes);
+app.use('/api/emails', emailsRouter)
 
 app.get('/ping', (req, res) => res.sendStatus(200));
 

@@ -31,6 +31,7 @@ import { Member } from "@/models/dashboard"
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
 import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
+import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
 
 export default function ReceptionistDashboard() {
   const { user, loading } = useUser()
@@ -204,6 +205,7 @@ export default function ReceptionistDashboard() {
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
             <TabsTrigger value="egresos">Egresos</TabsTrigger>
             <TabsTrigger value="elclub">El Club</TabsTrigger>
+            <TabsTrigger value="difusion">Difusion</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="space-y-4">
@@ -261,6 +263,10 @@ export default function ReceptionistDashboard() {
 
           <TabsContent value="elclub" className="space-y-4">
             <ElClub />
+          </TabsContent>
+
+          <TabsContent value="difusion" className="space-y-4">
+            <EmailBroadcast />
           </TabsContent>
         </Tabs>
       </div>
