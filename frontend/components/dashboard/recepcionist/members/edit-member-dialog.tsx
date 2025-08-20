@@ -217,7 +217,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
                   <SelectValue placeholder="Seleccionar profesor" />
                 </SelectTrigger>
                 <SelectContent>
-                  
+
                   <SelectItem value="Anyo">Anyo</SelectItem>
                   <SelectItem value="Rami">Rami</SelectItem>
                   <SelectItem value="Anto">Anto</SelectItem>
@@ -227,6 +227,8 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
                   <SelectItem value="Almen/Lu">Almen/Lu</SelectItem>
                   <SelectItem value="Nacho/Agus">Nacho/Agus</SelectItem>
                   <SelectItem value="Anto/Lu/Yaco">Anto/Lu/Yaco</SelectItem>
+                  <SelectItem value="Yaco/Lu/Rodri">Yaco/Lu/Rodri</SelectItem>
+                  <SelectItem value="Rodri/Jade/Doni">Rodri/Jade/Doni</SelectItem>
                 </SelectContent>
               </Select>
             </div>
