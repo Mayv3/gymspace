@@ -265,9 +265,10 @@ export default function ReceptionistDashboard() {
             <ElClub />
           </TabsContent>
 
-          <TabsContent value="difusion" className="space-y-4">
+          {/* <TabsContent value="difusion" className="space-y-4">
             <EmailBroadcast />
-          </TabsContent>
+          </TabsContent> */}
+          
         </Tabs>
       </div>
 
