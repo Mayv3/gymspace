@@ -273,6 +273,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
                   <SelectValue placeholder="Seleccionar profesor" />
                 </SelectTrigger>
                 <SelectContent>
+                  
                   <SelectItem value="Anyo">Anyo</SelectItem>
                   <SelectItem value="Rami">Rami</SelectItem>
                   <SelectItem value="Anto">Anto</SelectItem>
