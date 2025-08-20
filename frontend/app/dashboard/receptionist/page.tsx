@@ -205,7 +205,7 @@ export default function ReceptionistDashboard() {
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
             <TabsTrigger value="egresos">Egresos</TabsTrigger>
             <TabsTrigger value="elclub">El Club</TabsTrigger>
-            <TabsTrigger value="difusion">Difusion</TabsTrigger>
+            {/* <TabsTrigger value="difusion">Difusion</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="members" className="space-y-4">
@@ -268,7 +268,7 @@ export default function ReceptionistDashboard() {
           {/* <TabsContent value="difusion" className="space-y-4">
             <EmailBroadcast />
           </TabsContent> */}
-          
+
         </Tabs>
       </div>
 
