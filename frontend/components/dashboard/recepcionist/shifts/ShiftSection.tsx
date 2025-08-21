@@ -273,67 +273,62 @@ export default function ShiftsSection() {
                                 </TableHeader>
                                 <TableBody>
                                     {paginatedShifts.length ? (
-                                        paginatedShifts.map((turno, i) => (
-                                            <motion.tr
-                                                key={i}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: i * 0.05 }}
-                                                className="hover:bg-accent"
-                                            >
-                                                <TableCell className="text-center">
-                                                    {turno.Tipo}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    {turno.Fecha_turno}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    {turno.Profesional}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    {turno.Hora}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    {turno.Responsable}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    <div className="flex justify-center gap-2">
-                                                        <Button
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            onClick={() => {
-                                                                setEditingTurno(turno)
-                                                                setEditForm({
-                                                                    Tipo: turno.Tipo,
-                                                                    Fecha_turno: parse(
-                                                                        turno.Fecha_turno,
-                                                                        "dd/MM/yyyy",
-                                                                        new Date(),
-                                                                        { locale: es }
-                                                                    ),
-                                                                    Profesional: turno.Profesional,
-                                                                    Responsable: turno.Responsable,
-                                                                    Hora: turno.Hora,
-                                                                })
-                                                                setShowEditDialog(true)
-                                                            }}
-                                                        >
-                                                            <Edit className="h-4 w-4 text-primary" />
-                                                        </Button>
-                                                        <Button
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            onClick={() => {
-                                                                setSelectedTurno(turno)
-                                                                setShowDeleteDialog(true)
-                                                            }}
-                                                        >
-                                                            <Trash className="h-4 w-4 text-destructive" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                            </motion.tr>
-                                        ))
+                                        paginatedShifts.map((turno, i) => {
+                                            const esHoy = dayjs(turno.Fecha_turno, "D/M/YYYY").isSame(dayjs(), "day")
+
+                                            return (
+                                                <motion.tr
+                                                    key={i}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: i * 0.05 }}
+                                                    className={`hover:bg-accent ${esHoy ? "bg-yellow-100 dark:bg-yellow-900/40" : ""
+                                                        }`}
+                                                >
+                                                    <TableCell className="text-center">{turno.Tipo}</TableCell>
+                                                    <TableCell className="text-center">{turno.Fecha_turno}</TableCell>
+                                                    <TableCell className="text-center">{turno.Profesional}</TableCell>
+                                                    <TableCell className="text-center">{turno.Hora}</TableCell>
+                                                    <TableCell className="text-center">{turno.Responsable}</TableCell>
+                                                    <TableCell className="text-center">
+                                                        <div className="flex justify-center gap-2">
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                onClick={() => {
+                                                                    setEditingTurno(turno)
+                                                                    setEditForm({
+                                                                        Tipo: turno.Tipo,
+                                                                        Fecha_turno: parse(
+                                                                            turno.Fecha_turno,
+                                                                            "dd/MM/yyyy",
+                                                                            new Date(),
+                                                                            { locale: es }
+                                                                        ),
+                                                                        Profesional: turno.Profesional,
+                                                                        Responsable: turno.Responsable,
+                                                                        Hora: turno.Hora,
+                                                                    })
+                                                                    setShowEditDialog(true)
+                                                                }}
+                                                            >
+                                                                <Edit className="h-4 w-4 text-primary" />
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                onClick={() => {
+                                                                    setSelectedTurno(turno)
+                                                                    setShowDeleteDialog(true)
+                                                                }}
+                                                            >
+                                                                <Trash className="h-4 w-4 text-destructive" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </motion.tr>
+                                            )
+                                        })
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={6} className="text-center py-4">
