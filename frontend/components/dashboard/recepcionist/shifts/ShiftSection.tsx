@@ -59,13 +59,20 @@ export default function ShiftsSection() {
     const [itemsPerPage, setItemsPerPage] = useState(10)
 
     const filteredTurnos = turnos.filter((turno) => {
-        if (selectedType === "todas") return true
-        return turno.Tipo === selectedType
-    })
+        if (selectedType === "todas") return true;
+        return turno.Tipo === selectedType;
+    });
 
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedShifts = filteredTurnos.slice(startIndex, endIndex)
+    const sortedTurnos = [...filteredTurnos].sort((a, b) => {
+        const da = dayjs(a.Fecha_turno, "D/M/YYYY");
+        const db = dayjs(b.Fecha_turno, "D/M/YYYY");
+        return db.valueOf() - da.valueOf();
+    });
+
+    // paginar ya ordenados
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedShifts = sortedTurnos.slice(startIndex, endIndex);
 
     const parseDate = (str: string): Date | null => {
         try {
