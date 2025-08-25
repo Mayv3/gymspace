@@ -29,7 +29,7 @@ export default function AsistenciaPage() {
 
       const id = setTimeout(() => {
         setData(null)
-      }, 300000)
+      }, 3000)
       setTimeoutId(id)
 
       setLoading(false)
