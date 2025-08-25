@@ -111,8 +111,14 @@ export default function AsistenciaPage() {
             <div className='flex justify-center'>
               {renderIcon()}
             </div>
-            <h2 className={`text-3xl font-bold mb-4 ${data.success ? 'text-green-700' : 'text-red-600'}`}>
-              ¡Bienvenido {data.nombre || ''}!
+
+            <h2
+              className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"
+                }`}
+            >
+              {data.success
+                ? `${data.nombre ? `¡Bienvenido ${data.nombre}!` : ""}`
+                : data.message || "Ocurrió un error al registrar la asistencia"}
             </h2>
 
             {data.success && !yaRegistrado && (
