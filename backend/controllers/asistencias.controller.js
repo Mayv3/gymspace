@@ -125,6 +125,7 @@ export const registrarAsistencia = async (req, res) => {
 
     res.status(201).json({
       message: mensaje,
+      nombre: alumno.Nombre,
       plan,
       clasesPagadas: pagadas,
       clasesRealizadas: realizadas,

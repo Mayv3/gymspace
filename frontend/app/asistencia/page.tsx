@@ -29,7 +29,7 @@ export default function AsistenciaPage() {
 
       const id = setTimeout(() => {
         setData(null)
-      }, 3000)
+      }, 300000)
       setTimeoutId(id)
 
       setLoading(false)
@@ -112,7 +112,7 @@ export default function AsistenciaPage() {
               {renderIcon()}
             </div>
             <h2 className={`text-3xl font-bold mb-4 ${data.success ? 'text-green-700' : 'text-red-600'}`}>
-              {data.message}
+              ¡Bienvenido {data.nombre || ''}!
             </h2>
 
             {data.success && !yaRegistrado && (
