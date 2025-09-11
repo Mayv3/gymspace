@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -20,6 +20,8 @@ export default function AsistenciaPage() {
   const [alumnos, setAlumnos] = useState<any[]>([])
   const [asistenciasHoy, setAsistenciasHoy] = useState<any[]>([])
 
+  const dniInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
       .then(res => res.json())
@@ -31,6 +33,17 @@ export default function AsistenciaPage() {
       .then(setAsistenciasHoy)
       .catch(err => console.error('Error cargando asistencias de hoy:', err))
   }, [])
+
+  // cerrar modal con Enter
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (data && e.key === 'Enter') {
+        closeModal()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [data])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -127,7 +140,6 @@ export default function AsistenciaPage() {
         body: JSON.stringify({ dni }),
       })
       setLoading(false)
-      setDni('')
       const nuevasAsistencias = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`
       ).then(res => res.json())
@@ -141,11 +153,17 @@ export default function AsistenciaPage() {
   const showData = (info: any) => {
     setData(info)
     if (timeoutId) clearTimeout(timeoutId)
-    const id = setTimeout(() => setData(null), 4000) // ⏱ 4 segundos
+    const id = setTimeout(() => {
+      setData(null)
+      dniInputRef.current?.focus()
+    }, 4000)
     setTimeoutId(id)
   }
 
-  const closeModal = () => setData(null)
+  const closeModal = () => {
+    setData(null)
+    dniInputRef.current?.focus()
+  }
 
   const yaRegistrado = data?.message?.toLowerCase().includes('ya registró asistencia')
   const clasesRealizadas = data?.clasesRealizadas || 0
@@ -171,11 +189,12 @@ export default function AsistenciaPage() {
 
         <FormEnterToTab onSubmit={handleSubmit} className="space-y-6">
           <input
+            ref={dniInputRef}
             type="number"
             value={dni}
             onChange={e => setDni(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') handleSubmit(e as any) // ✅ un solo Enter manda
+              if (e.key === 'Enter') handleSubmit(e as any)
             }}
             placeholder="Ej: 45082803"
             className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
