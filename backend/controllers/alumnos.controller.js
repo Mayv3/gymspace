@@ -14,7 +14,7 @@ dayjs.extend(isSameOrAfter)
 
 let cachedAlumnos = null;
 let lastFetchTime = 0;
-const CACHE_DURATION_MS = 60 * 1000;
+const CACHE_DURATION_MS = 1000;
 
 export const getAlumnos = async (req, res) => {
   const ahora = Date.now();
