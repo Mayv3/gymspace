@@ -1,14 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { CheckCircle, XCircle, Clock, BadgeCheck, CalendarCheck, Coins } from 'lucide-react'
 import { FormEnterToTab } from '@/components/FormEnterToTab'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 export default function AsistenciaPage() {
   const [dni, setDni] = useState('')
   const [data, setData] = useState<any>(null)
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
+  const [alumnos, setAlumnos] = useState<any[]>([])
+  const [asistenciasHoy, setAsistenciasHoy] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
+      .then(res => res.json())
+      .then(setAlumnos)
+      .catch(err => console.error('Error cargando alumnos:', err))
+
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`)
+      .then(res => res.json())
+      .then(setAsistenciasHoy)
+      .catch(err => console.error('Error cargando asistencias de hoy:', err))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -16,29 +36,75 @@ export default function AsistenciaPage() {
 
     if (timeoutId) clearTimeout(timeoutId)
 
-    try {
-      setLoading(true)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dni })
-      })
+    const alumno = alumnos.find(a => String(a.DNI) === String(dni))
 
-      const result = await res.json()
-      setData({ ...result, success: res.ok })
+    if (!alumno) {
+      setData({ success: false, message: 'Alumno no encontrado' })
+    } else {
+      const yaEsta = asistenciasHoy.some(a => String(a.DNI) === String(dni))
 
-      const id = setTimeout(() => {
-        setData(null)
-      }, 3000)
-      setTimeoutId(id)
+      if (yaEsta) {
+        setData({
+          success: false,
+          nombre: alumno.Nombre,
+          message: `${alumno.Nombre} ya registró asistencia hoy`,
+        })
+      } else {
+        const clasesRealizadas = parseInt(alumno.Clases_realizadas || '0', 10)
+        const clasesPagadas = parseInt(alumno.Clases_pagadas || '1', 10)
+        const gymCoins = parseInt(alumno.GymCoins || '0', 10)
 
-      setLoading(false)
-      setDni('')
+        const nuevasClases = clasesRealizadas + 1
+        const nuevosCoins = gymCoins + 25
 
-    } catch (error) {
-      setLoading(false)
-      console.error('Error al registrar asistencia:', error)
+        const hoy = dayjs().tz("America/Argentina/Buenos_Aires").startOf('day')
+        const vencimiento = dayjs(alumno.Fecha_vencimiento, "DD-MM-YYYY").tz("America/Argentina/Buenos_Aires").endOf('day')
+
+        let mensaje = `¡Bienvenido ${alumno.Nombre}!`
+        let success = true
+
+        if (hoy.isAfter(vencimiento)) {
+          mensaje = `${alumno.Nombre} tu plan venció el ${alumno.Fecha_vencimiento}`
+          success = false
+        } else if (nuevasClases > clasesPagadas) {
+          mensaje = `${alumno.Nombre} alcanzaste el límite de clases de tu plan`
+          success = false
+        }
+
+        setData({
+          success,
+          nombre: alumno.Nombre,
+          plan: alumno.Plan,
+          fechaVencimiento: alumno.Fecha_vencimiento,
+          clasesRealizadas: nuevasClases,
+          clasesPagadas,
+          gymCoins: nuevosCoins,
+          message: mensaje,
+        })
+
+        if (success) {
+          try {
+            setLoading(true)
+            await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ dni }),
+            })
+            setLoading(false)
+            setDni('')
+            const nuevasAsistencias = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`)
+              .then(res => res.json())
+            setAsistenciasHoy(nuevasAsistencias)
+          } catch (error) {
+            setLoading(false)
+            console.error('Error al registrar asistencia:', error)
+          }
+        }
+      }
     }
+
+    const id = setTimeout(() => setData(null), 5000)
+    setTimeoutId(id)
   }
 
   const closeModal = () => setData(null)
@@ -74,24 +140,6 @@ export default function AsistenciaPage() {
             type="number"
             value={dni}
             onChange={(e) => setDni(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                const form = e.currentTarget.form
-                if (!form) return
-
-                const elements = Array.from(form.elements) as HTMLElement[]
-                const index = elements.indexOf(e.currentTarget)
-                const next = elements[index + 1]
-
-                if (next) {
-                  next.focus()
-                  if (next.tagName === "BUTTON" && (next as HTMLButtonElement).type === "submit") {
-                    ; (next as HTMLButtonElement).click()
-                  }
-                }
-              }
-            }}
             placeholder="Ej: 45082803"
             className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
           />
@@ -113,12 +161,9 @@ export default function AsistenciaPage() {
             </div>
 
             <h2
-              className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"
-                }`}
+              className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"}`}
             >
-              {data.success
-                ? `${data.nombre ? `¡Bienvenido ${data.nombre}!` : ""}`
-                : data.message || "Ocurrió un error al registrar la asistencia"}
+              {data.message}
             </h2>
 
             {data.success && !yaRegistrado && (
@@ -154,7 +199,10 @@ export default function AsistenciaPage() {
                       <Coins className="w-7 h-7 text-orange-600" />
                       GymspaceCoins:
                     </strong>
-                    <span className='flex items-center gap-1'><Coins className="w-7 h-7 text-orange-600" />{data.gymCoins}</span>
+                    <span className='flex items-center gap-1'>
+                      <Coins className="w-7 h-7 text-orange-600" />
+                      {data.gymCoins}
+                    </span>
                   </p>
                 </div>
               </>

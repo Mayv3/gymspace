@@ -1,6 +1,11 @@
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
 import dayjs from 'dayjs';
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dotenv.config();
 
 const auth = new google.auth.GoogleAuth({
@@ -473,6 +478,21 @@ export async function getAsistenciasFromSheet() {
   });
 
   return asistencias;
+}
+
+export async function getAllAsistenciasService() {
+  const asistencias = await getAsistenciasFromSheet();
+  return asistencias;
+}
+
+export async function getAsistenciasHoyService() {
+  const asistencias = await getAsistenciasFromSheet();
+
+  const hoyArg = dayjs().tz("America/Argentina/Buenos_Aires").format("D/M/YYYY");
+
+  const asistenciasHoy = asistencias.filter(a => a.Fecha === hoyArg);
+
+  return asistenciasHoy;
 }
 
 // Clases diarias 

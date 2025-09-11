@@ -4,7 +4,9 @@ import {
   appendAsistenciaToSheet,
   updateAlumnoByDNI,
   getClasesElClubFromSheet,
-  getPlanesFromSheet
+  getPlanesFromSheet,
+  getAsistenciasHoyService,
+  getAllAsistenciasService
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween.js'
@@ -139,6 +141,27 @@ export const registrarAsistencia = async (req, res) => {
     res.status(500).json({ message: 'Error al registrar la asistencia' });
   }
 };
+
+export const getAllAsistencias = async (req, res) => {
+  try {
+    const asistencias = await getAllAsistenciasService();
+    res.json(asistencias);
+  } catch (error) {
+    console.error("❌ Error en getAllAsistencias:", error);
+    res.status(500).json({ message: "Error al traer todas las asistencias" });
+  }
+};
+
+export const getAsistenciasHoy = async (req, res) => {
+  try {
+    const asistenciasHoy = await getAsistenciasHoyService();
+    res.json(asistenciasHoy);
+  } catch (error) {
+    console.error("❌ Error en getAsistenciasHoy:", error);
+    res.status(500).json({ message: "Error al traer asistencias de hoy" });
+  }
+};
+
 
 export const getAsistenciasPorDNI = async (req, res) => {
   try {
