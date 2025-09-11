@@ -60,8 +60,11 @@ export default function AsistenciaPage() {
     const nuevosCoins = gymCoins + 25
 
     const hoy = dayjs().tz('America/Argentina/Buenos_Aires').startOf('day')
-    const vencimiento = dayjs(alumno.Fecha_vencimiento, 'DD-MM-YYYY').tz('America/Argentina/Buenos_Aires').endOf('day')
+    const vencimiento = dayjs(alumno.Fecha_vencimiento, 'DD-MM-YYYY')
+      .tz('America/Argentina/Buenos_Aires')
+      .startOf('day')
 
+    // venció antes de hoy
     if (hoy.isAfter(vencimiento, 'day')) {
       setData({
         success: false,
@@ -71,11 +74,12 @@ export default function AsistenciaPage() {
       return
     }
 
+    // vence hoy
     if (hoy.isSame(vencimiento, 'day')) {
       setData({
         success: false,
         nombre: alumno.Nombre,
-        message: `${alumno.Nombre} tu plan venció HOY (${alumno.Fecha_vencimiento})`,
+        message: `${alumno.Nombre} tu plan vence HOY (${alumno.Fecha_vencimiento})`,
       })
       return
     }
@@ -89,8 +93,8 @@ export default function AsistenciaPage() {
       return
     }
 
-    // 👇 Log con antes y después
-    console.log("👉 Cambios de datos:", {
+    // log con antes y después
+    console.log('👉 Cambios de datos:', {
       alumno: alumno.Nombre,
       dni: alumno.DNI,
       clases: {
@@ -125,7 +129,9 @@ export default function AsistenciaPage() {
       })
       setLoading(false)
       setDni('')
-      const nuevasAsistencias = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`).then(res => res.json())
+      const nuevasAsistencias = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`
+      ).then(res => res.json())
       setAsistenciasHoy(nuevasAsistencias)
     } catch (error) {
       setLoading(false)
