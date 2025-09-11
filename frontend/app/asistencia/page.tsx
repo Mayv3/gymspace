@@ -80,6 +80,22 @@ export default function AsistenciaPage() {
       return
     }
 
+    // 👇 Log con antes y después
+    console.log("👉 Cambios de datos:", {
+      alumno: alumno.Nombre,
+      dni: alumno.DNI,
+      clases: {
+        antes: clasesRealizadas,
+        despues: nuevasClases,
+        pagadas: clasesPagadas,
+      },
+      coins: {
+        antes: gymCoins,
+        despues: nuevosCoins,
+      },
+      fechaVencimiento: alumno.Fecha_vencimiento,
+    })
+
     setData({
       success: true,
       nombre: alumno.Nombre,
