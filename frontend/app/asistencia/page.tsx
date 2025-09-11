@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { CheckCircle, XCircle, Clock, BadgeCheck, CalendarCheck, Coins } from 'lucide-react'
 import { FormEnterToTab } from '@/components/FormEnterToTab'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(customParseFormat)
 
 export default function AsistenciaPage() {
   const [dni, setDni] = useState('')
@@ -64,8 +66,7 @@ export default function AsistenciaPage() {
       .tz('America/Argentina/Buenos_Aires')
       .startOf('day')
 
-    // venció antes de hoy
-    if (hoy.isAfter(vencimiento, 'day')) {
+    if (vencimiento.isBefore(hoy, 'day')) {
       setData({
         success: false,
         nombre: alumno.Nombre,
@@ -74,12 +75,11 @@ export default function AsistenciaPage() {
       return
     }
 
-    // vence hoy
-    if (hoy.isSame(vencimiento, 'day')) {
+    if (vencimiento.isSame(hoy, 'day')) {
       setData({
         success: false,
         nombre: alumno.Nombre,
-        message: `${alumno.Nombre} tu plan vence HOY (${alumno.Fecha_vencimiento})`,
+        message: `${alumno.Nombre} tu plan venció HOY (${alumno.Fecha_vencimiento})`,
       })
       return
     }
