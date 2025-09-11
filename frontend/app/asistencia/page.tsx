@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { CheckCircle, XCircle, Clock, BadgeCheck, CalendarCheck, Coins } from 'lucide-react'
-import { FormEnterToTab } from '@/components/FormEnterToTab'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -20,8 +19,6 @@ export default function AsistenciaPage() {
   const [alumnos, setAlumnos] = useState<any[]>([])
   const [asistenciasHoy, setAsistenciasHoy] = useState<any[]>([])
 
-  const dniInputRef = useRef<HTMLInputElement>(null)
-
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
       .then(res => res.json())
@@ -34,16 +31,13 @@ export default function AsistenciaPage() {
       .catch(err => console.error('Error cargando asistencias de hoy:', err))
   }, [])
 
-  // cerrar modal con Enter
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (data && e.key === 'Enter') {
-        closeModal()
-      }
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setData(null)
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [data])
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,17 +48,21 @@ export default function AsistenciaPage() {
     const alumno = alumnos.find(a => String(a.DNI) === String(dni))
 
     if (!alumno) {
-      showData({ success: false, message: 'Alumno no encontrado' })
+      setData({ success: false, message: 'Alumno no encontrado' })
+      setDni('')
+      autoClose()
       return
     }
 
     const yaEsta = asistenciasHoy.some(a => String(a.DNI) === String(dni))
     if (yaEsta) {
-      showData({
+      setData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} ya registró asistencia hoy`,
       })
+      setDni('')
+      autoClose()
       return
     }
 
@@ -80,48 +78,39 @@ export default function AsistenciaPage() {
       .startOf('day')
 
     if (vencimiento.isBefore(hoy, 'day')) {
-      showData({
+      setData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} tu plan venció el ${alumno.Fecha_vencimiento}`,
       })
+      setDni('')
+      autoClose()
       return
     }
 
     if (vencimiento.isSame(hoy, 'day')) {
-      showData({
+      setData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} tu plan venció HOY (${alumno.Fecha_vencimiento})`,
       })
+      setDni('')
+      autoClose()
       return
     }
 
     if (nuevasClases > clasesPagadas) {
-      showData({
+      setData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} alcanzaste el límite de clases de tu plan`,
       })
+      setDni('')
+      autoClose()
       return
     }
 
-    console.log('👉 Cambios de datos:', {
-      alumno: alumno.Nombre,
-      dni: alumno.DNI,
-      clases: {
-        antes: clasesRealizadas,
-        despues: nuevasClases,
-        pagadas: clasesPagadas,
-      },
-      coins: {
-        antes: gymCoins,
-        despues: nuevosCoins,
-      },
-      fechaVencimiento: alumno.Fecha_vencimiento,
-    })
-
-    showData({
+    setData({
       success: true,
       nombre: alumno.Nombre,
       plan: alumno.Plan,
@@ -140,6 +129,7 @@ export default function AsistenciaPage() {
         body: JSON.stringify({ dni }),
       })
       setLoading(false)
+      setDni('')
       const nuevasAsistencias = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`
       ).then(res => res.json())
@@ -148,22 +138,16 @@ export default function AsistenciaPage() {
       setLoading(false)
       console.error('Error al registrar asistencia:', error)
     }
+
+    autoClose()
   }
 
-  const showData = (info: any) => {
-    setData(info)
-    if (timeoutId) clearTimeout(timeoutId)
-    const id = setTimeout(() => {
-      setData(null)
-      dniInputRef.current?.focus()
-    }, 4000)
+  const autoClose = () => {
+    const id = setTimeout(() => setData(null), 3000)
     setTimeoutId(id)
   }
 
-  const closeModal = () => {
-    setData(null)
-    dniInputRef.current?.focus()
-  }
+  const closeModal = () => setData(null)
 
   const yaRegistrado = data?.message?.toLowerCase().includes('ya registró asistencia')
   const clasesRealizadas = data?.clasesRealizadas || 0
@@ -187,15 +171,11 @@ export default function AsistenciaPage() {
           Ingresá tu DNI para registrar tu asistencia
         </h1>
 
-        <FormEnterToTab onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <input
-            ref={dniInputRef}
             type="number"
             value={dni}
             onChange={e => setDni(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') handleSubmit(e as any)
-            }}
             placeholder="Ej: 45082803"
             className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
           />
@@ -206,7 +186,7 @@ export default function AsistenciaPage() {
           >
             {loading ? 'Registrando...' : 'Registrar asistencia'}
           </button>
-        </FormEnterToTab>
+        </form>
       </div>
 
       {data && (
