@@ -62,11 +62,20 @@ export default function AsistenciaPage() {
     const hoy = dayjs().tz('America/Argentina/Buenos_Aires').startOf('day')
     const vencimiento = dayjs(alumno.Fecha_vencimiento, 'DD-MM-YYYY').tz('America/Argentina/Buenos_Aires').endOf('day')
 
-    if (hoy.isAfter(vencimiento)) {
+    if (hoy.isAfter(vencimiento, 'day')) {
       setData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} tu plan venció el ${alumno.Fecha_vencimiento}`,
+      })
+      return
+    }
+
+    if (hoy.isSame(vencimiento, 'day')) {
+      setData({
+        success: false,
+        nombre: alumno.Nombre,
+        message: `${alumno.Nombre} tu plan venció HOY (${alumno.Fecha_vencimiento})`,
       })
       return
     }
