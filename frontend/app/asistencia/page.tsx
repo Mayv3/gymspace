@@ -40,67 +40,71 @@ export default function AsistenciaPage() {
 
     if (!alumno) {
       setData({ success: false, message: 'Alumno no encontrado' })
-    } else {
-      const yaEsta = asistenciasHoy.some(a => String(a.DNI) === String(dni))
+      return
+    }
 
-      if (yaEsta) {
-        setData({
-          success: false,
-          nombre: alumno.Nombre,
-          message: `${alumno.Nombre} ya registró asistencia hoy`,
-        })
-      } else {
-        const clasesRealizadas = parseInt(alumno.Clases_realizadas || '0', 10)
-        const clasesPagadas = parseInt(alumno.Clases_pagadas || '1', 10)
-        const gymCoins = parseInt(alumno.GymCoins || '0', 10)
+    const yaEsta = asistenciasHoy.some(a => String(a.DNI) === String(dni))
+    if (yaEsta) {
+      setData({
+        success: false,
+        nombre: alumno.Nombre,
+        message: `${alumno.Nombre} ya registró asistencia hoy`,
+      })
+      return
+    }
 
-        const nuevasClases = clasesRealizadas + 1
-        const nuevosCoins = gymCoins + 25
+    const clasesRealizadas = parseInt(alumno.Clases_realizadas || '0', 10)
+    const clasesPagadas = parseInt(alumno.Clases_pagadas || '1', 10)
+    const gymCoins = parseInt(alumno.GymCoins || '0', 10)
+    const nuevasClases = clasesRealizadas + 1
+    const nuevosCoins = gymCoins + 25
 
-        const hoy = dayjs().tz("America/Argentina/Buenos_Aires").startOf('day')
-        const vencimiento = dayjs(alumno.Fecha_vencimiento, "DD-MM-YYYY").tz("America/Argentina/Buenos_Aires").endOf('day')
+    const hoy = dayjs().tz('America/Argentina/Buenos_Aires').startOf('day')
+    const vencimiento = dayjs(alumno.Fecha_vencimiento, 'DD-MM-YYYY').tz('America/Argentina/Buenos_Aires').endOf('day')
 
-        let mensaje = `¡Bienvenido ${alumno.Nombre}!`
-        let success = true
+    if (hoy.isAfter(vencimiento)) {
+      setData({
+        success: false,
+        nombre: alumno.Nombre,
+        message: `${alumno.Nombre} tu plan venció el ${alumno.Fecha_vencimiento}`,
+      })
+      return
+    }
 
-        if (hoy.isAfter(vencimiento)) {
-          mensaje = `${alumno.Nombre} tu plan venció el ${alumno.Fecha_vencimiento}`
-          success = false
-        } else if (nuevasClases > clasesPagadas) {
-          mensaje = `${alumno.Nombre} alcanzaste el límite de clases de tu plan`
-          success = false
-        }
+    if (nuevasClases > clasesPagadas) {
+      setData({
+        success: false,
+        nombre: alumno.Nombre,
+        message: `${alumno.Nombre} alcanzaste el límite de clases de tu plan`,
+      })
+      return
+    }
 
-        setData({
-          success,
-          nombre: alumno.Nombre,
-          plan: alumno.Plan,
-          fechaVencimiento: alumno.Fecha_vencimiento,
-          clasesRealizadas: nuevasClases,
-          clasesPagadas,
-          gymCoins: nuevosCoins,
-          message: mensaje,
-        })
+    setData({
+      success: true,
+      nombre: alumno.Nombre,
+      plan: alumno.Plan,
+      fechaVencimiento: alumno.Fecha_vencimiento,
+      clasesRealizadas: nuevasClases,
+      clasesPagadas,
+      gymCoins: nuevosCoins,
+      message: `¡Bienvenido ${alumno.Nombre}!`,
+    })
 
-        if (success) {
-          try {
-            setLoading(true)
-            await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ dni }),
-            })
-            setLoading(false)
-            setDni('')
-            const nuevasAsistencias = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`)
-              .then(res => res.json())
-            setAsistenciasHoy(nuevasAsistencias)
-          } catch (error) {
-            setLoading(false)
-            console.error('Error al registrar asistencia:', error)
-          }
-        }
-      }
+    try {
+      setLoading(true)
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni }),
+      })
+      setLoading(false)
+      setDni('')
+      const nuevasAsistencias = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/hoy`).then(res => res.json())
+      setAsistenciasHoy(nuevasAsistencias)
+    } catch (error) {
+      setLoading(false)
+      console.error('Error al registrar asistencia:', error)
     }
 
     const id = setTimeout(() => setData(null), 5000)
@@ -125,11 +129,7 @@ export default function AsistenciaPage() {
     <div className="min-h-screen bg-orange-500 flex items-center justify-center px-6 py-10 relative">
       <div className="bg-white p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-2xl">
         <div className="flex flex-col items-center mb-6">
-          <img
-            src="/Gymspace-logo-png.png"
-            alt="Gymspace Logo"
-            className="w-24 md:w-32"
-          />
+          <img src="/Gymspace-logo-png.png" alt="Gymspace Logo" className="w-24 md:w-32" />
         </div>
         <h1 className="text-center text-gray-600 text-lg md:text-2xl mb-8">
           Ingresá tu DNI para registrar tu asistencia
@@ -139,7 +139,7 @@ export default function AsistenciaPage() {
           <input
             type="number"
             value={dni}
-            onChange={(e) => setDni(e.target.value)}
+            onChange={e => setDni(e.target.value)}
             placeholder="Ej: 45082803"
             className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
           />
@@ -148,7 +148,7 @@ export default function AsistenciaPage() {
             disabled={loading}
             className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 text-lg rounded-xl transition"
           >
-            {loading ? "Registrando..." : "Registrar asistencia"}
+            {loading ? 'Registrando...' : 'Registrar asistencia'}
           </button>
         </FormEnterToTab>
       </div>
@@ -156,13 +156,9 @@ export default function AsistenciaPage() {
       {data && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg text-center animate-fade-in-up">
-            <div className='flex justify-center'>
-              {renderIcon()}
-            </div>
+            <div className="flex justify-center">{renderIcon()}</div>
 
-            <h2
-              className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"}`}
-            >
+            <h2 className={`text-3xl font-bold mb-4 ${data.success ? 'text-green-700' : 'text-red-600'}`}>
               {data.message}
             </h2>
 
@@ -199,7 +195,7 @@ export default function AsistenciaPage() {
                       <Coins className="w-7 h-7 text-orange-600" />
                       GymspaceCoins:
                     </strong>
-                    <span className='flex items-center gap-1'>
+                    <span className="flex items-center gap-1">
                       <Coins className="w-7 h-7 text-orange-600" />
                       {data.gymCoins}
                     </span>
