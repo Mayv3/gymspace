@@ -41,13 +41,13 @@ export default function AsistenciaPage() {
     const alumno = alumnos.find(a => String(a.DNI) === String(dni))
 
     if (!alumno) {
-      setData({ success: false, message: 'Alumno no encontrado' })
+      showData({ success: false, message: 'Alumno no encontrado' })
       return
     }
 
     const yaEsta = asistenciasHoy.some(a => String(a.DNI) === String(dni))
     if (yaEsta) {
-      setData({
+      showData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} ya registró asistencia hoy`,
@@ -67,7 +67,7 @@ export default function AsistenciaPage() {
       .startOf('day')
 
     if (vencimiento.isBefore(hoy, 'day')) {
-      setData({
+      showData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} tu plan venció el ${alumno.Fecha_vencimiento}`,
@@ -76,7 +76,7 @@ export default function AsistenciaPage() {
     }
 
     if (vencimiento.isSame(hoy, 'day')) {
-      setData({
+      showData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} tu plan venció HOY (${alumno.Fecha_vencimiento})`,
@@ -85,7 +85,7 @@ export default function AsistenciaPage() {
     }
 
     if (nuevasClases > clasesPagadas) {
-      setData({
+      showData({
         success: false,
         nombre: alumno.Nombre,
         message: `${alumno.Nombre} alcanzaste el límite de clases de tu plan`,
@@ -93,7 +93,6 @@ export default function AsistenciaPage() {
       return
     }
 
-    // log con antes y después
     console.log('👉 Cambios de datos:', {
       alumno: alumno.Nombre,
       dni: alumno.DNI,
@@ -109,7 +108,7 @@ export default function AsistenciaPage() {
       fechaVencimiento: alumno.Fecha_vencimiento,
     })
 
-    setData({
+    showData({
       success: true,
       nombre: alumno.Nombre,
       plan: alumno.Plan,
@@ -137,8 +136,12 @@ export default function AsistenciaPage() {
       setLoading(false)
       console.error('Error al registrar asistencia:', error)
     }
+  }
 
-    const id = setTimeout(() => setData(null), 5000)
+  const showData = (info: any) => {
+    setData(info)
+    if (timeoutId) clearTimeout(timeoutId)
+    const id = setTimeout(() => setData(null), 4000) // ⏱ 4 segundos
     setTimeoutId(id)
   }
 
@@ -171,6 +174,9 @@ export default function AsistenciaPage() {
             type="number"
             value={dni}
             onChange={e => setDni(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleSubmit(e as any) // ✅ un solo Enter manda
+            }}
             placeholder="Ej: 45082803"
             className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
           />
