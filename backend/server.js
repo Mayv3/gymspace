@@ -48,6 +48,7 @@ app.use("/api/puntos", puntosRoutes);
 app.use('/api/emails', emailsRouter)
 
 app.get('/ping', (req, res) => res.sendStatus(200));
+// comentario random
 
 app.post('/api/trigger-recordatorios', async (req, res) => {
   try {
