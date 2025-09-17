@@ -21,9 +21,7 @@ import puntosRoutes from "./routes/puntos.routes.js";
 import { emailsRouter } from './routes/emails.routes.js'
 
 import { getAlumnosFromSheet } from './services/googleSheets.js';
-
 import { enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
-import transporter from './services/recordatorioEmail.js'; 
 
 dotenv.config();
 
@@ -61,21 +59,6 @@ app.post('/api/trigger-recordatorios', async (req, res) => {
   }
 });
 
-app.get('/api/test-email', async (req, res) => {
-  try {
-    await transporter.sendMail({
-      from: `"Gymspace" <${process.env.EMAIL_USER}>`,
-      to: "nicopereyra855@gmail.com",
-      subject: '🧪 Test de correo Gymspace',
-      text: '¡Hola! Este es un email de prueba enviado por Gymspace para verificar SMTP.',
-    });
-    console.log('✅ Email de prueba enviado a', "nicopereyra855@gmail.com");
-    return res.status(200).send('✅ Email de prueba enviado');
-  } catch (err) {
-    console.error('❌ Error al enviar email de prueba:', err);
-    return res.status(500).send('❌ Error: ' + err.message);
-  }
-});
 
 const PORT = process.env.PORT || 3001;
 const server = http.createServer(app);
