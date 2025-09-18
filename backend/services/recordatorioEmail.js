@@ -73,23 +73,19 @@ const buildHTMLAviso = (nombre, fecha) => `
   </div>
 `
 
-const buildHTMLVencido = (nombre, fecha) => `
-  <div style="font-family: Arial, sans-serif; background: #fff4f4; padding: 20px;">
-  <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; border: 1px solid #ff3b3b;">
-    <h2 style="text-align: center; color: #b71c1c;">📛 ¡Tu plan ha vencido!</h2>
-    <p>Hola <strong>${nombre}</strong>,</p>
-    <p>Te informamos que tu plan venció el <strong>${fecha}</strong>.</p>
-    <p style="font-size: 0.9rem; color: #555;">¡Esperamos que vuelvas pronto para seguir entrenando! 💪</p>
-    <hr style="margin: 20px 0;">
-    <p style="font-size: 0.75rem; color: #999; text-align: center;">
-      Este es un recordatorio automático de <strong>Gymspace</strong>.
-    </p>
-    <p style="font-size: 0.7rem; color: #aaa; text-align: center; margin-top: 10px;">
-      Recibís este correo porque estás suscripto a <strong>Gymspace</strong>.  
-      Si creés que lo recibiste por error, podés ignorarlo.
-    </p>
+const buildHTMLVenceHoy = (nombre, fecha) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; border: 1px solid #f4a300;">
+      <h2 style="text-align: center; color: #e65100;">📛 ¡Tu plan vence HOY!</h2>
+      <p>Hola <strong>${nombre}</strong>,</p>
+      <p>Queremos recordarte que tu plan <strong>vence HOY (${fecha})</strong>.</p>
+      <p style="font-size: 0.9rem; color: #555;">¡Renoválo hoy mismo para no perder tu progreso! 💪</p>
+      <hr style="margin: 20px 0;">
+      <p style="font-size: 0.75rem; color: #999; text-align: center;">
+        Este es un recordatorio automático de <strong>Gymspace</strong>.
+      </p>
+    </div>
   </div>
-</div>
 `
 
 const enviarEmail = async (alumno) => {
@@ -101,14 +97,6 @@ const enviarEmail = async (alumno) => {
   })
 }
 
-const enviarEmailVencido = async (alumno) => {
-  await sendBrevoEmail({
-    to: alumno.Email,
-    subject: '📛 Tu plan ha vencido - Gymspace',
-    text: `Hola ${alumno.Nombre}, tu plan venció el ${alumno.Fecha_vencimiento}. ¡Esperamos que lo renueves pronto! 💪`,
-    html: buildHTMLVencido(alumno.Nombre, alumno.Fecha_vencimiento),
-  })
-}
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -141,12 +129,12 @@ export const enviarRecordatoriosPorLotes = async (
       `   Hoy: ${hoy.format('DD/MM/YYYY')} | Vence: ${vencimiento.format('DD/MM/YYYY')} | Diferencia: ${diferencia} días`
     )
 
-    if (diferencia === 4) alumnosPorVencer.push(alumno)
-    else if (diferencia === 0) alumnosVencenHoy.push(alumno)
+    if (diferencia === 4) alumnosPorVencer.push(alumno)   // aviso anticipado
+    else if (diferencia === 0) alumnosVencenHoy.push(alumno) // vence hoy
   }
 
   console.log(`📦 Alumnos que vencen en 4 días: ${alumnosPorVencer.length}`)
-  console.log(`📛 Alumnos que vencen hoy: ${alumnosVencenHoy.length}`)
+  console.log(`📛 Alumnos que vencen HOY: ${alumnosVencenHoy.length}`)
 
   for (let i = 0; i < alumnosPorVencer.length; i += loteSize) {
     const lote = alumnosPorVencer.slice(i, i + loteSize)
@@ -164,12 +152,18 @@ export const enviarRecordatoriosPorLotes = async (
   }
 
   for (const alumno of alumnosVencenHoy) {
-    await enviarEmailVencido(alumno)
+    await sendBrevoEmail({
+      to: alumno.Email,
+      subject: '📛 Tu plan vence HOY - Gymspace',
+      text: `Hola ${alumno.Nombre}, tu plan vence HOY (${alumno.Fecha_vencimiento}). ¡Renoválo para seguir entrenando! 💪`,
+      html: buildHTMLVenceHoy(alumno.Nombre, alumno.Fecha_vencimiento),
+    })
     await delay(1000)
   }
 
   console.log('✅ Todos los correos de recordatorio fueron enviados.')
 }
+
 
 export const probarRecordatoriosEmail = async () => {
   console.log('🧪 Ejecutando prueba manual de recordatorio por email...')
