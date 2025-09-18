@@ -24,7 +24,9 @@ const norm = (s = '') =>
     .trim()
 
 async function sendBrevoEmail({ to, subject, text, html }) {
-  if (to === '123@gmail.com') {
+  const ignoredEmails = ['123@gmail.com', '7777777@gmail.com']
+
+  if (ignoredEmails.includes(to)) {
     console.log(`⏩ Saltando envío a ${to} (email ignorado)`)
     return
   }

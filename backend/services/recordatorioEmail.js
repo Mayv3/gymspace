@@ -75,17 +75,21 @@ const buildHTMLAviso = (nombre, fecha) => `
 
 const buildHTMLVencido = (nombre, fecha) => `
   <div style="font-family: Arial, sans-serif; background: #fff4f4; padding: 20px;">
-    <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; border: 1px solid #ff3b3b;">
-      <h2 style="text-align: center; color: #b71c1c;">📛 ¡Tu plan ha vencido!</h2>
-      <p>Hola <strong>${nombre}</strong>,</p>
-      <p>Te informamos que tu plan venció el <strong>${fecha}</strong>.</p>
-      <p style="font-size: 0.9rem; color: #555;">¡Esperamos que vuelvas pronto para seguir entrenando! 💪</p>
-      <hr style="margin: 20px 0;">
-      <p style="font-size: 0.75rem; color: #999; text-align: center;">
-        Este es un recordatorio automático de <strong>Gymspace</strong>.
-      </p>
-    </div>
+  <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; border: 1px solid #ff3b3b;">
+    <h2 style="text-align: center; color: #b71c1c;">📛 ¡Tu plan ha vencido!</h2>
+    <p>Hola <strong>${nombre}</strong>,</p>
+    <p>Te informamos que tu plan venció el <strong>${fecha}</strong>.</p>
+    <p style="font-size: 0.9rem; color: #555;">¡Esperamos que vuelvas pronto para seguir entrenando! 💪</p>
+    <hr style="margin: 20px 0;">
+    <p style="font-size: 0.75rem; color: #999; text-align: center;">
+      Este es un recordatorio automático de <strong>Gymspace</strong>.
+    </p>
+    <p style="font-size: 0.7rem; color: #aaa; text-align: center; margin-top: 10px;">
+      Recibís este correo porque estás suscripto a <strong>Gymspace</strong>.  
+      Si creés que lo recibiste por error, podés ignorarlo.
+    </p>
   </div>
+</div>
 `
 
 const enviarEmail = async (alumno) => {
