@@ -121,7 +121,7 @@ export const enviarRecordatoriosPorLotes = async (
     if (!alumno.Email || !alumno.Fecha_vencimiento) continue
 
     const fechaStr = String(alumno.Fecha_vencimiento).trim()
-    const vencimiento = dayjs(fechaStr, ['D/M/YYYY'], true)
+    const vencimiento = dayjs(fechaStr, ['D/M/YYYY', 'DD/MM/YYYY'], true)
       .tz('America/Argentina/Buenos_Aires')
       .startOf('day')
 
@@ -172,7 +172,6 @@ export const probarRecordatoriosEmail = async () => {
   const alumnos = await getAlumnosFromSheet()
   await enviarRecordatoriosPorLotes(alumnos)
 }
-
 
 export const enviarPruebaBrevo = async (to, subject, fecha) => {
   const html = `
