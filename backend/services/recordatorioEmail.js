@@ -57,16 +57,20 @@ async function sendBrevoEmail({ to, subject, text, html }) {
   }
 }
 
+
 const buildHTMLAviso = (nombre, fecha) => `
-  <div style="font-family: Arial, sans-serif; background: #f7f7f7; padding: 20px;">
-    <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-      <h2 style="text-align: center; color: #222;">📢 ¡Tu plan vence pronto!</h2>
+  <div style="font-family: Arial, sans-serif; background: #ffffff; padding: 20px;">
+    <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; border: 1px solid #f4a300; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center;">
+      
+      <img src="https://www.gymspace.com.ar/Gymspace-logo-png.png" alt="Gymspace" style="max-width: 120px;" />
+      
+      <h2 style="color: #222;">¡Tu plan vence pronto!</h2>
       <p>Hola <strong>${nombre}</strong>,</p>
       <p>Queremos recordarte que tu plan está por vencer.</p>
       <p><strong>Fecha de vencimiento:</strong> ${fecha}</p>
       <p style="font-size: 0.9rem; color: #555;">¡No pierdas tu progreso! Te esperamos para seguir entrenando. 💪</p>
       <hr style="margin: 20px 0;">
-      <p style="font-size: 0.75rem; color: #999; text-align: center;">
+      <p style="font-size: 0.75rem; color: #999;">
         Este es un recordatorio automático de <strong>Gymspace</strong>.
       </p>
     </div>
@@ -75,18 +79,25 @@ const buildHTMLAviso = (nombre, fecha) => `
 
 const buildHTMLVenceHoy = (nombre, fecha) => `
   <div style="font-family: Arial, sans-serif; padding: 20px;">
-    <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; border: 1px solid #f4a300;">
-      <h2 style="text-align: center; color: #e65100;">📛 ¡Tu plan vence HOY!</h2>
+    <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 10px; padding: 25px; border: 1px solid #f4a300; text-align: center;">
+      
+      <img src="https://www.gymspace.com.ar/Gymspace-logo-png.png" 
+           alt="Gymspace" 
+           style="max-width: 120px;" />
+      
+      <h2 style="color: #e65100;">📛 ¡Tu plan vence HOY! 📛</h2>
       <p>Hola <strong>${nombre}</strong>,</p>
       <p>Queremos recordarte que tu plan <strong>vence HOY (${fecha})</strong>.</p>
       <p style="font-size: 0.9rem; color: #555;">¡Renoválo hoy mismo para no perder tu progreso! 💪</p>
       <hr style="margin: 20px 0;">
-      <p style="font-size: 0.75rem; color: #999; text-align: center;">
+      <p style="font-size: 0.75rem; color: #999;">
         Este es un recordatorio automático de <strong>Gymspace</strong>.
       </p>
     </div>
   </div>
 `
+
+
 
 const enviarEmail = async (alumno) => {
   await sendBrevoEmail({
