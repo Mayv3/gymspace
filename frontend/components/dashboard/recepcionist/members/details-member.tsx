@@ -3,6 +3,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
 } from "@/components/ui/dialog"
 import {
     Table,
@@ -13,6 +14,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import React, { useState } from "react"
 
 interface PuntosModalProps {
@@ -43,53 +45,79 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
         if (open) fetchHistorial()
     }, [open])
 
+    const totalPuntos = historial.reduce(
+        (acc, h) => acc + Number(h.Puntos ?? 0),
+        0
+    )
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="max-w-3xl rounded-2xl shadow-xl">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-bold">
-                        Historial de GymCoins — <span className="text-orange-600">{nombre}</span>
+                        Historial de GymCoins —{" "}
+                        <span className="text-orange-600">{nombre}</span>
                     </DialogTitle>
                 </DialogHeader>
 
                 {loading ? (
                     <p className="text-center py-6 text-muted-foreground">Cargando...</p>
                 ) : historial.length === 0 ? (
-                    <p className="text-center py-6 text-muted-foreground">No hay registros de puntos.</p>
+                    <p className="text-center py-6 text-muted-foreground">
+                        No hay registros de puntos.
+                    </p>
                 ) : (
-                    <div className="overflow-auto max-h-[400px] rounded-md border">
-                        <Table>
-                            <TableHeader className="sticky top-0 bg-muted/60 backdrop-blur-sm">
-                                <TableRow>
-                                    <TableHead className="text-center">Fecha</TableHead>
-                                    <TableHead className="text-left">Motivo</TableHead>
-                                    <TableHead className="text-center">Puntos</TableHead>
-                                    <TableHead className="text-center">Responsable</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {historial.map((h) => (
-                                    <TableRow key={h.ID}>
-                                        <TableCell className="text-center font-medium">
-                                            {h.Fecha}
-                                        </TableCell>
-                                        <TableCell className="text-left">{h.Motivo}</TableCell>
-                                        <TableCell className="text-center font-semibold">
-                                            <Badge
-                                                variant={Number(h.Puntos) >= 0 ? "success" : "destructive"}
-                                                className="px-2 py-1 rounded-md"
-                                            >
-                                                {h.Puntos}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-center text-sm text-muted-foreground">
-                                            {h.Responsable}
-                                        </TableCell>
+                    <>
+                        <div className="overflow-auto max-h-[400px] rounded-md border">
+                            <Table>
+                                <TableHeader className="sticky top-0 bg-muted/60 backdrop-blur-sm">
+                                    <TableRow>
+                                        <TableHead className="text-center">Fecha</TableHead>
+                                        <TableHead className="text-left">Motivo</TableHead>
+                                        <TableHead className="text-center">Puntos</TableHead>
+                                        <TableHead className="text-center">Responsable</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {historial.map((h) => (
+                                        <TableRow key={h.ID}>
+                                            <TableCell className="text-center font-medium">
+                                                {h.Fecha}
+                                            </TableCell>
+                                            <TableCell className="text-left">{h.Motivo}</TableCell>
+                                            <TableCell className="text-center font-semibold">
+                                                <Badge
+                                                    variant={
+                                                        Number(h.Puntos) >= 0
+                                                            ? "success"
+                                                            : "destructive"
+                                                    }
+                                                    className="px-2 py-1 rounded-md"
+                                                >
+                                                    {h.Puntos}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-center text-sm text-muted-foreground">
+                                                {h.Responsable}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        <DialogFooter className="flex justify-between items-center pt-4">
+                            <div className="text-sm font-medium">
+                                Total de puntos:{" "}
+                                <span className="font-bold text-orange-600">
+                                    {totalPuntos}
+                                </span>
+                            </div>
+                            <Button variant="orange" onClick={onClose}>
+                                Cerrar
+                            </Button>
+                        </DialogFooter>
+                    </>
                 )}
             </DialogContent>
         </Dialog>
