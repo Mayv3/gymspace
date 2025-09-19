@@ -106,17 +106,19 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
                             </Table>
                         </div>
 
-                        <DialogFooter className="items-center pt-4">
-                            <div className="flex flex-row w-full justify-between items-center">
-                                <div className="text-xs text-muted-foreground text-start w-[500px]">
-                                    Si ves una diferencia de -100 puntos en este total es porque pagó antes de la fecha de vencimiento. Los agregados no se registran al pagar le plan.
-                                </div>
-
-                                <div className="text-sm font-medium w-[70px]">
-                                    <p className="font-bold text-orange-600">Total: {totalPuntos}</p>
-                                </div>
+                        <DialogFooter className="flex flex-col md:flex-row justify-between items-center gap-3 pt-4">
+                            <div className="text-xs text-muted-foreground text-center md:text-left flex-1">
+                                Si ves una diferencia de -100 puntos en este total es porque pagó antes de la fecha de vencimiento. 
+                                Los agregados no se registran al pagar el plan.
                             </div>
-                            <Button variant="orange" onClick={onClose}>
+
+                            <div className="text-sm font-medium text-center md:text-right">
+                                <p className="font-bold text-orange-600">
+                                    Total: {totalPuntos}
+                                </p>
+                            </div>
+
+                            <Button variant="orange" onClick={onClose} className="w-full md:w-auto">
                                 Cerrar
                             </Button>
                         </DialogFooter>
