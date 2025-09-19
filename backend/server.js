@@ -51,7 +51,7 @@ app.get('/ping', (req, res) => res.sendStatus(200));
 app.post('/api/trigger-recordatorios', async (req, res) => {
   try {
     const alumnos = await getAlumnosFromSheet();
-    await enviarRecordatoriosPorLotes(alumnos);
+    await enviarRecordatoriosPorLotes(alumnos, 20, 30000, { previewOnly: true })
     return res.status(200).send('Envío ejecutado');
   } catch (err) {
     console.error(err);

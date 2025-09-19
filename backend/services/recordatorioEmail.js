@@ -97,26 +97,17 @@ const buildHTMLVenceHoy = (nombre, fecha) => `
   </div>
 `
 
-
-
-const enviarEmail = async (alumno) => {
-  await sendBrevoEmail({
-    to: alumno.Email,
-    subject: '📢 Vencimiento de tu plan - Gymspace',
-    text: `Hola ${alumno.Nombre}, tu plan vence el ${alumno.Fecha_vencimiento}. ¡Renoválo para seguir entrenando! 💪`,
-    html: buildHTMLAviso(alumno.Nombre, alumno.Fecha_vencimiento),
-  })
-}
-
-
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const enviarRecordatoriosPorLotes = async (
   alumnos,
   loteSize = 10,
-  delayEntreLotes = 30000
+  delayEntreLotes = 30000,
+  { previewOnly = false } = {}
 ) => {
-  const hoy = dayjs().tz('America/Argentina/Buenos_Aires').startOf('day')
+  const ZONE = 'America/Argentina/Cordoba'
+  const hoy = dayjs.tz(dayjs(), ZONE).startOf('day')
+
   const alumnosPorVencer = []
   const alumnosVencenHoy = []
 
@@ -124,35 +115,65 @@ export const enviarRecordatoriosPorLotes = async (
     if (!alumno.Email || !alumno.Fecha_vencimiento) continue
 
     const fechaStr = String(alumno.Fecha_vencimiento).trim()
-    const vencimiento = dayjs(fechaStr, ['D/M/YYYY', 'DD/MM/YYYY'], true)
-      .tz('America/Argentina/Buenos_Aires')
-      .startOf('day')
+    const parseFormats = ['D/M/YYYY', 'DD/M/YYYY', 'D/MM/YYYY', 'DD/MM/YYYY']
 
-    if (!vencimiento.isValid()) {
+    const base = dayjs(fechaStr, parseFormats, true)
+    if (!base.isValid()) {
       console.log(`⚠️ Fecha inválida para ${alumno.Nombre}: "${alumno.Fecha_vencimiento}"`)
       continue
     }
 
+    const vencimiento = base.tz(ZONE, true).startOf('day')
+    const fechaFmt = vencimiento.format('DD/MM/YYYY')
     const diferencia = vencimiento.diff(hoy, 'day')
 
-    console.log(
-      `📆 Alumno: ${alumno.Nombre} (${alumno.Email})\n` +
-      `   Hoy: ${hoy.format('DD/MM/YYYY')} | Vence: ${vencimiento.format('DD/MM/YYYY')} | Diferencia: ${diferencia} días`
-    )
-
-    if (diferencia === 4) alumnosPorVencer.push(alumno)   // aviso anticipado
-    else if (diferencia === 0) alumnosVencenHoy.push(alumno) // vence hoy
+    if (diferencia === 4) alumnosPorVencer.push({ alumno, vencimiento, fechaFmt, diferencia })
+    else if (diferencia === 0) alumnosVencenHoy.push({ alumno, vencimiento, fechaFmt, diferencia })
   }
 
   console.log(`📦 Alumnos que vencen en 4 días: ${alumnosPorVencer.length}`)
   console.log(`📛 Alumnos que vencen HOY: ${alumnosVencenHoy.length}`)
 
+  // ---- MODO PREVIEW: solo mostrar en consola y salir ----
+  if (previewOnly) {
+    const rowsAviso = alumnosPorVencer.map(({ alumno, fechaFmt, diferencia }) => ({
+      Nombre: alumno.Nombre,
+      Email: alumno.Email,
+      'Vence': fechaFmt,
+      'Días': diferencia,
+    }))
+    const rowsHoy = alumnosVencenHoy.map(({ alumno, fechaFmt, diferencia }) => ({
+      Nombre: alumno.Nombre,
+      Email: alumno.Email,
+      'Vence': fechaFmt,
+      'Días': diferencia,
+    }))
+
+    if (rowsAviso.length) {
+      console.log('\n=== VENCEN EN 4 DÍAS ===')
+      console.table(rowsAviso)
+    }
+    if (rowsHoy.length) {
+      console.log('\n=== VENCEN HOY ===')
+      console.table(rowsHoy)
+    }
+    console.log('\n🔍 Preview only: no se envió ningún email.')
+    return
+  }
+
+  // Envío real (si previewOnly = false)
   for (let i = 0; i < alumnosPorVencer.length; i += loteSize) {
     const lote = alumnosPorVencer.slice(i, i + loteSize)
     console.log(`🚚 Enviando lote ${i / loteSize + 1} de aviso (${lote.length} alumnos)`)
 
-    for (const alumno of lote) {
-      await enviarEmail(alumno)
+    for (const item of lote) {
+      const { alumno, fechaFmt } = item
+      await sendBrevoEmail({
+        to: alumno.Email,
+        subject: '📢 Vencimiento de tu plan - Gymspace',
+        text: `Hola ${alumno.Nombre}, tu plan vence el ${fechaFmt}. ¡Renoválo para seguir entrenando! 💪`,
+        html: buildHTMLAviso(alumno.Nombre, fechaFmt),
+      })
       await delay(1000)
     }
 
@@ -162,12 +183,13 @@ export const enviarRecordatoriosPorLotes = async (
     }
   }
 
-  for (const alumno of alumnosVencenHoy) {
+  for (const item of alumnosVencenHoy) {
+    const { alumno, fechaFmt } = item
     await sendBrevoEmail({
       to: alumno.Email,
       subject: '📛 Tu plan vence HOY - Gymspace',
-      text: `Hola ${alumno.Nombre}, tu plan vence HOY (${alumno.Fecha_vencimiento}). ¡Renoválo para seguir entrenando! 💪`,
-      html: buildHTMLVenceHoy(alumno.Nombre, alumno.Fecha_vencimiento),
+      text: `Hola ${alumno.Nombre}, tu plan vence HOY (${fechaFmt}). ¡Renoválo para seguir entrenando! 💪`,
+      html: buildHTMLVenceHoy(alumno.Nombre, fechaFmt),
     })
     await delay(1000)
   }
@@ -179,7 +201,7 @@ export const enviarRecordatoriosPorLotes = async (
 export const probarRecordatoriosEmail = async () => {
   console.log('🧪 Ejecutando prueba manual de recordatorio por email...')
   const alumnos = await getAlumnosFromSheet()
-  await enviarRecordatoriosPorLotes(alumnos)
+  await enviarRecordatoriosPorLotes(alumnos, 20, 30000, { previewOnly: true })
 }
 
 export const enviarPruebaBrevo = async (to, subject, fecha) => {
@@ -222,3 +244,4 @@ export const enviarPruebaBrevo = async (to, subject, fecha) => {
       console.error('❌ Error al enviar prueba:', err.message)
     })
 }
+
