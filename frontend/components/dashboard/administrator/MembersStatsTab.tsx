@@ -197,7 +197,7 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
         <p className="mb-2 text-sm text-muted-foreground">
           Total de alumnos: {total} | Filtrados: {filteredAlumnos.length}
         </p>
-        <div className="overflow-auto hidden md:block overflow-auto">
+        <div className="overflow-auto hidden md:block">
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
@@ -278,7 +278,6 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
                 <h3 className="font-semibold text-base">{a.Nombre}</h3>
               </div>
 
-              {/* Cuerpo con fondo gris claro */}
               <div className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div>
                   <p className="font-bold text-gray-600">DNI</p>
