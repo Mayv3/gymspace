@@ -21,9 +21,15 @@ if (!BREVO_API_KEY) {
   console.log('🔑 BREVO_API_KEY =', BREVO_API_KEY.slice(0, 6) + '...')
 }
 
+const SKIP_EMAILS = new Set(
+  ['123@gmail.com', '7777777@gmail.com'].map(e => e.toLowerCase())
+)
+
 async function sendBrevoEmail({ to, subject, text, html }) {
-  if (to === '123@gmail.com') {
-    console.log(`⏩ Saltando envío a ${to} (email de prueba ignorado)`)
+  const toClean = String(to || '').trim().toLowerCase()
+
+  if (SKIP_EMAILS.has(toClean)) {
+    console.log(`⏩ Saltando envío a ${toClean} (email de prueba ignorado)`)
     return
   }
 
@@ -196,7 +202,6 @@ export const enviarRecordatoriosPorLotes = async (
 
   console.log('✅ Todos los correos de recordatorio fueron enviados.')
 }
-
 
 export const probarRecordatoriosEmail = async () => {
   console.log('🧪 Ejecutando prueba manual de recordatorio por email...')
