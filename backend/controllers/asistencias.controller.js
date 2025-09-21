@@ -183,7 +183,7 @@ export const verificarAlumno = async (req, res) => {
     }
 
     const esIlimitado = PLANES_ILIMITADOS.includes(alumno.Plan);
-    if (!esIlimitado && realizadas > pagadas) {
+    if (!esIlimitado && realizadas + 1 > pagadas) {
       const elapsed = Date.now() - start;
       console.log(`⚠️ Clases agotadas:`, data, `⏱️ ${elapsed}ms`);
       return res.status(409).json({
