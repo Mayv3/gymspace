@@ -168,8 +168,8 @@ export const verificarAlumno = async (req, res) => {
       dni: alumno.DNI,
       plan: alumno.Plan,
       clasesPagadas: pagadas,
-      clasesRealizadas: realizadas,
-      gymCoins,
+      clasesRealizadas: realizadas + 1,
+      gymCoins: gymCoins + 25,
       fechaVencimiento: vencimiento.format("DD/MM/YYYY"),
     };
 
