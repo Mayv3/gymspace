@@ -18,7 +18,8 @@ export default function AsistenciaPage() {
 
     try {
       setLoading(true)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias`, {
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/verificar-alumno`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dni })
@@ -26,6 +27,14 @@ export default function AsistenciaPage() {
 
       const result = await res.json()
       setData({ ...result, success: res.ok })
+
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni })
+      }).then(r => r.json())
+        .then(r => console.log("📌 Registro completado:", r))
+        .catch(err => console.error("❌ Error registrando asistencia:", err))
 
       const id = setTimeout(() => {
         setData(null)
@@ -37,7 +46,7 @@ export default function AsistenciaPage() {
 
     } catch (error) {
       setLoading(false)
-      console.error('Error al registrar asistencia:', error)
+      console.error('Error al verificar alumno:', error)
     }
   }
 
@@ -74,24 +83,6 @@ export default function AsistenciaPage() {
             type="number"
             value={dni}
             onChange={(e) => setDni(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                const form = e.currentTarget.form
-                if (!form) return
-
-                const elements = Array.from(form.elements) as HTMLElement[]
-                const index = elements.indexOf(e.currentTarget)
-                const next = elements[index + 1]
-
-                if (next) {
-                  next.focus()
-                  if (next.tagName === "BUTTON" && (next as HTMLButtonElement).type === "submit") {
-                    ; (next as HTMLButtonElement).click()
-                  }
-                }
-              }
-            }}
             placeholder="Ej: 45082803"
             className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
           />
@@ -100,7 +91,7 @@ export default function AsistenciaPage() {
             disabled={loading}
             className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 text-lg rounded-xl transition"
           >
-            {loading ? "Registrando..." : "Registrar asistencia"}
+            {loading ? "Buscando..." : "Registrar asistencia"}
           </button>
         </FormEnterToTab>
       </div>
@@ -113,12 +104,11 @@ export default function AsistenciaPage() {
             </div>
 
             <h2
-              className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"
-                }`}
+              className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"}`}
             >
               {data.success
                 ? `${data.nombre ? `¡Bienvenido ${data.nombre}!` : ""}`
-                : data.message || "Ocurrió un error al registrar la asistencia"}
+                : data.message || "Ocurrió un error"}
             </h2>
 
             {data.success && !yaRegistrado && (

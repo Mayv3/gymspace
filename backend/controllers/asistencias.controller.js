@@ -140,6 +140,86 @@ export const registrarAsistencia = async (req, res) => {
   }
 };
 
+export const verificarAlumno = async (req, res) => {
+  const start = Date.now();
+  try {
+    const { dni } = req.body;
+    if (!dni) return res.status(400).json({ message: "DNI es requerido" });
+
+    const alumnos = await getAlumnosFromSheet();
+    const alumno = alumnos.find((a) => a.DNI === dni);
+
+    if (!alumno) return res.status(404).json({ message: "Alumno no encontrado" });
+
+    const vencimiento = dayjs(alumno["Fecha_vencimiento"], [
+      "D/M/YYYY",
+      "DD/MM/YYYY",
+      "YYYY-MM-DD",
+    ]);
+
+    const hoy = dayjs();
+    const hoyStr = dayjs().tz("America/Argentina/Buenos_Aires").format("DD-MM-YYYY");
+    const pagadas = parseInt(alumno["Clases_pagadas"] || "0", 10);
+    const realizadas = parseInt(alumno["Clases_realizadas"] || "0", 10);
+    const gymCoins = parseInt(alumno["GymCoins"] || "0", 10);
+
+    const data = {
+      nombre: alumno.Nombre,
+      dni: alumno.DNI,
+      plan: alumno.Plan,
+      clasesPagadas: pagadas,
+      clasesRealizadas: realizadas,
+      gymCoins,
+      fechaVencimiento: vencimiento.format("DD/MM/YYYY"),
+    };
+
+    if (hoy.isSame(vencimiento, "day") || hoy.isAfter(vencimiento, "day")) {
+      const elapsed = Date.now() - start;
+      console.log(`❌ Plan vencido:`, data, `⏱️ ${elapsed}ms`);
+      return res.status(403).json({
+        message: `El plan de ${alumno.Nombre} venció el ${vencimiento.format("DD/MM/YYYY")}`,
+        ...data,
+      });
+    }
+
+    const asistencias = await getAsistenciasFromSheet();
+    const asistenciasFormateadas = asistencias.map(a => {
+      const fecha = dayjs(a.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
+      return { ...a, Fecha: fecha.format("DD-MM-YYYY") };
+    });
+    const yaAsistioHoy = asistenciasFormateadas.some(a => a.DNI === dni && a.Fecha === hoyStr);
+    if (yaAsistioHoy) {
+      const elapsed = Date.now() - start;
+      console.log(`⚠️ Ya asistió hoy:`, data, `⏱️ ${elapsed}ms`);
+      return res.status(409).json({
+        message: `El alumno ${alumno.Nombre} ya registró asistencia hoy`,
+        ...data,
+      });
+    }
+
+    const esIlimitado = PLANES_ILIMITADOS.includes(alumno.Plan);
+    if (!esIlimitado && realizadas > pagadas) {
+      const elapsed = Date.now() - start;
+      console.log(`⚠️ Clases agotadas:`, data, `⏱️ ${elapsed}ms`);
+      return res.status(409).json({
+        message: `El alumno ${alumno.Nombre} ya agotó sus clases pagadas`,
+        ...data,
+      });
+    }
+
+    // Activo
+    const elapsed = Date.now() - start;
+    console.log(`✅ Alumno activo:`, data, `⏱️ ${elapsed}ms`);
+    return res.status(200).json({
+      message: "Alumno activo",
+      ...data,
+    });
+  } catch (error) {
+    console.error("Error al verificar alumno:", error);
+    return res.status(500).json({ message: "Error en la verificación" });
+  }
+};
+
 export const getAsistenciasPorDNI = async (req, res) => {
   try {
     const dni = req.params.dni;
