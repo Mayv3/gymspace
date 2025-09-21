@@ -182,21 +182,6 @@ export const verificarAlumno = async (req, res) => {
       });
     }
 
-    const asistencias = await getAsistenciasFromSheet();
-    const asistenciasFormateadas = asistencias.map(a => {
-      const fecha = dayjs(a.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
-      return { ...a, Fecha: fecha.format("DD-MM-YYYY") };
-    });
-    const yaAsistioHoy = asistenciasFormateadas.some(a => a.DNI === dni && a.Fecha === hoyStr);
-    if (yaAsistioHoy) {
-      const elapsed = Date.now() - start;
-      console.log(`⚠️ Ya asistió hoy:`, data, `⏱️ ${elapsed}ms`);
-      return res.status(409).json({
-        message: `El alumno ${alumno.Nombre} ya registró asistencia hoy`,
-        ...data,
-      });
-    }
-
     const esIlimitado = PLANES_ILIMITADOS.includes(alumno.Plan);
     if (!esIlimitado && realizadas > pagadas) {
       const elapsed = Date.now() - start;
@@ -207,7 +192,6 @@ export const verificarAlumno = async (req, res) => {
       });
     }
 
-    // Activo
     const elapsed = Date.now() - start;
     console.log(`✅ Alumno activo:`, data, `⏱️ ${elapsed}ms`);
     return res.status(200).json({
