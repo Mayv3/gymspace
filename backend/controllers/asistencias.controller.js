@@ -157,7 +157,7 @@ export const verificarAlumno = async (req, res) => {
       "YYYY-MM-DD",
     ]);
 
-    const hoy = dayjs();
+    const hoy = dayjs().tz("America/Argentina/Buenos_Aires");
     const hoyStr = dayjs().tz("America/Argentina/Buenos_Aires").format("DD-MM-YYYY");
     const pagadas = parseInt(alumno["Clases_pagadas"] || "0", 10);
     const realizadas = parseInt(alumno["Clases_realizadas"] || "0", 10);
