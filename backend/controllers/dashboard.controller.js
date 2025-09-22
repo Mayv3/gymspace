@@ -60,14 +60,12 @@ export const getDashboardCompleto = async (req, res) => {
       cajasAgrupadas[fecha][turno] = monto;
     }
 
-    // Convertir a array para Recharts
     const cajasDelMes = Object.values(cajasAgrupadas).map(({ fecha, mañana = 0, tarde = 0 }) => ({
       fecha,
       mañana,
       tarde
     }));
 
-    // ---- Alumnos ----
     let activos = 0, vencidos = 0, abandonos = 0;
     const edades = {};
     const planesConteo = {};
@@ -114,7 +112,6 @@ export const getDashboardCompleto = async (req, res) => {
       return { plan, tipo, cantidad };
     });
 
-    // ---- Asistencias por Hora ----
     const fechaBase = fecha ? dayjs(fecha, ['YYYY-MM-DD', 'D/M/YYYY', 'DD/MM/YYYY'], true) : hoy;
 
     const asistenciasPorHora = {};
@@ -131,7 +128,6 @@ export const getDashboardCompleto = async (req, res) => {
       }
     }
 
-    // ---- Promedios por Rango Horario ----
     const desde = fechaBase.subtract(30, 'day');
     const rangos = { manana: 0, tarde: 0, noche: 0 };
 
@@ -151,7 +147,6 @@ export const getDashboardCompleto = async (req, res) => {
       noche: { total: rangos.noche, promedio: +(rangos.noche / 31).toFixed(2) }
     };
 
-    // ---- Facturación Anual (Ingresos - Egresos) ---
     const anioActual = hoy.year();
 
     const meses = Array.from({ length: 12 }, (_, i) => ({
@@ -215,18 +210,15 @@ export const getDashboardCompleto = async (req, res) => {
       }
     }
 
-    // 📌 Calcular TOTALES NETOS
     for (const mes of meses) {
       mes.netoGimnasio = mes.gimnasio - mes.egresosGimnasio;
       mes.netoClase = mes.clase - mes.egresosClase;
     }
 
-    // --- Personalizados por Profesor ---
-    const mesFiltrado = mesPersonalizados ? parseInt(mesPersonalizados, 10) : hoy.month() + 1; // Si no mandan mes, toma el actual
+    const mesFiltrado = mesPersonalizados ? parseInt(mesPersonalizados, 10) : hoy.month() + 1;
 
     const dniPagosMes = new Set();
 
-    // 1. Buscar todos los DNI que pagaron tipo "GIMNASIO" en el mes consultado
     for (const pago of pagos) {
       const fechaPagoStr = pago.Fecha_pago || pago.Fecha_de_Pago || pago["Fecha de Pago"] || "";
       const fechaPago = dayjs(fechaPagoStr, ['D/M/YYYY', 'DD/MM/YYYY'], true);
@@ -238,7 +230,6 @@ export const getDashboardCompleto = async (req, res) => {
       }
     }
 
-    // 2. Buscar alumnos que tienen plan personalizado y profesor asignado
     const personalizadosPorProfesorMap = {};
 
     for (const alumno of alumnos) {

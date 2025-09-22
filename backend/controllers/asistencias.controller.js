@@ -12,12 +12,14 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js"
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import weekOfYear from 'dayjs/plugin/weekOfYear.js'
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isBetween)
 dayjs.extend(weekOfYear)
+dayjs.extend(customParseFormat);
 
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
 
@@ -140,24 +142,32 @@ export const registrarAsistencia = async (req, res) => {
   }
 };
 
+
 export const verificarAlumno = async (req, res) => {
   const start = Date.now();
+  const tz = "America/Argentina/Cordoba";
+
   try {
     const { dni } = req.body;
     if (!dni) return res.status(400).json({ message: "DNI es requerido" });
 
     const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find((a) => a.DNI === dni);
+    const alumno = alumnos.find((a) => String(a.DNI) === String(dni));
 
     if (!alumno) return res.status(404).json({ message: "Alumno no encontrado" });
 
-    const vencimiento = dayjs(alumno["Fecha_vencimiento"], [
-      "D/M/YYYY",
-      "DD/MM/YYYY",
-      "YYYY-MM-DD",
-    ]);
+    const vencimiento = dayjs.tz(
+      alumno["Fecha_vencimiento"],
+      ["D/M/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"],
+      tz
+    );
 
-    const hoy = dayjs().tz("America/Argentina/Buenos_Aires");
+    if (!vencimiento.isValid()) {
+      return res.status(400).json({ message: "Fecha de vencimiento inválida" });
+    }
+
+    const hoy = dayjs().tz(tz);
+
     const pagadas = parseInt(alumno["Clases_pagadas"] || "0", 10);
     const realizadas = parseInt(alumno["Clases_realizadas"] || "0", 10);
     const gymCoins = parseInt(alumno["GymCoins"] || "0", 10);
@@ -172,9 +182,12 @@ export const verificarAlumno = async (req, res) => {
       fechaVencimiento: vencimiento.format("DD/MM/YYYY"),
     };
 
-    if (hoy.isSame(vencimiento, "day") || hoy.isAfter(vencimiento, "day")) {
+    // Regla: vence a las 00:00 del día indicado (el día ya está vencido)
+    const vencio = !hoy.isBefore(vencimiento.startOf("day"));
+
+    if (vencio) {
       const elapsed = Date.now() - start;
-      console.log(`❌ Plan vencido:`, data, `⏱️ ${elapsed}ms`);
+      console.log(`❌ Plan vencido:`, { ...data, ahora: hoy.format() }, `⏱️ ${elapsed}ms`);
       return res.status(403).json({
         message: `El plan de ${alumno.Nombre} venció el ${vencimiento.format("DD/MM/YYYY")}`,
         ...data,
@@ -202,6 +215,7 @@ export const verificarAlumno = async (req, res) => {
     return res.status(500).json({ message: "Error en la verificación" });
   }
 };
+
 
 export const getAsistenciasPorDNI = async (req, res) => {
   try {

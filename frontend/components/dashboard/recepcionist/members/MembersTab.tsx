@@ -98,8 +98,8 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
           <CardDescription className="hidden md:block">Ver y editar información de miembros.</CardDescription>
         </div>
         <div>
-          <div className="flex flex-row gap-2">
-            <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-[50%] justify-center text-center">
+          <div className="flex flex-col md:flex-row gap-2">
+            <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-[100%] md:w-[50%] justify-center text-center">
               <p>Rankings</p>
             </Button>
             <Button variant="orange" onClick={onAddMember}>

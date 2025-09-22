@@ -92,7 +92,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const esLogin = pathname === "/login";
   const esAdmin = pathname === "/dashboard/administrator"
   const esUser = pathname === "/dashboard/member"
-
+  const esAsistencia = pathname === "/asistencia"
   const fetchAlumnos = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
@@ -204,7 +204,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    if (esLogin || esUser) return;
+    if (esLogin || esUser || esAsistencia) return;
     fetchDashboardCompleto();
 
   }, [esLogin, esAdmin])
