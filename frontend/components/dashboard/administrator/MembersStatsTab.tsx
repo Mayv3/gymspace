@@ -86,24 +86,33 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
 
   const totalPages = Math.ceil(filteredAlumnos.length / itemsPerPage)
 
-  function calcularEdad(fecha: string): number {
-    const [dia, mes, año] = fecha.split("/")
-    const fechaNacimiento = new Date(`${año}-${mes}-${dia}`)
-    const hoy = new Date()
-    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear()
-    const mesActual = hoy.getMonth()
-    const mesNacimiento = fechaNacimiento.getMonth()
-    const diaNacimiento = fechaNacimiento.getDate()
+  function calcularEdad(fecha: string | null | undefined): number {
+    if (!fecha) return 0; 
+    const partes = fecha.split("/");
+    if (partes.length !== 3) return 0; 
+
+    const [dia, mes, año] = partes;
+    const fechaNacimiento = new Date(`${año}-${mes}-${dia}`);
+
+    if (isNaN(fechaNacimiento.getTime())) return 0;
+
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+
+    const mesActual = hoy.getMonth() + 1;
+    const mesNacimiento = parseInt(mes, 10);
+    const diaNacimiento = parseInt(dia, 10);
 
     if (
       mesActual < mesNacimiento ||
       (mesActual === mesNacimiento && hoy.getDate() < diaNacimiento)
     ) {
-      edad--
+      edad--;
     }
 
-    return edad
+    return edad;
   }
+
 
   const paginatedAlumnos = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage

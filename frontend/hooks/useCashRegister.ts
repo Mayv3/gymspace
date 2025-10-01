@@ -102,6 +102,7 @@ export function useCashRegister({
         .reduce((s, p) => s + Number(p.Monto || 0), 0)
 
       const body = {
+        cerrar: true,
         "Hora Cierre": horaCierre,
         "Total Efectivo": String(totalEfectivo),
         "Total Tarjeta": String(totalTarjeta),

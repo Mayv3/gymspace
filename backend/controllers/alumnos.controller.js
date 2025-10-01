@@ -120,6 +120,10 @@ export const getAlumnoByDNI = async (req, res) => {
   }
 };
 
+
+// estadisticas
+
+
 export const getEstadisticasAlumnos = async (req, res) => {
   try {
     const alumnos = await getAlumnosFromSheet();

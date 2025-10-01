@@ -66,25 +66,63 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
 
   const handleSave = async () => {
     setIsSubmitting(true)
-    const payload = { ...editedMember }
-    if (payload.Fecha_nacimiento?.includes("/")) {
-      const [day, month, year] = payload.Fecha_nacimiento.split("/")
-      payload.Fecha_nacimiento = `${day}/${month}/${year}`
+
+    const payload = {
+      dni: editedMember.DNI,
+      nombre: editedMember.Nombre,
+      email: editedMember.Email,
+      telefono: editedMember.Telefono,
+      sexo: editedMember.Sexo,
+      fecha_nacimiento: editedMember.Fecha_nacimiento?.includes("/")
+        ? editedMember.Fecha_nacimiento.split("/").reverse().join("-")
+        : editedMember.Fecha_nacimiento,
+      plan: editedMember.Plan,
+      clases_pagadas: Number(editedMember.Clases_pagadas || 0),
+      clases_realizadas: Number(editedMember.Clases_realizadas || 0),
+      fecha_inicio: editedMember.Fecha_inicio?.includes("/")
+        ? editedMember.Fecha_inicio.split("/").reverse().join("-")
+        : editedMember.Fecha_inicio,
+      fecha_vencimiento: editedMember.Fecha_vencimiento?.includes("/")
+        ? editedMember.Fecha_vencimiento.split("/").reverse().join("-")
+        : editedMember.Fecha_vencimiento,
+      profesor_asignado: editedMember.Profesor_asignado,
+      gymcoins: Number(editedMember.GymCoins || 0),
     }
+
     try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${payload.DNI}`,
+      const res = await axios.put(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${payload.dni}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       )
-      onSave(payload)
+
+      const updatedForUI = {
+        DNI: payload.dni,
+        Nombre: payload.nombre,
+        Email: payload.email,
+        Telefono: payload.telefono,
+        Sexo: payload.sexo,
+        Fecha_nacimiento: editedMember.Fecha_nacimiento,
+        Plan: payload.plan,
+        Clases_pagadas: payload.clases_pagadas,
+        Clases_realizadas: payload.clases_realizadas,
+        Fecha_inicio: editedMember.Fecha_inicio,
+        Fecha_vencimiento: editedMember.Fecha_vencimiento,
+        Profesor_asignado: payload.profesor_asignado,
+        GymCoins: payload.gymcoins,
+      }
+
+      onSave(updatedForUI)
       onOpenChange(false)
       notify.success("¡Alumno editado con éxito!")
     } catch (error) {
       console.error("Error actualizando el miembro", error)
+      notify.error("Hubo un problema al guardar los cambios")
     }
     setIsSubmitting(false)
   }
+
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

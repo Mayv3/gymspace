@@ -1,5 +1,4 @@
 import {
-  appendCajaToSheet,
   updateCajaByID,
   deleteCajaByID,
   getCajasFromSheet,
@@ -10,6 +9,7 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
+import supabase from '../db/supabase.js';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -22,61 +22,75 @@ export const crearCaja = async (req, res) => {
     const { turno, saldoInicial, responsable } = req.body;
 
     if (!turno || !responsable) {
-      return res.status(400).json({ message: 'Campos requeridos: turno, responsable' });
+      return res.status(400).json({ message: "Campos requeridos: turno, responsable" });
     }
 
     const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format("YYYY-MM-DD");
-    const cajas = await getCajasFromSheet();
 
-    const yaExiste = cajas.find(c => {
-      const fechaCaja = dayjs(c.Fecha, "D/M/YYYY").format("YYYY-MM-DD");
-      return fechaCaja === hoy && c.Turno.toLowerCase().trim() === turno.toLowerCase().trim();
-    });
-    if (yaExiste) {
+    const { data: cajasExistentes, error: cajasErr } = await supabase
+      .from("caja")
+      .select("*")
+      .eq("fecha", hoy)
+      .eq("turno", turno);
+
+    if (cajasErr) throw cajasErr;
+    if (cajasExistentes.length > 0) {
       return res.status(409).json({
-        message: `Ya existe una caja registrada para el turno "${turno}" hoy`
+        message: `Ya existe una caja registrada para el turno "${turno}" hoy`,
       });
     }
 
-    let saldoInicialFinal = saldoInicial || '';
+    let saldoInicialFinal = Number(saldoInicial || 0);
 
-    if (turno.toLowerCase() === 'tarde' && !saldoInicial) {
-      const cajaManiana = cajas.find(c => {
-        const fechaCaja = dayjs(c.Fecha, "D/M/YYYY").format("YYYY-MM-DD");
-        return fechaCaja === hoy && c.Turno.toLowerCase().trim() === 'mañana';
-      });
-      saldoInicialFinal = cajaManiana?.['Total Final'] || '0';
+    if (turno.toLowerCase() === "tarde") {
+      const { data: cajaManiana, error: manianaErr } = await supabase
+        .from("caja")
+        .select("total_final")
+        .eq("fecha", hoy)
+        .eq("turno", "mañana")
+        .single();
+
+      if (manianaErr && manianaErr.code !== "PGRST116") throw manianaErr;
+      if (cajaManiana) {
+        saldoInicialFinal += Number(cajaManiana.total_final || 0);
+      }
     }
 
-    const ahoraAR = new Date().toLocaleTimeString('es-AR', {
-      timeZone: 'America/Argentina/Buenos_Aires',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+    const ahoraAR = new Date().toLocaleTimeString("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
-    
-    const nuevaCaja = {
-      Fecha: hoy,
-      Turno: turno,
-      'Hora Apertura': ahoraAR,
-      'Saldo Inicial': saldoInicialFinal,
-      'Total Efectivo': '',
-      'Total Tarjeta': '',
-      'Total Final': '',
-      Responsable: responsable,
-      'Hora Cierre': ''
-    };
 
-    const result = await appendCajaToSheet(nuevaCaja);
+    const { data, error } = await supabase
+      .from("caja")
+      .insert([
+        {
+          fecha: hoy,
+          turno,
+          hora_apertura: ahoraAR,
+          saldo_inicial: saldoInicialFinal,
+          total_efectivo: 0,
+          total_tarjeta: 0,
+          total_final: 0,
+          responsable,
+          hora_cierre: null,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
 
     res.status(201).json({
-      id: result.id,
+      id: data.id,
       message: `Caja de ${turno} registrada correctamente`,
       saldoInicial: saldoInicialFinal,
     });
   } catch (error) {
-    console.error('Error al crear caja:', error);
-    res.status(500).json({ message: 'Error al registrar caja' });
+    console.error("Error al crear caja:", error);
+    res.status(500).json({ message: "Error al registrar caja" });
   }
 };
 
@@ -146,32 +160,34 @@ export const obtenerCaja = async (req, res) => {
 export const obtenerCajaAbiertaPorTurno = async (req, res) => {
   try {
     const { turno } = req.params;
-    const cajas = await getCajasFromSheet();
 
-    const hoy = dayjs().tz('America/Argentina/Buenos_Aires').format("D/M/YYYY");
+    const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format("YYYY-MM-DD");
 
-    const cajaHoy = cajas.find(caja =>
-      caja.Turno === turno &&
-      dayjs(caja.Fecha, "D/M/YYYY").format("D/M/YYYY") === hoy
-    );
+    const { data: cajaHoy, error } = await supabase
+      .from("caja")
+      .select("*")
+      .eq("fecha", hoy)
+      .eq("turno", turno)
+      .maybeSingle();
+
+    if (error) throw error;
 
     if (!cajaHoy) {
       return res.status(200).json({ existe: false, abierta: false });
     }
 
-    if (!cajaHoy["Hora Cierre"]) {
+    if (!cajaHoy.hora_cierre) {
       return res.status(200).json({
         existe: true,
         abierta: true,
-        id: cajaHoy.ID,
-        saldoInicial: cajaHoy["Saldo Inicial"] || "0",
+        id: cajaHoy.id,
+        saldoInicial: cajaHoy.saldo_inicial || 0,
       });
     }
 
     console.log("Fecha backend Argentina:", hoy);
 
     return res.status(200).json({ existe: true, abierta: false });
-
   } catch (error) {
     console.error("Error al verificar caja abierta:", error);
     return res.status(500).json({ message: "Error interno del servidor" });

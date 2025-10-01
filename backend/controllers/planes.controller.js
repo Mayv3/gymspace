@@ -4,7 +4,6 @@ import {
   appendPlanToSheet,
   updatePlanInSheet,
   deletePlanInSheet,
-  appendAumentoToSheet,
   getAumentosPlanesFromSheet,
   getAlumnosFromSheet,
   getPagosFromSheet
@@ -79,10 +78,6 @@ export const updatePlanByID = async (req, res) => {
     const actualizado = await updatePlanInSheet(id, nuevosDatos);
     if (!actualizado) {
       return res.status(404).json({ message: 'No se encontró el plan al actualizar' });
-    }
-
-    if (registroDeAumento) {
-      await appendAumentoToSheet(registroDeAumento);
     }
 
     const msg = registroDeAumento

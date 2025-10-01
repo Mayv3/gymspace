@@ -4,7 +4,7 @@ export const getEgresos = async (req, res) => {
     try {
       const { anio, mes, tipo } = req.query;
       const egresos = await getEgresosFromSheet();
-  
+
       const filtrados = egresos.filter(e => {
         let pasa = true;
   
@@ -18,7 +18,7 @@ export const getEgresos = async (req, res) => {
   
         return pasa;
       });
-  
+      
       res.json(filtrados);
     } catch (err) {
       res.status(500).json({ message: "Error al filtrar egresos", error: err.message });

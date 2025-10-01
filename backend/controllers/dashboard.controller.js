@@ -274,3 +274,28 @@ export const getDashboardCompleto = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener el dashboard completo' });
   }
 };
+
+export const getDashboardRPC = async (req, res) => {
+  try {
+    const fecha = req.query.fecha ? new Date(req.query.fecha) : new Date();
+    const mesC = Number(req.query.mesCajas ?? (fecha.getMonth() + 1));
+    const anioC = Number(req.query.anioCajas ?? fecha.getFullYear());
+    const mesP = Number(req.query.mesPersonalizados ?? (fecha.getMonth() + 1));
+    const anioP = Number(req.query.anioPersonalizados ?? fecha.getFullYear());
+
+    const { data, error } = await supabase.rpc('rpc_dashboard_gymspace', {
+      _fecha: fecha.toISOString().slice(0, 10),
+      _mes_cajas: mesC,
+      _anio_cajas: anioC,
+      _mes_pers: mesP,
+      _anio_pers: anioP
+    });
+    if (error) throw error;
+
+    res.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    return res.json(data);
+  } catch (e) {
+    console.error('rpc_dashboard_gymspace error', e);
+    res.status(500).json({ error: 'No se pudo obtener el dashboard' });
+  }
+};

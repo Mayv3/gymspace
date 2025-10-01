@@ -101,6 +101,8 @@ export const getDeudaAlumno = async (req, res) => {
 export const getDeudasPorMes = async (req, res) => {
   try {
     const { mes, anio } = req.query
+    console.log("Query recibida:", req.query)
+
     if (!mes || !anio) {
       return res.status(400).json({ message: "Mes y año requeridos" })
     }
@@ -109,9 +111,11 @@ export const getDeudasPorMes = async (req, res) => {
 
     const deudasFiltradas = deudas.filter((deuda) => {
       const fecha = dayjs(deuda.Fecha, "DD/MM/YYYY", true)
-      return fecha.isValid() &&
+      return (
+        fecha.isValid() &&
         fecha.month() + 1 === parseInt(mes) &&
         fecha.year() === parseInt(anio)
+      )
     })
 
     res.json(deudasFiltradas)

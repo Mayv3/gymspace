@@ -136,12 +136,18 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
   if (active && payload && payload.length) {
     const data = payload[0]?.payload;
 
+    const formatNumber = (num: number) =>
+      new Intl.NumberFormat("es-AR", { minimumFractionDigits: 0 }).format(num);
+
     const gimnasio = data.gimnasio || 0;
     const clases = data.clase || 0;
+
     const egresosGimnasio = data.egresosGimnasio || 0;
     const egresosClases = data.egresosClase || 0;
-    const netoGimnasio = data.netoGimnasio || 0;
-    const netoClase = data.netoClase || 0;
+
+    const netoGimnasio = data.netoGimnasio || (gimnasio - egresosGimnasio);
+    const netoClase = data.netoClase || (clases - egresosClases);
+
     const servicio = data.servicio || 0;
     const producto = data.producto || 0;
 
@@ -152,29 +158,31 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
 
     return (
       <div className="p-2 rounded-md shadow text-sm border w-max max-w-[260px] bg-white dark:bg-gray-800 dark:text-white">
-        <p className="font-semibold mb-1">💵 Ingreso Gimnasio: ${gimnasio}</p>
-        <p>📉 Egreso Gimnasio: ${egresosGimnasio}</p>
-        <p className="mb-1 text-green-500">📈 Neto Gimnasio: ${netoGimnasio}</p>
+        <p className="font-semibold mb-1">💵 Ingreso Gimnasio: ${formatNumber(gimnasio)}</p>
+        <p>📉 Egreso Gimnasio: ${formatNumber(egresosGimnasio)}</p>
+        <p className="mb-1 text-green-500">📈 Neto Gimnasio: ${formatNumber(netoGimnasio)}</p>
 
-        <p className="font-semibold mt-2">💵 Ingreso Clases: ${clases}</p>
-        <p>📉 Egreso Clases: ${egresosClases}</p>
-        <p className="mb-1 text-green-500">📈 Neto Clases: ${netoClase}</p>
+        <p className="font-semibold mt-2">💵 Ingreso Clases: ${formatNumber(clases)}</p>
+        <p>📉 Egreso Clases: ${formatNumber(egresosClases)}</p>
+        <p className="mb-1 text-green-500">📈 Neto Clases: ${formatNumber(netoClase)}</p>
 
-        <p className="font-semibold mt-2">💼 Ingreso Servicios: ${servicio}</p>
-        <p className="font-semibold">🛒 Ingreso Productos: ${producto}</p>
-
-        <hr className="my-2" />
-        <p className="font-semibold text-blue-500">💳 Pagos con Tarjeta: ${tarjeta}</p>
-        <p className="font-semibold text-green-600">💵 Pagos en Efectivo: ${efectivo}</p>
+        <p className="font-semibold mt-2">💼 Ingreso Servicios: ${formatNumber(servicio)}</p>
+        <p className="font-semibold">🛒 Ingreso Productos: ${formatNumber(producto)}</p>
 
         <hr className="my-2" />
-        <p className="font-bold text-orange-500">🧮 Neto Total: ${netoTotal}</p>
+        <p className="font-semibold text-blue-500">💳 Pagos con Tarjeta: ${formatNumber(tarjeta)}</p>
+        <p className="font-semibold text-green-600">💵 Pagos en Efectivo: ${formatNumber(efectivo)}</p>
+
+        <hr className="my-2" />
+        <p className="font-bold text-orange-500">🧮 Neto Total: ${formatNumber(netoTotal)}</p>
       </div>
     );
   }
 
   return null;
 };
+
+
 
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
@@ -323,7 +331,9 @@ export default function AdminOverviewCharts({
   const [selectedMonth, setSelectedMonth] = useState(() => (dayjs().month() + 1).toString());
   const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
   const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState(() => (dayjs().month() + 1).toString());
-
+  const [selectedYearFacturacion, setSelectedYearFacturacion] = useState<number>(
+    new Date().getFullYear()
+  );
   const [selectedMonthCajas, setSelectedMonthCajas] = useState(() => (dayjs().month() + 1).toString());
   const [selectedYearPersonalizados, setSelectedYearPersonalizados] = useState<number>(new Date().getFullYear());
   const [asistenciasPorHora, setAsistenciasPorHora] = useState<{ hora: string; cantidad: number }[]>([]);
@@ -339,162 +349,47 @@ export default function AdminOverviewCharts({
     try {
       const params: any = {
         fecha: dayjs(selectedDate).format("YYYY-MM-DD"),
-        mesCajas: selectedMonthCajas,
+        mesCajas: Number(selectedMonthCajas),
         anioCajas: selectedYear,
+        mesPersonalizados: Number(selectedMonthPersonalizados),
+        anioPersonalizados: selectedYearPersonalizados,
+        anioFacturacion: selectedYearFacturacion,
       };
-      if (selectedMonthPersonalizados) {
-        params.mesPersonalizados = selectedMonthPersonalizados;
-      }
-      if (selectedYearPersonalizados) {
-        params.anioPersonalizados = selectedYearPersonalizados;
-      }
 
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard`, { params });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/rpc`,
+        { params }
+      );
+
       setDashboardData(res.data);
+
+      const apH = Object.entries(res.data.asistenciasPorHora ?? {}).map(
+        ([hora, cantidad]) => ({ hora, cantidad: Number(cantidad) })
+      );
+      setAsistenciasPorHora(apH);
+
+      setPromedios([
+        { rango: "Mañana (7-12hs)", promedio: Number(res.data.promedios?.manana?.promedio ?? 0) },
+        { rango: "Tarde (15-18hs)", promedio: Number(res.data.promedios?.tarde?.promedio ?? 0) },
+        { rango: "Noche (18-22hs)", promedio: Number(res.data.promedios?.noche?.promedio ?? 0) },
+      ]);
+
+      setPlanesPorProfesor(res.data.personalizadosPorProfesor ?? []);
+      setCajasDelMes(res.data.cajasDelMes ?? []);
     } catch (error) {
       console.error("Error al cargar dashboard:", error);
     }
   };
 
-  const fetchPromedios = async () => {
-    try {
-      const params: any = {
-        anio: selectedYear,
-      };
-
-      if (selectedMonth) params.mes = Number(selectedMonth);
-      if (selectedFecha) params.fecha = dayjs(selectedFecha).format("YYYY-MM-DD");
-
-      const res = await axios.get<{
-        manana: { promedio: string };
-        tarde: { promedio: string };
-        noche: { promedio: string };
-      }>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/promedios`, { params });
-
-      setPromedios([
-        { rango: "Mañana (7-12hs)", promedio: Number(res.data.manana.promedio) },
-        { rango: "Tarde (15-18hs)", promedio: Number(res.data.tarde.promedio) },
-        { rango: "Noche (18-22hs)", promedio: Number(res.data.noche.promedio) },
-      ]);
-
-      console.log('Promedios:', res.data)
-    } catch (error) {
-      console.error("Error al cargar promedios:", error);
-    }
-  };
-
-  const fetchAsistenciasPorHora = async () => {
-    try {
-      const fecha = dayjs(selectedDate);
-      const dia = fecha.date();
-      const mes = fecha.month() + 1;
-      const anio = fecha.year();
-
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/asistencias/por-hora/${dia}/${mes}/${anio}`);
-
-      const data = Object.entries(res.data).map(([hora, cantidad]) => ({
-        hora,
-        cantidad: Number(cantidad),
-      }));
-      console.log(`${dia}/${mes}/${anio}`, data)
-      setAsistenciasPorHora(data);
-    } catch (error) {
-      console.error("Error al cargar asistencias por hora:", error);
-    }
-  };
-
-  const fetchCajasDelMes = async () => {
-    const hoy = dayjs();
-    const mes = selectedMonthCajas || (hoy.month() + 1).toString();
-    const anio = selectedYear || hoy.year();
-
-    try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/caja/mes`, {
-        params: { mes, anio },
-      });
-      console.log("caja:", JSON.stringify(cajasDelMes, null, 2));
-      setCajasDelMes(res.data);
-    } catch (error) {
-      console.error("Error al cargar cajas del mes:", error);
-    }
-  };
-
-  const fetchPlanesPersonalizados = async () => {
-    const hoy = dayjs();
-    const mes = selectedMonthPersonalizados || (hoy.month() + 1).toString();
-    const anio = selectedYearPersonalizados || hoy.year();
-
-    try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/planes/personalizados`, {
-        params: { mes, anio },
-      });
-      setPlanesPorProfesor(res.data);
-    } catch (error) {
-      console.error("Error al cargar planes personalizados por profesor:", error);
-    }
-  };
-
-  const cajasTransformadas = cajasDelMes.reduce((acc: any[], caja: any) => {
-    const limpiarNumero = (valor: any) =>
-      Number(String(valor).replace(/\./g, "").replace(",", ".")) || 0;
-
-    const fechaRaw = String(caja.Fecha).trim();
-    const parsedDate = parse(fechaRaw, "d/M/yyyy", new Date());
-    const fechaFormateada = isValid(parsedDate) ? format(parsedDate, "dd/MM/yyyy") : "Invalid Date";
-
-    const turno = caja.Turno?.toLowerCase();
-    const monto = limpiarNumero(caja["Total Final"]);
-
-    let existente = acc.find((item) => item.fecha === fechaFormateada);
-
-    if (!existente) {
-      existente = {
-        fecha: fechaFormateada,
-        mañana_monto: 0,
-        tarde_monto: 0,
-        mañana_saldoInicial: 0,
-        tarde_saldoInicial: 0,
-        mañana_efectivo: 0,
-        tarde_efectivo: 0,
-        mañana_tarjeta: 0,
-        tarde_tarjeta: 0,
-        mañana_gimnasio: 0,
-        tarde_gimnasio: 0,
-        mañana_clases: 0,
-        tarde_clases: 0,
-      };
-      acc.push(existente);
-    }
-
-    existente[`${turno}_monto`] = monto;
-    existente[`${turno}_saldoInicial`] = limpiarNumero(caja["Saldo Inicial"]);
-    existente[`${turno}_efectivo`] = limpiarNumero(caja["Total Efectivo"]);
-    existente[`${turno}_tarjeta`] = limpiarNumero(caja["Total Tarjeta"]);
-    existente[`${turno}_gimnasio`] = limpiarNumero(caja["TotalGimnasio"]);
-    existente[`${turno}_clases`] = limpiarNumero(caja["TotalClases"]);
-
-    return acc;
-  }, []);
-
-  useEffect(() => {
-    fetchPlanesPersonalizados();
-  }, [selectedMonthPersonalizados, selectedYearPersonalizados]);
-
-  useEffect(() => {
-    fetchAsistenciasPorHora();
-  }, [selectedDate]);
-
-  useEffect(() => {
-    fetchPromedios();
-  }, [selectedYear, selectedMonth, selectedFecha]);
+  const cajasTransformadas = Array.isArray(cajasDelMes) && cajasDelMes.length
+    && ('tarde_monto' in cajasDelMes[0] || 'mañana_monto' in cajasDelMes[0])
+    ? cajasDelMes
+    : [];
 
   useEffect(() => {
     fetchDashboard();
   }, [selectedDate, selectedMonthPersonalizados, selectedYearPersonalizados, selectedMonthCajas, selectedYear]);
 
-  useEffect(() => {
-    fetchCajasDelMes();
-  }, [selectedMonthCajas, selectedYear]);
   if (!dashboardData) return null;
 
   const { estado, edades, planes, facturacion } = dashboardData;
@@ -939,14 +834,14 @@ export default function AdminOverviewCharts({
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
-                                 <Line
-                   type="monotone"
-                   dataKey="mañana_monto"
-                   name="Mañana"
-                   stroke={COLORS[0]}
-                   strokeWidth={2}
-                   dot={{ r: 4 }}
-                 />
+                <Line
+                  type="monotone"
+                  dataKey="mañana_monto"
+                  name="Mañana"
+                  stroke={COLORS[0]}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           )}

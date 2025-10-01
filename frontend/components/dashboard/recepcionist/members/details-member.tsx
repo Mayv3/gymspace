@@ -73,9 +73,10 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
                                 <TableHeader className="sticky top-0 bg-muted/60 backdrop-blur-sm">
                                     <TableRow>
                                         <TableHead className="text-center">Fecha</TableHead>
-                                        <TableHead className="text-left">Motivo</TableHead>
+                                        <TableHead className="text-center">Motivo</TableHead>
                                         <TableHead className="text-center">Puntos</TableHead>
                                         <TableHead className="text-center">Responsable</TableHead>
+                                        <TableHead className="text-center">Hora</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -84,7 +85,7 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
                                             <TableCell className="text-center font-medium">
                                                 {h.Fecha}
                                             </TableCell>
-                                            <TableCell className="text-left">{h.Motivo}</TableCell>
+                                            <TableCell className="text-center">{h.Motivo}</TableCell>
                                             <TableCell className="text-center font-semibold">
                                                 <Badge
                                                     variant={
@@ -100,6 +101,9 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
                                             <TableCell className="text-center text-sm text-muted-foreground">
                                                 {h.Responsable}
                                             </TableCell>
+                                            <TableCell className="text-center text-sm text-muted-foreground">
+                                                {h.Hora}
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -108,8 +112,7 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
 
                         <DialogFooter className="flex flex-col md:flex-row justify-between items-center gap-3 pt-4">
                             <div className="text-xs text-muted-foreground text-center md:text-left flex-1">
-                                Si ves una diferencia de -100 puntos en este total es porque pagó antes de la fecha de vencimiento. 
-                                Los agregados no se registran al pagar el plan.
+                                Los registros de puntos suman los puntos del plan + los agregados como: pago antes del vencimiento, antigüedad, etc.
                             </div>
 
                             <div className="text-sm font-medium text-center md:text-right">

@@ -240,7 +240,7 @@ export default function AdministratorDashboard() {
         </div>
         {!cashOpen && cerrada && existe && (
           <div className="flex justify-center">
-            <p className="text-lg text-red-600 mt-1 text-center p-4 bg-red-600 text-white rounded-lg">
+            <p className="text-lg text-red-600 mt-1 text-center p-4 bg-red-600 rounded-lg">
               La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
             </p>
           </div>

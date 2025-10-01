@@ -5,7 +5,8 @@ import {
     deletePagoByID,
     getAlumnosFromSheet,
     getPlanesFromSheet,
-    updateAlumnoByDNI
+    updateAlumnoByDNI,
+    appendRegistroPuntoToSheet
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
@@ -341,8 +342,6 @@ export async function obtenerCoinsPorPlan() {
 const calcularCoinsPorPago = (alumno, pago, coinsPorPlan) => {
     let coins = 0;
 
-    const planes = getAlumnosFromSheet();
-
     const coinsPlan = coinsPorPlan[pago['Ultimo_Plan']] || 0;
     coins += coinsPlan;
 
@@ -389,41 +388,72 @@ const calcularCoinsPorPago = (alumno, pago, coinsPorPlan) => {
 };
 
 export const addPago = async (req, res) => {
-    try {
-        const pago = req.body;
+  try {
+    const pago = req.body;
 
-        if (!pago['Socio DNI'] || !pago.Nombre || !pago.Monto || !pago['Fecha de Pago'] || !pago['Fecha de Vencimiento'] || !pago['Ultimo_Plan']) {
-            return res.status(400).json({ message: 'Faltan campos obligatorios' });
-        }
-
-        await appendPagoToSheet(pago);
-
-        const alumnos = await getAlumnosFromSheet();
-        const alumno = alumnos.find(a => a.DNI === pago['Socio DNI']);
-        if (!alumno) return res.status(404).json({ message: 'Alumno no encontrado para actualizar coins' });
-
-        const coinsPorPlan = await obtenerCoinsPorPlan();
-
-        const coinsASumar = calcularCoinsPorPago(alumno, pago, coinsPorPlan);
-
-        const gymCoinsActuales = parseInt(alumno['GymCoins'] || '0', 10);
-        const gymCoinsNuevos = gymCoinsActuales + coinsASumar;
-
-        await updateAlumnoByDNI(alumno.DNI, {
-            GymCoins: String(gymCoinsNuevos)
-        });
-
-        res.status(201).json({
-            message: 'Pago registrado correctamente y coins actualizados',
-            coinsSumados: coinsASumar,
-            coinsTotales: gymCoinsNuevos,
-        });
-
-    } catch (error) {
-        console.error('Error al registrar pago:', error);
-        res.status(500).json({ message: 'Error al registrar el pago' });
+    if (
+      !pago["Socio DNI"] ||
+      !pago.Nombre ||
+      !pago.Monto ||
+      !pago["Fecha de Pago"] ||
+      !pago["Fecha de Vencimiento"] ||
+      !pago["Ultimo_Plan"]
+    ) {
+      return res.status(400).json({ message: "Faltan campos obligatorios" });
     }
+
+    const nuevoPago = await appendPagoToSheet(pago);
+
+    const alumnos = await getAlumnosFromSheet();
+    const alumno = alumnos.find((a) => a.DNI === pago["Socio DNI"]);
+    if (!alumno) {
+      return res
+        .status(404)
+        .json({ message: "Alumno no encontrado para actualizar coins" });
+    }
+
+    const coinsPorPlan = await obtenerCoinsPorPlan();
+    const coinsDelPlan = coinsPorPlan[pago["Ultimo_Plan"]] ?? 0;
+
+    let coinsASumar = 0;
+    if (
+      pago.Tipo?.toUpperCase() === "GIMNASIO" ||
+      pago.Tipo?.toUpperCase() === "CLASE"
+    ) {
+      coinsASumar = calcularCoinsPorPago(alumno, pago, coinsPorPlan);
+    } else {
+      coinsASumar = Number(coinsDelPlan);
+    }
+
+    const gymCoinsActuales = parseInt(alumno["GymCoins"] || "0", 10);
+    const gymCoinsNuevos = gymCoinsActuales + coinsASumar;
+
+    await updateAlumnoByDNI(alumno.DNI, {
+      gymcoins: gymCoinsNuevos,
+    });
+
+    if (coinsASumar > 0) {
+      await appendRegistroPuntoToSheet({
+        DNI: pago["Socio DNI"],
+        Nombre: pago.Nombre,
+        Puntos: coinsASumar,
+        Motivo: `Pago del plan ${pago["Ultimo_Plan"]}`,
+        Responsable: pago.Responsable,
+        PagoID: String(nuevoPago.id),
+      });
+    }
+
+    res.status(201).json({
+      message: "Pago registrado correctamente y coins actualizados",
+      coinsSumados: coinsASumar,
+      coinsTotales: gymCoinsNuevos,
+    });
+  } catch (error) {
+    console.error("Error al registrar pago:", error);
+    res.status(500).json({ message: "Error al registrar el pago" });
+  }
 };
+
 
 // PUT
 

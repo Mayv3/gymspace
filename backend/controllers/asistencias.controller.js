@@ -3,7 +3,6 @@ import {
   getAsistenciasFromSheet,
   appendAsistenciaToSheet,
   updateAlumnoByDNI,
-  getClasesElClubFromSheet,
   getPlanesFromSheet
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
@@ -13,6 +12,7 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import weekOfYear from 'dayjs/plugin/weekOfYear.js'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import supabase from '../db/supabase.js';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -24,121 +24,27 @@ dayjs.extend(customParseFormat);
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
 
 export const registrarAsistencia = async (req, res) => {
+  console.time("⏱️ registrarAsistencia - total"); // mide todo el endpoint
   try {
     const { dni } = req.body;
-    if (!dni) return res.status(400).json({ message: 'DNI es requerido' });
-
-    const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find(a => a.DNI === dni);
-    if (!alumno) return res.status(404).json({ message: 'Alumno no encontrado' });
-
-    const vencimiento = dayjs(alumno['Fecha_vencimiento'], ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
-    const hoyDate = dayjs();
-    if (hoyDate.isSame(vencimiento, 'day') || hoyDate.isAfter(vencimiento, 'day')) {
-      return res.status(403).json({
-        message: `El plan de ${alumno.Nombre} venció el ${vencimiento.format('DD/MM/YYYY')}`,
-        fechaVencimiento: vencimiento.format('DD/MM/YYYY'),
-      });
+    if (!dni) {
+      console.timeEnd("⏱️ registrarAsistencia - total");
+      return res.status(400).json({ message: "DNI es requerido" });
     }
 
-    const hoy = dayjs().tz("America/Argentina/Buenos_Aires").format('DD-MM-YYYY');
-    const asistencias = await getAsistenciasFromSheet();
-    const asistenciasFormateadas = asistencias.map(a => {
-      const fecha = dayjs(a.Fecha, ['D/M/YYYY', 'DD/MM/YYYY']);
-      return { ...a, Fecha: fecha.format('DD-MM-YYYY') };
-    });
+    console.time("⏱️ registrarAsistencia - rpc"); // mide solo el RPC
+    const { data, error } = await supabase
+      .rpc("registrar_asistencia", { p_dni: dni });
+    console.timeEnd("⏱️ registrarAsistencia - rpc");
 
-    const yaAsistioHoy = asistenciasFormateadas.some(a => a.DNI === dni && a.Fecha === hoy);
-    if (yaAsistioHoy) {
-      return res.status(409).json({
-        message: `El alumno ${alumno.Nombre} ya registró asistencia hoy`
-      });
-    }
+    if (error) throw error;
 
-    // Verificar clases del día
-    const clases = await getClasesElClubFromSheet();
-    const diaHoy = dayjs().locale('es').format('dddd');
-    const clasesDeHoy = clases.filter(c => c.Dia.toLowerCase() === diaHoy.toLowerCase());
-    const claseInscripto = clasesDeHoy.find(c => {
-      const inscriptos = c.Inscriptos ? c.Inscriptos.split(',').map(d => d.trim()) : [];
-      return inscriptos.includes(dni);
-    });
-
-    // Registrar asistencia
-    const nuevaAsistencia = {
-      Fecha: hoy,
-      Hora: dayjs().tz("America/Argentina/Buenos_Aires").format('HH:mm'),
-      DNI: alumno.DNI,
-      Nombre: alumno.Nombre,
-      Plan: alumno.Plan,
-      Responsable: ''
-    };
-
-    await appendAsistenciaToSheet(nuevaAsistencia);
-    const io = req.app.get('socketio');
-    io.emit('asistencia-registrada', { dni, nuevaAsistencia });
-
-    const plan = alumno.Plan;
-    const esIlimitado = PLANES_ILIMITADOS.includes(plan);
-    const realizadasActual = parseInt(alumno['Clases_realizadas'] || '0', 10);
-    const realizadas = realizadasActual + 1;
-    const gymCoinsActuales = parseInt(alumno['GymCoins'] || '0', 10);
-    const gymCoinsActualizadas = gymCoinsActuales + 25;
-
-    // Actualizar datos en la hoja
-    await updateAlumnoByDNI(dni, {
-      'Clases_realizadas': String(realizadas),
-      'GymCoins': String(gymCoinsActualizadas),
-    });
-
-    let mensaje = 'Asistencia registrada correctamente';
-    if (claseInscripto) {
-      mensaje = `Bienvenido a la clase de "${claseInscripto['Nombre de clase']}"`;
-    }
-
-    io.emit('asistencia-actualizada', {
-      dni,
-      clasesRealizadas: realizadas,
-      gymCoins: gymCoinsActualizadas
-    });
-
-    if (esIlimitado) {
-      return res.status(201).json({
-        message: mensaje,
-        plan,
-        clasesRealizadas: realizadas,
-        gymCoins: gymCoinsActualizadas,
-        fechaVencimiento: alumno['Fecha_vencimiento']
-      });
-    }
-
-    const pagadas = parseInt(alumno['Clases_pagadas'] || '0', 10);
-
-    if (realizadasActual >= pagadas) {
-      return res.status(409).json({
-        message: `El alumno ${alumno.Nombre} ya agotó sus clases pagadas`,
-        plan,
-        clasesPagadas: pagadas,
-        clasesRealizadas: realizadasActual,
-        gymCoins: gymCoinsActualizadas,
-        fechaVencimiento: alumno['Fecha_vencimiento']
-      });
-    }
-
-    res.status(201).json({
-      message: mensaje,
-      nombre: alumno.Nombre,
-      plan,
-      clasesPagadas: pagadas,
-      clasesRealizadas: realizadas,
-      gymCoins: gymCoinsActualizadas,
-      fechaVencimiento: alumno['Fecha_vencimiento']
-    });
-
-    console.log(`Gymcoins Actualizadas: $${gymCoinsActualizadas}`)
-  } catch (error) {
-    console.error('Error al registrar asistencia:', error);
-    res.status(500).json({ message: 'Error al registrar la asistencia' });
+    console.timeEnd("⏱️ registrarAsistencia - total");
+    return res.status(data.status).json(data);
+  } catch (err) {
+    console.timeEnd("⏱️ registrarAsistencia - total");
+    console.error("Error RPC registrar_asistencia:", err);
+    return res.status(500).json({ message: "Error al registrar asistencia" });
   }
 };
 
@@ -204,8 +110,6 @@ export const verificarAlumno = async (req, res) => {
       });
     }
 
-    const elapsed = Date.now() - start;
-    console.log(`✅ Alumno activo:`, data, `⏱️ ${elapsed}ms`);
     return res.status(200).json({
       message: "Alumno activo",
       ...data,
@@ -215,7 +119,6 @@ export const verificarAlumno = async (req, res) => {
     return res.status(500).json({ message: "Error en la verificación" });
   }
 };
-
 
 export const getAsistenciasPorDNI = async (req, res) => {
   try {
@@ -274,7 +177,6 @@ export const getAsistenciasPorHora = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
-
 
 export const getPromediosRangosHorarios = async (req, res) => {
   try {

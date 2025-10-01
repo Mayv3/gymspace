@@ -144,6 +144,7 @@ export default function PlansSection() {
     }
 
     useEffect(() => {
+        console.log(planes)
         setCurrentPage(1)
     }, [searchTerm])
 
