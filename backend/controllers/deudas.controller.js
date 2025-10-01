@@ -77,20 +77,20 @@ export const getDeudaAlumno = async (req, res) => {
 
     const deudas = await getDeudasFromSheet()
 
-    const deudasAlumno = deudas.filter(
-      (d) => d.DNI === dni && d.Estado === "No pagado"
-    )
+    const deudasAlumno = deudas.filter((d) => d.DNI === dni)
+    const deudasPendientes = deudasAlumno.filter((d) => d.Estado === "No pagado")
 
-    const montoTotal = deudasAlumno.reduce(
+    const montoTotalPendiente = deudasPendientes.reduce(
       (sum, d) => sum + Number(d.Monto || 0),
       0
     )
 
     res.json({
-      tieneDeuda: deudasAlumno.length > 0,
-      monto: montoTotal,
-      cantidad: deudasAlumno.length,
+      tieneDeuda: deudasPendientes.length > 0,
+      monto: montoTotalPendiente,
+      cantidad: deudasPendientes.length,
       detalle: deudasAlumno,
+      pendientes: deudasPendientes
     })
   } catch (error) {
     console.error("Error al consultar deuda del alumno:", error)
