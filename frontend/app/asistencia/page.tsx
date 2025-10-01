@@ -62,7 +62,7 @@ export default function AsistenciaPage() {
           Ingresá tu DNI para registrar tu asistencia
         </h1>
 
-        <FormEnterToTab onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <input
             type="number"
             value={dni}
@@ -77,7 +77,7 @@ export default function AsistenciaPage() {
           >
             {loading ? "Registrando..." : "Registrar asistencia"}
           </button>
-        </FormEnterToTab>
+        </form>
       </div>
 
       {data && (
