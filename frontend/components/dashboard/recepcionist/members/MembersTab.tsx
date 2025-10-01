@@ -11,6 +11,8 @@ import { PuntosModal } from "./details-member"
 
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
+import { RankingDialog } from "./Ranking-dialog"
+import axios from "axios"
 dayjs.extend(customParseFormat)
 dayjs.extend(isSameOrBefore)
 
@@ -44,7 +46,8 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
   const itemsPerPage = 10
   const [dniHistorial, setDniHistorial] = useState<string | null>(null)
   const [nombreHistorial, setNombreHistorial] = useState<string>("")
-
+  const [openRanking, setOpenRanking] = useState(false)
+  const [topAlumnosCoins, setTopAlumnosCoins] = useState();
   const filteredMembers = members.filter((member) =>
     (member.Nombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (member.Email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,21 +61,40 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
   const paginatedMembers = filteredMembers.slice(startIndex, endIndex)
 
 
+  const fetchTopAlumnos = async () => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/topAlumnosCoins`)
+      setTopAlumnosCoins(res.data)
+      console.log(res.data)
+    } catch (err) {
+      console.error("Error fetching user:", err)
+    }
+  }
+
   useEffect(() => {
-    setCurrentPage(1)
+    setCurrentPage(1);
   }, [searchTerm])
 
+
+  useEffect(() => {
+    fetchTopAlumnos()
+  }, [])
   return (
     <Card>
-      <CardHeader className="flex flex-row bg-orange-50  dark:bg-zinc-900 mb-4 items-center justify-between">
+      <CardHeader className="flex flex-column gap-3 md:flex-row md:gap-1 bg-orange-50  dark:bg-zinc-900 mb-4 items-center justify-between">
         <div>
           <CardTitle>Gestión de Miembros</CardTitle>
           <CardDescription className="hidden md:block">Ver y editar información de miembros.</CardDescription>
         </div>
-        <Button variant="orange" onClick={onAddMember}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Añadir Miembro
-        </Button>
+        <div className="flex gap-2 ">
+          <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-[50%] justify-center text-center">
+            <p>Rankings</p>
+          </Button>
+          <Button variant="orange" onClick={onAddMember}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Añadir Miembro
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2 mb-4">
@@ -310,6 +332,12 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
           </div>
         )}
       </CardContent>
+      <RankingDialog
+        open={openRanking}
+        onOpenChange={setOpenRanking}
+        top10Clases={topAlumnosCoins?.top10Clases || []}
+        top10Gimnasio={topAlumnosCoins?.top10Gimnasio || []}
+      />
     </Card>
   )
 }
