@@ -4,6 +4,7 @@
 /node_modules
 
 /backend/session
+/backend/session/session
 /.wwebjs_cachep
 
 .env

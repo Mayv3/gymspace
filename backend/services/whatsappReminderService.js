@@ -4,9 +4,12 @@ import dayjs from 'dayjs'
 import qrcode from 'qrcode-terminal'
 import pkg from 'whatsapp-web.js'
 import path from 'path'
-const { Client, LocalAuth } = pkg
 import dotenv from 'dotenv'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
+import puppeteer from 'puppeteer';
+
+const { Client, LocalAuth } = pkg
+
 dayjs.extend(customParseFormat)
 
 dotenv.config()
@@ -14,8 +17,24 @@ dotenv.config()
 const rutaUltimaEjecucion = path.resolve('./session/ultima-ejecucion.txt')
 
 const client = new Client({
-  authStrategy: new LocalAuth({ dataPath: './session' })
-})
+  authStrategy: new LocalAuth({ dataPath: path.resolve('./session') }),
+  puppeteer: {
+    headless: false,
+    executablePath: puppeteer.executablePath()
+  }
+});
+
+client.on('auth_failure', msg => {
+  console.error('❌ Error de autenticación:', msg);
+});
+
+client.on('disconnected', reason => {
+  console.log('⚠️ Cliente desconectado:', reason);
+});
+
+client.on('loading_screen', (percent, message) => {
+  console.log(`⏳ Cargando ${percent}% - ${message}`);
+});
 
 client.on('qr', qr => {
   console.log('📲 Escaneá el QR:')
@@ -27,7 +46,7 @@ client.on('ready', async () => {
 
   try {
     await enviarMensajeDeInicio()
-    await iniciarRecordatorios()
+    // await iniciarRecordatorios()
   } catch (err) {
     console.error('❌ Ocurrió un error en el proceso:', err)
   }
