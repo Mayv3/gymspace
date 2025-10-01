@@ -75,8 +75,8 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
                                         <TableHead className="text-center">Fecha</TableHead>
                                         <TableHead className="text-center">Motivo</TableHead>
                                         <TableHead className="text-center">Puntos</TableHead>
-                                        <TableHead className="text-center">Responsable</TableHead>
                                         <TableHead className="text-center">Hora</TableHead>
+                                        <TableHead className="text-center">Responsable</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -99,11 +99,12 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-center text-sm text-muted-foreground">
-                                                {h.Responsable}
-                                            </TableCell>
-                                            <TableCell className="text-center text-sm text-muted-foreground">
                                                 {h.Hora}
                                             </TableCell>
+                                            <TableCell className="text-center text-sm text-muted-foreground">
+                                                {h.Responsable}
+                                            </TableCell>
+
                                         </TableRow>
                                     ))}
                                 </TableBody>

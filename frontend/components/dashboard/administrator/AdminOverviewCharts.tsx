@@ -545,66 +545,11 @@ export default function AdminOverviewCharts({
 
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
         <CardHeader className="flex flex-col">
-          <div className="flex items-center flex-col pb-4">
+          <div className="flex items-center flex-col pb-14">
             <CalendarCheck className="text-orange-500" />
             <CardTitle>Promedio de asistencias (gimnasio)</CardTitle>
           </div>
           <div className="flex flex-wrap justify-between">
-            <div className="flex gap-2">
-              <div className="w-[100px]">
-                <Select
-                  value={selectedYear.toString()}
-                  onValueChange={(val) => setSelectedYear(Number(val))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Año" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                    <SelectItem value="2026">2026</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Mes */}
-              <div className="w-[100px]">
-                <Select
-                  value={selectedMonth}
-                  onValueChange={(val) => setSelectedMonth(val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Mes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <SelectItem key={i} value={(i + 1).toString()}>
-                        {dayjs().month(i).locale("es").format("MMMM")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Fecha */}
-            <div className="flex flex-col w-[160px]">
-              <TooltipProvider>
-                <div className="flex items-center gap-2">
-                  <DatePicker date={selectedFecha ?? undefined} setDate={setSelectedFecha} />
-                  <TooltipUI>
-                    <TooltipTrigger asChild>
-                      <Info className="text-muted-foreground cursor-pointer w-4 h-4" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p className="text-sm max-w-[220px] text-center">
-                        Se mostrará el promedio de asistencias desde esta fecha hasta 7 días atrás.
-                      </p>
-                    </TooltipContent>
-                  </TooltipUI>
-                </div>
-              </TooltipProvider>
-            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -637,7 +582,8 @@ export default function AdminOverviewCharts({
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={facturacion}>
+              <BarChart data={facturacion}
+                margin={{ top: 0, right: 0, left: 20, bottom: 10 }}>
                 <XAxis dataKey="mes" />
                 <YAxis />
                 <Tooltip content={<CustomTooltipFacturacion />} />
