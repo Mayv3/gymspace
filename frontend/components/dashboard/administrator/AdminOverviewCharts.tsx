@@ -69,9 +69,9 @@ interface Factura {
   mes: string;
   gimnasio: number;
   clase: number;
-  egresosGimnasio: number;
-  egresosClase: number;
-  netoGimnasio: number;
+  egresosgimnasio: number;
+  egresosclase: number;
+  netogimnasio: number;
   netoClase: number;
 }
 
@@ -386,6 +386,8 @@ export default function AdminOverviewCharts({
     ? cajasDelMes
     : [];
 
+
+
   useEffect(() => {
     fetchDashboard();
   }, [selectedDate, selectedMonthPersonalizados, selectedYearPersonalizados, selectedMonthCajas, selectedYear]);
@@ -414,6 +416,13 @@ export default function AdminOverviewCharts({
   const planesFiltrados = planes.filter((p) =>
     tipoPlan === "TODOS" ? true : p.tipo === tipoPlan
   );
+
+
+  const facturacionNormalizada = facturacion.map(f => ({
+    ...f,
+    egresosClase:  f.egresosclase ?? 0,
+    egresosGimnasio: f.egresosgimnasio ?? 0,
+  }));
 
   return (
     <div
@@ -582,7 +591,7 @@ export default function AdminOverviewCharts({
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={facturacion}
+              <BarChart data={facturacionNormalizada}
                 margin={{ top: 0, right: 0, left: 20, bottom: 10 }}>
                 <XAxis dataKey="mes" />
                 <YAxis />
@@ -594,7 +603,7 @@ export default function AdminOverviewCharts({
                   ))}
                 </Bar>
 
-                <Bar dataKey="egresosGimnasio" name="Egreso Gimnasio" stackId="a" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="egresosgimnasio" name="Egreso Gimnasio" stackId="a" radius={[6, 6, 0, 0]}>
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill="#ef4444" />
                   ))}
@@ -606,7 +615,7 @@ export default function AdminOverviewCharts({
                   ))}
                 </Bar>
 
-                <Bar dataKey="egresosClase" name="Egreso Clases" stackId="b" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="egresosclase" name="Egreso Clases" stackId="b" radius={[6, 6, 0, 0]}>
                   {facturacion.map((_, i) => (
                     <Cell key={i} fill="#f87171" />
                   ))}
