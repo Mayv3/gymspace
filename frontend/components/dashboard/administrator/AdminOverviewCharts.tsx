@@ -189,8 +189,8 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
   const data = payload[0].payload;
 
   const montoTarde = data["tarde_monto"] || 0;
-
-  const totalDia = montoTarde;
+  const montoManana = data["mañana_monto"] || 0;
+  const totalDia = montoTarde + montoManana;
 
   const mañana_tarjeta = data["mañana_tarjeta"] || 0;
   const mañana_efectivo = data["mañana_efectivo"] || 0;
@@ -218,7 +218,6 @@ const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, pa
           <div key={turno} className="mb-2">
             <p className="font-semibold capitalize">{turno}</p>
             <ul className="ml-2 text-xs">
-              <li>🔹 Inicial: ${data[`${turno}_saldoInicial`] ?? 0}</li>
               <li>💵 Efectivo: ${data[`${turno}_efectivo`] ?? 0}</li>
               <li>💳 Tarjeta: ${data[`${turno}_tarjeta`] ?? 0}</li>
               <li>💰 Final: ${data[`${turno}_monto`] ?? 0}</li>
