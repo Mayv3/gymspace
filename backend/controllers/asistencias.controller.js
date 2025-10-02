@@ -24,7 +24,7 @@ dayjs.extend(customParseFormat);
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
 
 export const registrarAsistencia = async (req, res) => {
-  console.time("⏱️ registrarAsistencia - total"); // mide todo el endpoint
+  console.time("⏱️ registrarAsistencia - total");
   try {
     const { dni } = req.body;
     if (!dni) {

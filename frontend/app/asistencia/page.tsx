@@ -82,11 +82,11 @@ export default function AsistenciaPage() {
 
       {data && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg text-center animate-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl text-center animate-fade-in-up">
             <div className="flex justify-center">{renderIcon()}</div>
 
             <h2 className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"}`}>
-              {data.message}
+              Bienvenido {data.nombre || data.message} 👋
             </h2>
 
             {data.success && (
