@@ -119,8 +119,8 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row items-center gap-2 mb-4">
-          <div className="flex items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-row md:flex-row items-center gap-2 mb-4">
+          <div className="flex items-center  gap-2 w-full md:w-auto">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar miembros..."
