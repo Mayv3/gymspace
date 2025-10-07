@@ -32,6 +32,16 @@ interface Member {
   GymCoins: string
 }
 
+interface TopAlumno {
+  Nombre: string
+  GymCoins: number
+}
+
+interface TopAlumnosResponse {
+  top10Clases: TopAlumno[]
+  top10Gimnasio: TopAlumno[]
+}
+
 interface MembersTabProps {
   members: Member[]
   searchTerm: string
@@ -43,23 +53,32 @@ interface MembersTabProps {
 
 export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelete, onAddMember }: MembersTabProps) {
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchProfe, setSearchProfe] = useState("")
+
   const itemsPerPage = 10
   const [dniHistorial, setDniHistorial] = useState<string | null>(null)
   const [nombreHistorial, setNombreHistorial] = useState<string>("")
   const [openRanking, setOpenRanking] = useState(false)
-  const [topAlumnosCoins, setTopAlumnosCoins] = useState();
-  const filteredMembers = members.filter((member) =>
-    (member.Nombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (member.Email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (member.Profesor_asignado || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (member.DNI || "").includes(searchTerm) ||
-    (member.Plan || "").includes(searchTerm)
-  )
+  const [topAlumnosCoins, setTopAlumnosCoins] = useState<TopAlumnosResponse | null>(null)
+  const filteredMembers = members.filter((member) => {
+    const matchesSearch =
+      (member.Nombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (member.Email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (member.DNI || "").includes(searchTerm) ||
+      (member.Plan || "").toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesProfe =
+      !searchProfe ||
+      (member.Profesor_asignado || "").toLowerCase().includes(searchProfe.toLowerCase());
+
+    return matchesSearch && matchesProfe;
+  });
 
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedMembers = filteredMembers.slice(startIndex, endIndex)
 
+  const totalMembers = filteredMembers.length
 
   const fetchTopAlumnos = async () => {
     try {
@@ -79,6 +98,9 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
   useEffect(() => {
     fetchTopAlumnos()
   }, [])
+
+
+
   return (
     <Card>
       <CardHeader className="flex flex-column gap-3 md:flex-row md:gap-1 bg-orange-50  dark:bg-zinc-900 mb-4 items-center justify-between">
@@ -97,14 +119,31 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-2 mb-4">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar miembros..."
-            className="max-w-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col md:flex-row items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar miembros..."
+              className="max-w-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Input
+              placeholder="Filtrar por profesor..."
+              className="max-w-sm"
+              value={searchProfe}
+              onChange={(e) => setSearchProfe(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center text-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 h-10 rounded-lg border border-gray-200 shadow-sm">
+              <span className="text-gray-700 font-medium">Total:</span>
+              <span className="text-gray-900 font-semibold">{totalMembers}</span>
+            </div>
+          </div>
         </div>
         <div className="hidden md:block rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
           <div className="min-w-[800px]">
@@ -113,7 +152,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 <TableRow>
                   {[
                     "Nombre", "DNI", "Email", "Teléfono", "C.Pagadas", "C.Realizadas",
-                    "Inicio", "Vencimiento", "Nacimiento", "Plan", "Profesor", "Estado", "GymCoins", "Acciones"
+                    "Inicio", "Vencimiento", "Plan", "Profesor", "Estado", "GymCoins", "Acciones"
                   ].map((head, i) => (
                     <TableHead key={i} className="text-center w-[7.7%]">{head}</TableHead>
                   ))}
@@ -136,9 +175,10 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                     <TableCell className="text-center">{member.Clases_realizadas}</TableCell>
                     <TableCell className="text-center">{member.Fecha_inicio}</TableCell>
                     <TableCell className="text-center">{member.Fecha_vencimiento}</TableCell>
-                    <TableCell className="text-center">{member.Fecha_nacimiento}</TableCell>
                     <TableCell className="text-center">{member.Plan}</TableCell>
-                    <TableCell className="text-center">{member.Profesor_asignado}</TableCell>
+                    <TableCell className="text-center max-w-[100px] truncate">
+                      <span title={member.Profesor_asignado}>{member.Profesor_asignado}</span>
+                    </TableCell>
                     <TableCell className="text-center">
                       {(() => {
                         const hoy = dayjs();

@@ -2,11 +2,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button"
 import { Trophy, Star } from "lucide-react"
 
+interface TopAlumno {
+  Nombre: string
+  GymCoins: number
+}
+
 interface RankingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  top10Clases: any[];
-  top10Gimnasio: any[];
+  top10Clases: TopAlumno[];
+  top10Gimnasio: TopAlumno[];
 }
 
 export function RankingDialog({
@@ -15,11 +20,11 @@ export function RankingDialog({
   top10Clases,
   top10Gimnasio
 }: RankingDialogProps) {
-  const renderList = (list: any[], labelKey: string, valueKey: string) => (
+  const renderList = (list: TopAlumno[], labelKey: keyof TopAlumno, valueKey: keyof TopAlumno) => (
     <ul className="space-y-2">
       {list.map((alum, i) => (
         <li
-          key={i}
+          key={`${alum.Nombre}-${i}`}
           className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-100 transition"
         >
           <div className="flex items-center gap-3">
