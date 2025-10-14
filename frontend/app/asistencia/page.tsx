@@ -86,7 +86,7 @@ export default function AsistenciaPage() {
             <div className="flex justify-center">{renderIcon()}</div>
 
             <h2 className={`text-3xl font-bold mb-4 ${data.success ? "text-green-700" : "text-red-600"}`}>
-              Bienvenido {data.nombre || data.message} 👋
+              {data.success ? `Bienvenido ${data.nombre} 👋` : data.message}
             </h2>
 
             {data.success && (
