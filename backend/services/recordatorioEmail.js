@@ -250,3 +250,109 @@ export const enviarPruebaBrevo = async (to, subject, fecha) => {
     })
 }
 
+export async function enviarRankingEmail() {
+  try {
+    const res = await fetch("https://gymspace-qlru.onrender.com/api/alumnos/topAlumnosCoins")
+    if (!res.ok) throw new Error(`Error al obtener top alumnos (${res.status})`)
+
+    const { top10Clases, top10Gimnasio } = await res.json()
+
+    const fechaHoy = dayjs().locale('es').format('dddd, D [de] MMMM [de] YYYY')
+    const fechaHoyCapitalizada = fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1)
+
+    const renderList = (list, title) => `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-family: Arial, Helvetica, sans-serif;">
+        <tr>
+          <td align="center" style="padding-bottom: 8px;">
+            <h3 style="font-weight: 600; color: #4b5563; margin: 0; font-size: 16px;">
+              <span style="color: #f97316;">⭐</span> ${title}
+            </h3>
+          </td>
+        </tr>
+        ${list
+        .map(
+          (alum, i) => `
+          <tr>
+            <td style="background: #f9fafb; border-radius: 6px; padding: 6px 10px; margin-bottom: 6px;
+                       box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-size: 14px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="1%" valign="middle" style="padding-right: 8px;">
+                    <span style="
+                      display: inline-block; width: 26px; height: 26px; line-height: 26px;
+                      text-align: center; border-radius: 50%; color: #fff; font-weight: bold;
+                      background: ${i === 0
+              ? "#facc15" // oro
+              : i === 1
+                ? "#9ca3af" // plata
+                : i === 2
+                  ? "#92400e" // bronce
+                  : "#fb923c" // naranja
+            };
+                      font-size: 13px;
+                    ">${i + 1}</span>
+                  </td>
+                  <td valign="middle" style="color: #111827; font-weight: 500;">${alum.Nombre}</td>
+                  <td align="right" valign="middle" style="font-weight: 600; color: #ea580c;">${alum.GymCoins}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>`
+        )
+        .join("")}
+      </table>
+    `
+
+    const html = `
+      <div style="font-family: Arial, Helvetica, sans-serif; background: #ffffff; padding: 20px;">
+        <div style="max-width: 850px; margin: auto; border-radius: 10px; border: 1px solid #fbbf24;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 20px;">
+
+          <h2 style="text-align: center; font-size: 20px; font-weight: 700; margin: 0 0 5px 0; color: #1f2937;">
+            🏆 Ranking de Alumnos
+          </h2>
+          
+          <p style="text-align: center; margin: 0 0 15px 0; font-size: 13px; color: #9ca3af; font-weight: 500;">
+            ${fechaHoyCapitalizada}
+          </p>
+
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="10">
+            <tr>
+              <td width="50%" valign="top">${renderList(top10Clases, "Top 10 Clases")}</td>
+              <td width="50%" valign="top">${renderList(top10Gimnasio, "Top 10 Gimnasio")}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    `
+
+    const payload = {
+      sender: { email: FROM_EMAIL, name: "Gymspace" },
+      to: [
+        { email: "nicopereyra855@gmail.com" },
+        { email: "anyopollastrini1@gmail.com" }
+      ],
+      subject: "🏆 Ranking de Alumnos - Gymspace",
+      htmlContent: html,
+    }
+
+    const sendRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "api-key": BREVO_API_KEY,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!sendRes.ok) {
+      const errText = await sendRes.text()
+      throw new Error(`Error Brevo: ${sendRes.status} - ${errText}`)
+    }
+
+    console.log("✅ Ranking enviado correctamente a nicopereyra855@gmail.com y anyopollastrini1@gmail.com")
+  } catch (err) {
+    console.error("❌ Error en enviarRankingEmail:", err.message)
+  }
+}

@@ -21,7 +21,7 @@ import puntosRoutes from "./routes/puntos.routes.js";
 import { emailsRouter } from './routes/emails.routes.js'
 
 import { getAlumnosFromSheet } from './services/googleSheets.js';
-import { enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
+import { enviarRankingEmail, enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
 
 dotenv.config();
 
@@ -46,7 +46,23 @@ app.use("/api/puntos", puntosRoutes);
 app.use('/api/emails', emailsRouter)
 
 app.get('/ping', (req, res) => res.sendStatus(200));
-// comentario random
+
+app.post('/api/enviar-ranking', async (req, res) => {
+  try {
+    console.log('📊 Iniciando envío de ranking...');
+    await enviarRankingEmail();
+    return res.status(200).json({
+      message: 'Ranking enviado correctamente',
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('❌ Error al enviar ranking:', err);
+    return res.status(500).json({
+      message: 'Error al enviar ranking',
+      error: err.message
+    });
+  }
+});
 
 app.post('/api/trigger-recordatorios', async (req, res) => {
   try {
