@@ -82,10 +82,14 @@ export function DashboardHeader({ role }: DashboardHeaderProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="cursor-pointer text-red-500 hover:text-red-800 hover:bg-red-50"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Cerrar sesión</span>
             </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

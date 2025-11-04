@@ -19,6 +19,7 @@ import { CheckCircle, XCircle } from "lucide-react"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
+import { CircularProgress } from '@mui/material'
 
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
@@ -231,8 +232,13 @@ export default function MemberDashboard() {
     return <div className="p-8 text-muted-foreground">Verificando sesión…</div>
   }
 
+
   if (!user) {
-    return <div className="p-8 text-muted-foreground">Cargando datos del usuario...</div>
+    return (
+      <div className="flex items-center justify-center gap-3 p-8 text-muted-foreground">
+        <CircularProgress size={24} sx={{ color: '#ff9800' }} />
+      </div>
+    )
   }
 
   if (!roleChecked) {
@@ -511,7 +517,7 @@ export default function MemberDashboard() {
             <Card className="w-full card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
               <CardHeader className="flex justify-between h-12 px-4">
                 <CardTitle className="text-sm font-medium">
-                  GymspaceCoins
+                  GYMSPACE COINS
                 </CardTitle>
                 <Dumbbell className="h-5 w-5 text-primary" />
               </CardHeader>
