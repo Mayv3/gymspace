@@ -124,3 +124,27 @@ export const getDeudasPorMes = async (req, res) => {
     res.status(500).json({ message: "Error al filtrar deudas por mes" })
   }
 }
+
+export const searchDeudas = async (req, res) => {
+  try {
+    const { term } = req.query
+
+    if (!term) {
+      return res.status(400).json({ message: "Término de búsqueda requerido" })
+    }
+
+    const deudas = await getDeudasFromSheet()
+    const lowerTerm = term.toLowerCase()
+
+    const deudasFiltradas = deudas.filter(
+      (deuda) =>
+        deuda.Nombre?.toLowerCase().includes(lowerTerm) ||
+        deuda.DNI?.includes(term)
+    )
+
+    res.json(deudasFiltradas)
+  } catch (error) {
+    console.error("Error al buscar deudas:", error)
+    res.status(500).json({ message: "Error al buscar deudas" })
+  }
+}

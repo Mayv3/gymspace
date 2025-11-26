@@ -149,14 +149,24 @@ export default function DebtsSection() {
         setIsSubmitting(false)
     }
 
-    const handleSearch = (term: string) => {
+    const handleSearch = async (term: string) => {
         setSearchTerm(term)
-        const lowerTerm = term.toLowerCase()
-        const filtered = deudas.filter(
-            d => d.Nombre.toLowerCase().includes(lowerTerm) || d.DNI.includes(lowerTerm)
-        )
-        setFilteredDeudas(filtered)
-        setCurrentPage(1)
+        if (!term.trim()) {
+            setFilteredDeudas(deudas)
+            setCurrentPage(1)
+            return
+        }
+
+        try {
+            const { data } = await axios.get(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/deudas/search?term=${encodeURIComponent(term)}`
+            )
+            setFilteredDeudas(data)
+            setCurrentPage(1)
+        } catch (error) {
+            console.error("Error al buscar deudas:", error)
+            notify.error("Error al buscar deudas")
+        }
     }
 
     useEffect(() => {
