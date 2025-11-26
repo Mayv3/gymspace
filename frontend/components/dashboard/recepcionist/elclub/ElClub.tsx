@@ -241,27 +241,52 @@ export const ElClub = () => {
             </Card>
 
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-                    <DialogContent className="rounded-lg">
-                        <DialogHeader>
-                            <DialogTitle className="text-lg sm:text-2xl flex justify-between items-center p-3">
-                                <p className='text-sm md:text-2xl'>{nombreClase}</p>
-                                <Badge variant="outline" className="text-sm px-2 py-1 bg-orange-200">
-                                    {classDateTime}
-                                </Badge>
+                <DialogContent className="rounded-lg max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                    <DialogHeader className="border-b pb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <DialogTitle className="text-3xl sm:text-2xl font-bold text-primary">
+                                {nombreClase}
                             </DialogTitle>
-                        </DialogHeader>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            {dniList.length > 0 ? (
-                                dniList.map((dni, index) => (
-                                    <Badge key={index} variant="outline" className="text-sm md:text-xl px-2 py-1">
-                                        {dni}
-                                    </Badge>
-                                ))
-                            ) : (
-                                <p className="text-muted-foreground text-sm">No hay inscriptos.</p>
-                            )}
+                            <Badge variant="outline" className="text-sm sm:text-sm px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 w-fit mx-auto">
+                                 {classDateTime}
+                            </Badge>
                         </div>
-                    </DialogContent>
+                    </DialogHeader>
+                    
+                    <div className="flex items-center gap-2 mt-4 mb-2">
+                        <Users className="h-5 w-5 text-orange-600" />
+                        <h3 className="text-sm font-semibold text-muted-foreground">
+                            Inscriptos ({dniList.length})
+                        </h3>
+                    </div>
+
+                    <div className="overflow-y-auto flex-1 pr-2">
+                        {dniList.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {dniList.map((nombre, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-zinc-800/50 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                                    >
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-200 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 font-semibold text-sm">
+                                            {index + 1}
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                            {nombre}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                                <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                                <p className="text-muted-foreground text-sm">
+                                    No hay inscriptos en esta clase.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
             </Dialog>
         </>
     )
