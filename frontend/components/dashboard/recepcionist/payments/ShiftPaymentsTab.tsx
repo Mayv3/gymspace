@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, Trash } from "lucide-react"
+import { PlusCircle, Trash, Dumbbell, GraduationCap, ShoppingBag, Wrench } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
@@ -411,67 +411,102 @@ export function ShiftPaymentsTab({
             </div>
           )}
 
-          <div className="bg-background rounded-2xl shadow-sm py-6 space-y-6">
-            <div className="">
-              <h2 className="text-2xl">Totales del turno {selectedShift}</h2>
-              <div className="mb-4 text-sm text-muted-foreground">
-                Mostrando pagos del{" "}
-                <span className="font-medium">{selectedDay}/{selectedMonth}/{selectedYear}</span>{" "}
-                - Turno: <span className="font-medium">{selectedShift}</span>
+          <div className="bg-orange-50 dark:from-zinc-900 dark:to-zinc-800 rounded-2xl shadow-lg border border-orange-200 dark:border-zinc-700 p-6 space-y-6">
+            <div className="border-b border-orange-200 dark:border-zinc-700 pb-4">
+              <h2 className="text-3xl font-bold text-orange-900 dark:text-orange-100 flex items-center gap-2">
+                Totales del turno {selectedShift !== 'todos' && ` ${selectedShift}`}
+              </h2>
+              <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+                <span className="inline-flex items-center gap-1">
+                  <span className="font-semibold">{selectedDay}/{selectedMonth}/{selectedYear}</span>
+                </span>
+                {selectedShift !== 'todos' && (
+                  <>
+                    <span className="text-orange-500">•</span>
+                    <span className="inline-flex items-center gap-1">
+                      🕐 Turno: <span className="font-semibold capitalize">{selectedShift}</span>
+                    </span>
+                  </>
+                )}
               </div>
             </div>
-            {Object.keys(resumenPorTipo).length > 0 && (
-              <div className="grid gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
-
+            
+            {Object.keys(resumenPorTipo).length > 0 ? (
+              <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
                 {Object.entries(resumenAgrupado).map(([tipo, { metodos, deuda }]) => {
                   const totalPorTipo = Object.values(metodos).reduce((sum, val) => sum + val, 0)
                   return (
-                    <div key={tipo} className="bg-muted rounded-xl p-5 border flex flex-col justify-between">
+                    <div 
+                      key={tipo} 
+                      className="bg-white dark:bg-zinc-900 rounded-xl p-6 border-2 border-orange-200 dark:border-zinc-700 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+                    >
                       <div>
-                        <h4 className="font-semibold mb-2">
-                          {tipo}
-                          {deuda > 0 && (
-                            <span className="text-sm text-red-600 ml-2">
-                              (incluye ${deuda.toLocaleString("es-AR")} de deuda)
-                            </span>
-                          )}
-                        </h4>
-                        <ul className="space-y-1">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-xl text-orange-900 dark:text-orange-100">
+                              {tipo}
+                            </h4>
+                            {deuda > 0 && (
+                              <span className="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">
+                                Incluye ${deuda.toLocaleString("es-AR")} de deuda
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <ul className="space-y-2">
                           {Object.entries(metodos).map(([metodo, total]) => (
-                            <li key={metodo} className="flex justify-between">
-                              <span>{metodo}</span>
-                              <span className="font-semibold">${total.toLocaleString("es-AR")}</span>
+                            <li key={metodo} className="flex justify-between items-center bg-orange-50 dark:bg-zinc-800 px-3 py-2 rounded-lg">
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{metodo}</span>
+                              <span className="font-bold text-orange-600 dark:text-orange-400">
+                                ${total.toLocaleString("es-AR")}
+                              </span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="flex justify-between border-t pt-2 mt-4 font-bold">
-                        <span>Total de {tipo}</span>
-                        <span>${totalPorTipo.toLocaleString("es-AR")}</span>
+                      <div className="flex justify-between items-center border-t-2 border-orange-300 dark:border-zinc-600 pt-4 mt-4">
+                        <span className="font-bold text-gray-700 dark:text-gray-300">Total {tipo}</span>
+                        <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                          ${totalPorTipo.toLocaleString("es-AR")}
+                        </span>
                       </div>
                     </div>
                   )
                 })}
-                <div className="bg-muted rounded-xl p-5  border flex flex-col justify-between">
-                  <h4 className="font-semibold mb-1">Por metodo de pago</h4>
-                  <div className="flex justify-between">
-                    <span>Total en Tarjeta:</span>
-                    <span className="font-semibold">${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}</span>
+                
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 rounded-xl p-6 border-2 border-orange-400 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between text-white">
+                  <div>
+                    <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+                      💳 Métodos de Pago
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg">
+                        <span className="font-medium">💳 Tarjeta</span>
+                        <span className="font-bold text-lg">
+                          ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg">
+                        <span className="font-medium">💵 Efectivo</span>
+                        <span className="font-bold text-lg">
+                          ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Total en Efectivo:</span>
-                    <span className="font-semibold">${totalesPorMetodo.efectivo.toLocaleString("es-AR")}</span>
-                  </div>
-                  <div className="flex justify-between items-end mt-4">
-                    <span className="font-bold">Total</span>
-                    <span className="text-xl font-bold">
-                      $
-                      {currentShiftPayments
+                  <div className="flex justify-between items-center border-t-2 border-white/30 pt-4 mt-4">
+                    <span className="font-bold text-lg">Total General</span>
+                    <span className="text-2xl font-bold">
+                      ${currentShiftPayments
                         .reduce((sum, p) => sum + parseFloat(p.Monto || "0"), 0)
                         .toLocaleString("es-AR")}
                     </span>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">No hay datos para mostrar en este turno</p>
               </div>
             )}
           </div>

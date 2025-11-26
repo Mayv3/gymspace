@@ -120,9 +120,16 @@ export default function DebtsSection() {
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/deudas/${editingDeuda.ID}`,
                 editForm
             )
+            
+            // Actualizar tanto deudas como filteredDeudas
+            const updatedDeuda = { ...editingDeuda, ...editForm }
             setDeudas((prev) =>
-                prev.map((d) => (d.ID === editingDeuda.ID ? { ...d, ...data } : d))
+                prev.map((d) => (d.ID === editingDeuda.ID ? updatedDeuda : d))
             )
+            setFilteredDeudas((prev) =>
+                prev.map((d) => (d.ID === editingDeuda.ID ? updatedDeuda : d))
+            )
+            
             setShowEditDialog(false)
             setEditingDeuda(null)
             notify.success("Deuda actualizada")
