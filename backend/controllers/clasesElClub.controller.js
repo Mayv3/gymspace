@@ -78,6 +78,7 @@ const limpiarInscriptosPasados = async () => {
   const ahora = dayjs().tz(ARG_TZ);
 
   for (const clase of clases) {
+    console.log("DEBUG Día:", clase.Dia);
     const proximaFecha = calcularProximaFecha(clase.Dia);
     if (!proximaFecha) {
       console.log(`❌ Clase ${clase.ID}: no se pudo calcular la próxima fecha`);

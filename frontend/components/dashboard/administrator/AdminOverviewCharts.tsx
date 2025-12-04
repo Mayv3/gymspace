@@ -10,8 +10,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
   LineChart,
   Line,
@@ -52,7 +50,6 @@ const COLORS = [
   "#BF360C",
 ];
 
-// --- Interfaces para tipar datos ---
 interface EstadoData {
   activos: number;
   vencidos: number;
@@ -181,8 +178,6 @@ const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ acti
 
   return null;
 };
-
-
 
 const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
@@ -327,8 +322,6 @@ export default function AdminOverviewCharts({
     new Date().getFullYear()
   );
 
-  const [selectedMonth, setSelectedMonth] = useState(() => (dayjs().month() + 1).toString());
-  const [selectedFecha, setSelectedFecha] = useState<Date | null>(null);
   const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState(() => (dayjs().month() + 1).toString());
   const [selectedYearFacturacion, setSelectedYearFacturacion] = useState<number>(
     new Date().getFullYear()
@@ -343,6 +336,19 @@ export default function AdminOverviewCharts({
   ]);
   const [cajasDelMes, setCajasDelMes] = useState([]);
   const [planesPorProfesor, setPlanesPorProfesor] = useState<planesPorProfesor[]>([]);
+  const [facturacionData, setFacturacionData] = useState<Factura[]>([]);
+
+  const fetchFacturacion = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/facturacion`,
+        { params: { anio: selectedYearFacturacion } }
+      );
+      setFacturacionData(res.data.facturacion ?? []);
+    } catch (error) {
+      console.error("Error al cargar facturación:", error);
+    }
+  };
 
   const fetchDashboard = async () => {
     try {
@@ -391,9 +397,13 @@ export default function AdminOverviewCharts({
     fetchDashboard();
   }, [selectedDate, selectedMonthPersonalizados, selectedYearPersonalizados, selectedMonthCajas, selectedYear]);
 
+  useEffect(() => {
+    fetchFacturacion();
+  }, [selectedYearFacturacion]);
+
   if (!dashboardData) return null;
 
-  const { estado, edades, planes, facturacion } = dashboardData;
+  const { estado, edades, planes } = dashboardData;
 
   const estadoArray = [
     { estado: "Activos", cantidad: estado.activos },
@@ -417,7 +427,7 @@ export default function AdminOverviewCharts({
   );
 
 
-  const facturacionNormalizada = facturacion.map(f => ({
+  const facturacionNormalizada = facturacionData.map(f => ({
     ...f,
     egresosClase:  f.egresosclase ?? 0,
     egresosGimnasio: f.egresosgimnasio ?? 0,
@@ -494,7 +504,7 @@ export default function AdminOverviewCharts({
         <CardContent>
           <div className="flex justify-end mb-2">
             <div className="w-[140px]">
-              <PlanSelect tipoPlan={tipoPlan} setTipoPlan={setTipoPlan} />
+              <PlanSelect tipoPlan={tipoPlan} setTipoPlan={(val) => setTipoPlan(val as TipoPlan)} />
             </div>
           </div>
           {planesFiltrados.length === 0 ? (
@@ -579,12 +589,31 @@ export default function AdminOverviewCharts({
       {/* 6. Facturación Mensual */}
 
       <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-3">
-        <CardHeader className="flex items-center gap-2">
-          <DollarSign className="text-orange-500" />
-          <CardTitle>Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-center gap-5">
+          <div className="flex items-center gap-2">
+            <DollarSign className="text-orange-500" />
+            <CardTitle>Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedYearFacturacion.toString()}
+              onValueChange={(val) => setSelectedYearFacturacion(Number(val))}
+            >
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Año" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((anio) => (
+                  <SelectItem key={anio} value={anio.toString()}>
+                    {anio}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
-          {facturacion.every(f => f.gimnasio === 0 && f.clase === 0 && f.egresosGimnasio === 0 && f.egresosClase === 0) ? (
+          {facturacionData.length === 0 || facturacionData.every(f => f.gimnasio === 0 && f.clase === 0 && (f.egresosgimnasio ?? 0) === 0 && (f.egresosclase ?? 0) === 0) ? (
             <p className="text-sm text-muted-foreground text-center mt-8">
               No hay datos de facturación para este año.
             </p>
@@ -597,37 +626,37 @@ export default function AdminOverviewCharts({
                 <Tooltip content={<CustomTooltipFacturacion />} />
 
                 <Bar dataKey="gimnasio" name="Ingreso Gimnasio" stackId="a" >
-                  {facturacion.map((_, i) => (
+                  {facturacionData.map((_, i) => (
                     <Cell key={i} fill={COLORS[0]} />
                   ))}
                 </Bar>
 
                 <Bar dataKey="egresosgimnasio" name="Egreso Gimnasio" stackId="a" radius={[6, 6, 0, 0]}>
-                  {facturacion.map((_, i) => (
+                  {facturacionData.map((_, i) => (
                     <Cell key={i} fill="#ef4444" />
                   ))}
                 </Bar>
 
                 <Bar dataKey="clase" name="Ingreso Clases" stackId="b" >
-                  {facturacion.map((_, i) => (
+                  {facturacionData.map((_, i) => (
                     <Cell key={i} fill={COLORS[2]} />
                   ))}
                 </Bar>
 
                 <Bar dataKey="egresosclase" name="Egreso Clases" stackId="b" radius={[6, 6, 0, 0]}>
-                  {facturacion.map((_, i) => (
+                  {facturacionData.map((_, i) => (
                     <Cell key={i} fill="#f87171" />
                   ))}
                 </Bar>
 
                 <Bar dataKey="servicio" name="Ingreso Servicios" stackId="c" radius={[6, 6, 0, 0]}>
-                  {facturacion.map((_, i) => (
+                  {facturacionData.map((_, i) => (
                     <Cell key={i} fill="#10b981" />
                   ))}
                 </Bar>
 
                 <Bar dataKey="producto" name="Ingreso Productos" stackId="d" radius={[6, 6, 0, 0]}>
-                  {facturacion.map((_, i) => (
+                  {facturacionData.map((_, i) => (
                     <Cell key={i} fill="#8b5cf6" />
                   ))}
                 </Bar>

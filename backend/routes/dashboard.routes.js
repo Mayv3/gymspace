@@ -66,4 +66,22 @@ router.get('/rpc', async (req, res) => {
   }
 })
 
+router.get('/facturacion', async (req, res) => {
+  try {
+    const anio = Number(req.query.anio ?? dayjs().year())
+
+    const { data, error } = await supabase.rpc('rpc_dashboard_gymspace_by_year', {
+      selected_year: anio
+    })
+
+    if (error) throw error
+
+    res.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
+    return res.json({ anio, facturacion: data })
+  } catch (e) {
+    console.error('rpc_dashboard_gymspace_by_year error:', e)
+    return res.status(500).json({ error: 'No se pudo obtener la facturación' })
+  }
+})
+
 export default router
