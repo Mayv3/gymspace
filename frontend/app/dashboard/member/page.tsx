@@ -1087,33 +1087,93 @@ export default function MemberDashboard() {
             transition={{ duration: 0.5, delay: 0.7 }}
           >
             {user.Tipo_de_plan === "CLASE" ? (
-              <Card>
-                <CardHeader className="bg-primary/5">
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 text-primary mr-2" />
-                    <CardTitle>Inscripción a Clases</CardTitle>
-                  </div>
-                  <CardDescription>Elige tu clase y gestiona tu inscripción.</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
+              <MuiCard elevation={4} sx={{ mb: 3 }}>
+                <Box
+                  sx={{
+                    background: 'linear-gradient(135deg, #ea580c, #f97316)',
+                    p: 3,
+                    borderRadius: '16px 16px 0 0',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <CalendarMonth sx={{ color: 'white', fontSize: 32 }} />
+                    <Box>
+                      <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
+                        Inscripción a Clases
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                        Elige tu clase y gestiona tu inscripción
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+                <MuiCardContent sx={{ p: 3 }}>
                   {loadingClases ? (
-                    <p>Cargando clases...</p>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress sx={{ color: 'primary.main' }} />
+                    </Box>
                   ) : (
                     clasesAgrupadas.map(({ dia, clases }) => (
-                      <div key={dia} className="mb-8">
-                        <h3 className="text-2xl font-bold mb-4 text-primary">{dia}</h3>
+                      <Box key={dia} sx={{ mb: 4 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                          <Box
+                            sx={{
+                              width: 4,
+                              height: 28,
+                              bgcolor: 'primary.main',
+                              borderRadius: 2,
+                            }}
+                          />
+                          <Typography variant="h5" fontWeight={700} color="primary.main">
+                            {dia}
+                          </Typography>
+                        </Box>
 
                         {dia === diaHoy && clases.length === 0 ? (
-                          <p className="text-center text-muted-foreground">
-                            Ya pasaron todas las clases del día.
-                          </p>
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 3,
+                              textAlign: 'center',
+                              bgcolor: 'grey.50',
+                              borderRadius: 3,
+                            }}
+                          >
+                            <Typography color="text.secondary">
+                              Ya pasaron todas las clases del día.
+                            </Typography>
+                          </Paper>
                         ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {clases.map((clase) => {
-                              const inscritos = clase.Inscriptos
-                                ? clase.Inscriptos.split(",").map(d => d.trim()).filter(Boolean)
-                                : [];
-                              const estaInscripto = inscritos.includes(contextUser!.dni);
+                          <Box>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                gap: 2,
+                                overflowX: 'scroll',
+                                pb: 2,
+                                px: 0.5,
+                                alignItems: 'stretch',
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#d4d4d4 #f5f5f5',
+                                '&::-webkit-scrollbar': {
+                                  height: 8,
+                                  display: 'block',
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                  bgcolor: '#f5f5f5',
+                                  borderRadius: 4,
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                  bgcolor: '#d4d4d4',
+                                  borderRadius: 4,
+                                },
+                              }}
+                            >
+                              {clases.map((clase) => {
+                                const inscritos = clase.Inscriptos
+                                  ? clase.Inscriptos.split(",").map(d => d.trim()).filter(Boolean)
+                                  : [];
+                                const estaInscripto = inscritos.includes(contextUser!.dni);
 
                               const ARG_TZ = "America/Argentina/Buenos_Aires";
                               const now = dayjs().tz(ARG_TZ);
@@ -1144,41 +1204,120 @@ export default function MemberDashboard() {
                                 puedeActuar = true;
                               }
 
+                              const cupoPercentage = (inscritos.length / Number(clase["Cupo maximo"])) * 100;
+
                               return (
-                                <Card
+                                <Paper
                                   key={clase.ID}
-                                  className="bg-background text-foreground rounded-lg border border-orange-500 transition p-7 flex flex-col justify-between"
+                                  elevation={3}
+                                  sx={{
+                                    px: 0,
+                                    borderRadius: 3,
+                                    overflow: 'hidden',
+                                    border: estaInscripto ? '2px solid #ea580c' : '1px solid rgba(0,0,0,0.1)',
+                                    transition: 'all 0.3s ease',
+                                    minWidth: { xs: 280, sm: 300 },
+                                    maxWidth: { xs: 280, sm: 300 },
+                                    flexShrink: 0,
+                                    '&:hover': {
+                                      transform: 'translateY(-4px)',
+                                      boxShadow: 6,
+                                    },
+                                  }}
                                 >
-                                  <div>
-                                    <div className="flex items-start space-x-2 mb-4 w-full">
-                                      <CardTitle className="text-[16px] font-bold flex-1 min-w-0">
-                                        {clase["Nombre de clase"]}
-                                      </CardTitle>
-                                      <Badge
-                                        variant="outline"
-                                        className="text-sm font-semibold bg-background flex-shrink-0 whitespace-nowrap"
+                                  <Box
+                                    sx={{
+                                      background: estaInscripto
+                                        ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                                        : 'linear-gradient(135deg, #f5f5f5, #fff)',
+                                      p: 2.5,
+                                      borderBottom: '1px solid rgba(0,0,0,0.05)',
+                                    }}
+                                  >
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                      <Typography
+                                        variant="h6"
+                                        fontWeight={700}
+                                        sx={{ color: estaInscripto ? 'white' : 'text.primary', fontSize: '1.1rem' }}
                                       >
-                                        {clase.Dia} — {clase.ProximaFecha}
-                                      </Badge>
-                                    </div>
-                                    <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
-                                    <p className="text-lg">
-                                      <span className="font-semibold">{inscritos.length}</span> /{" "}
-                                      <span className="font-semibold">{clase["Cupo maximo"]}</span>{" "}
-                                      Inscriptos
-                                    </p>
-                                  </div>
-                                  <div className="mt-4">
+                                        {clase["Nombre de clase"]}
+                                      </Typography>
+                                      {estaInscripto && (
+                                        <Chip
+                                          size="small"
+                                          label="INSCRIPTO"
+                                          sx={{
+                                            bgcolor: 'rgba(255,255,255,0.2)',
+                                            color: 'white',
+                                            fontWeight: 600,
+                                            fontSize: '0.7rem',
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
+                                    <Typography
+                                      variant="body2"
+                                      fontWeight={500}
+                                      sx={{ color: estaInscripto ? 'rgba(255,255,255,0.9)' : 'text.secondary' }}
+                                    >
+                                      {clase.Dia} — {clase.ProximaFecha}
+                                    </Typography>
+                                  </Box>
+
+                                  <Box sx={{ p: 2.5 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                                      <Box
+                                        sx={{
+                                          width: 36,
+                                          height: 36,
+                                          borderRadius: 2,
+                                          bgcolor: 'rgba(234, 88, 12, 0.1)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                        }}
+                                      >
+                                        <FitnessCenter sx={{ color: 'primary.main', fontSize: 20 }} />
+                                      </Box>
+                                      <Typography variant="h5" fontWeight={700} color="text.primary">
+                                        {clase.Hora}hs
+                                      </Typography>
+                                    </Box>
+
+                                    <Box sx={{ mb: 2 }}>
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                        <Typography variant="body2" fontWeight={500} color="text.secondary">
+                                          Cupos disponibles
+                                        </Typography>
+                                        <Typography variant="body1" fontWeight={700} color="text.primary">
+                                          {inscritos.length}/{clase["Cupo maximo"]}
+                                        </Typography>
+                                      </Box>
+                                      <LinearProgress
+                                        variant="determinate"
+                                        value={cupoPercentage}
+                                        sx={{
+                                          height: 8,
+                                          borderRadius: 4,
+                                          bgcolor: 'rgba(0,0,0,0.1)',
+                                          '& .MuiLinearProgress-bar': {
+                                            bgcolor: cupoPercentage >= 100 ? 'error.main' : cupoPercentage >= 80 ? 'warning.main' : 'primary.main',
+                                            borderRadius: 4,
+                                          },
+                                        }}
+                                      />
+                                    </Box>
+
                                     <button
                                       onClick={() =>
                                         puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")
                                       }
                                       disabled={!puedeActuar || loadingClaseId === clase.ID}
-                                      className={`w-full py-3 rounded-lg font-semibold ${puedeActuar
+                                      className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${puedeActuar
                                         ? estado === "Desuscribirse"
-                                          ? "bg-red-600 text-white hover:bg-red-700"
-                                          : "bg-orange-600 text-white hover:bg-orange-700"
-                                        : "bg-gray-200 text-gray-600 cursor-not-allowed"
+                                          ? "bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg"
+                                          : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg"
+                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
                                         }`}
                                     >
                                       {loadingClaseId === clase.ID ? (
@@ -1209,17 +1348,18 @@ export default function MemberDashboard() {
                                         estado
                                       )}
                                     </button>
-                                  </div>
-                                </Card>
+                                  </Box>
+                                </Paper>
                               );
                             })}
-                          </div>
+                          </Box>
+                          </Box>
                         )}
-                      </div>
+                      </Box>
                     ))
                   )}
-                </CardContent>
-              </Card>
+                </MuiCardContent>
+              </MuiCard>
             ) : null}
           </motion.div>
         </Box>
