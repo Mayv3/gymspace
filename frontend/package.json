@@ -15,6 +15,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^3.9.1",
+    "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.3.4",
     "@next/font": "^14.2.15",
     "@radix-ui/react-accordion": "^1.2.2",
