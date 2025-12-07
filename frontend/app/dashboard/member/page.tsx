@@ -552,7 +552,7 @@ export default function MemberDashboard() {
 
         <DashboardHeader role="Miembro" />
 
-        <Box sx={{ flex: 1, p: 2, maxWidth: 500, mx: 'auto' }}>
+        <Box sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
           {/* Header de bienvenida */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Paper
@@ -603,7 +603,7 @@ export default function MemberDashboard() {
           </motion.div>
 
           {/* Grid de tarjetas de estadísticas */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 3, mb: 3 }}>
             {/* Plan Actual */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
               <MuiCard
