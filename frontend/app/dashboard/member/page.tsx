@@ -56,9 +56,10 @@ import {
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
 
-// Tema personalizado con colores naranja
-const theme = createTheme({
+// Función para crear tema dinámico
+const createAppTheme = (isDark: boolean) => createTheme({
   palette: {
+    mode: isDark ? 'dark' : 'light',
     primary: {
       main: '#ea580c',
       light: '#fb923c',
@@ -73,6 +74,14 @@ const theme = createTheme({
     warning: {
       main: '#eab308',
     },
+    background: {
+      default: isDark ? '#18181b' : '#f9fafb',
+      paper: isDark ? '#27272a' : '#ffffff',
+    },
+    text: {
+      primary: isDark ? '#fafafa' : '#18181b',
+      secondary: isDark ? '#a1a1aa' : '#71717a',
+    },
   },
   typography: {
     fontFamily: 'inherit',
@@ -82,6 +91,14 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 16,
+          backgroundColor: isDark ? '#27272a' : '#ffffff',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: isDark ? '#27272a' : '#ffffff',
         },
       },
     },
@@ -148,11 +165,47 @@ export default function MemberDashboard() {
   const [rankingAlumno, setRankingAlumno] = useState<number | null>(null);
   const hasFetched = useRef(false)
   const [roleChecked, setRoleChecked] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   const { user: contextUser, loading } = useUser()
   const router = useRouter();
 
   const [showBanner, setShowBanner] = useState(false);
+
+  // Marcar como montado para evitar hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Detectar cambios en el dark mode
+  useEffect(() => {
+    if (!mounted) return
+    
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark')
+      setIsDarkMode(isDark)
+    }
+    
+    // Check inicial
+    checkDarkMode()
+    
+    // Observer para detectar cambios en la clase
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          checkDarkMode()
+        }
+      })
+    })
+    
+    observer.observe(document.documentElement, { attributes: true })
+    
+    return () => observer.disconnect()
+  }, [mounted])
+
+  // Crear tema dinámico basado en dark mode
+  const theme = createAppTheme(isDarkMode)
 
   useEffect(() => {
     if (!loading && !contextUser) {
@@ -499,7 +552,7 @@ export default function MemberDashboard() {
 
         <DashboardHeader role="Miembro" />
 
-        <Box sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
+        <Box sx={{ flex: 1, p: 2, maxWidth: 500, mx: 'auto' }}>
           {/* Header de bienvenida */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Paper
@@ -550,14 +603,16 @@ export default function MemberDashboard() {
           </motion.div>
 
           {/* Grid de tarjetas de estadísticas */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
             {/* Plan Actual */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
               <MuiCard
                 elevation={4}
                 sx={{
                   height: '100%',
-                  background: 'linear-gradient(135deg, #fff 0%, #fef3ed 100%)',
+                  background: isDarkMode 
+                    ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)'
+                    : 'linear-gradient(135deg, #fff 0%, #fef3ed 100%)',
                   border: '1px solid rgba(234, 88, 12, 0.2)',
                   '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
                 }}
@@ -601,8 +656,8 @@ export default function MemberDashboard() {
                 sx={{
                   height: '100%',
                   background: planInhabilitado
-                    ? 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)'
-                    : 'linear-gradient(135deg, #fff 0%, #f0fdf4 100%)',
+                    ? isDarkMode ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)' : 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)'
+                    : isDarkMode ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)' : 'linear-gradient(135deg, #fff 0%, #f0fdf4 100%)',
                   border: `1px solid ${planInhabilitado ? 'rgba(220, 38, 38, 0.2)' : 'rgba(22, 163, 74, 0.2)'}`,
                   '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
                 }}
@@ -664,8 +719,8 @@ export default function MemberDashboard() {
                 sx={{
                   height: '100%',
                   background: agotado
-                    ? 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)'
-                    : 'linear-gradient(135deg, #fff 0%, #eff6ff 100%)',
+                    ? isDarkMode ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)' : 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)'
+                    : isDarkMode ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)' : 'linear-gradient(135deg, #fff 0%, #eff6ff 100%)',
                   border: `1px solid ${agotado ? 'rgba(220, 38, 38, 0.2)' : 'rgba(59, 130, 246, 0.2)'}`,
                   '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
                 }}
@@ -726,7 +781,9 @@ export default function MemberDashboard() {
                 elevation={4}
                 sx={{
                   height: '100%',
-                  background: 'linear-gradient(135deg, #fff 0%, #fefce8 100%)',
+                  background: isDarkMode 
+                    ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)'
+                    : 'linear-gradient(135deg, #fff 0%, #fefce8 100%)',
                   border: '1px solid rgba(234, 179, 8, 0.2)',
                   '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
                 }}
@@ -813,8 +870,8 @@ export default function MemberDashboard() {
                               sx={{
                                 p: 2,
                                 borderRadius: 3,
-                                border: esUsuarioActual ? '2px solid #eab308' : '1px solid rgba(0,0,0,0.1)',
-                                bgcolor: esUsuarioActual ? 'rgba(234, 179, 8, 0.1)' : 'background.paper',
+                                border: esUsuarioActual ? '2px solid #eab308' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                                bgcolor: esUsuarioActual ? (isDarkMode ? 'rgba(234, 179, 8, 0.15)' : 'rgba(234, 179, 8, 0.1)') : (isDarkMode ? '#1f1f23' : 'background.paper'),
                                 transition: 'all 0.3s ease',
                                 '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
                                 display: 'flex',
@@ -862,8 +919,8 @@ export default function MemberDashboard() {
                               sx={{
                                 p: 2,
                                 borderRadius: 3,
-                                border: esUsuarioActual ? '2px solid #eab308' : '1px solid rgba(0,0,0,0.1)',
-                                bgcolor: esUsuarioActual ? 'rgba(234, 179, 8, 0.1)' : 'background.paper',
+                                border: esUsuarioActual ? '2px solid #eab308' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                                bgcolor: esUsuarioActual ? (isDarkMode ? 'rgba(234, 179, 8, 0.15)' : 'rgba(234, 179, 8, 0.1)') : (isDarkMode ? '#1f1f23' : 'background.paper'),
                                 transition: 'all 0.3s ease',
                                 '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
                                 display: 'flex',
@@ -965,8 +1022,8 @@ export default function MemberDashboard() {
                               sx={{
                                 p: 2,
                                 borderRadius: 3,
-                                border: '1px solid rgba(22, 163, 74, 0.2)',
-                                bgcolor: 'background.paper',
+                                border: isDarkMode ? '1px solid rgba(22, 163, 74, 0.3)' : '1px solid rgba(22, 163, 74, 0.2)',
+                                bgcolor: isDarkMode ? '#1f1f23' : 'background.paper',
                                 '&:hover': {
                                   boxShadow: 4,
                                   transform: 'translateX(4px)',
@@ -1135,7 +1192,7 @@ export default function MemberDashboard() {
                             sx={{
                               p: 3,
                               textAlign: 'center',
-                              bgcolor: 'grey.50',
+                              bgcolor: isDarkMode ? '#1f1f23' : 'grey.50',
                               borderRadius: 3,
                             }}
                           >
@@ -1154,17 +1211,17 @@ export default function MemberDashboard() {
                                 px: 0.5,
                                 alignItems: 'stretch',
                                 scrollbarWidth: 'thin',
-                                scrollbarColor: '#d4d4d4 #f5f5f5',
+                                scrollbarColor: isDarkMode ? '#52525b #27272a' : '#d4d4d4 #f5f5f5',
                                 '&::-webkit-scrollbar': {
                                   height: 8,
                                   display: 'block',
                                 },
                                 '&::-webkit-scrollbar-track': {
-                                  bgcolor: '#f5f5f5',
+                                  bgcolor: isDarkMode ? '#27272a' : '#f5f5f5',
                                   borderRadius: 4,
                                 },
                                 '&::-webkit-scrollbar-thumb': {
-                                  bgcolor: '#d4d4d4',
+                                  bgcolor: isDarkMode ? '#52525b' : '#d4d4d4',
                                   borderRadius: 4,
                                 },
                               }}
@@ -1214,11 +1271,12 @@ export default function MemberDashboard() {
                                     px: 0,
                                     borderRadius: 3,
                                     overflow: 'hidden',
-                                    border: estaInscripto ? '2px solid #ea580c' : '1px solid rgba(0,0,0,0.1)',
+                                    border: estaInscripto ? '2px solid #ea580c' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
                                     transition: 'all 0.3s ease',
                                     minWidth: { xs: 280, sm: 300 },
                                     maxWidth: { xs: 280, sm: 300 },
                                     flexShrink: 0,
+                                    bgcolor: isDarkMode ? '#1f1f23' : 'background.paper',
                                     '&:hover': {
                                       transform: 'translateY(-4px)',
                                       boxShadow: 6,
@@ -1229,9 +1287,9 @@ export default function MemberDashboard() {
                                     sx={{
                                       background: estaInscripto
                                         ? 'linear-gradient(135deg, #ea580c, #f97316)'
-                                        : 'linear-gradient(135deg, #f5f5f5, #fff)',
+                                        : isDarkMode ? 'linear-gradient(135deg, #2a2a2e, #35353a)' : 'linear-gradient(135deg, #f5f5f5, #fff)',
                                       p: 2.5,
-                                      borderBottom: '1px solid rgba(0,0,0,0.05)',
+                                      borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
                                     }}
                                   >
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
