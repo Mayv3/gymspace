@@ -19,10 +19,81 @@ import { CheckCircle, XCircle } from "lucide-react"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
-import { CircularProgress } from '@mui/material'
+import {
+  CircularProgress,
+  Box,
+  Card as MuiCard,
+  CardContent as MuiCardContent,
+  Typography,
+  LinearProgress,
+  Chip,
+  Paper,
+  Table as MuiTable,
+  TableBody as MuiTableBody,
+  TableCell as MuiTableCell,
+  TableContainer,
+  TableHead as MuiTableHead,
+  TableRow as MuiTableRow,
+  Avatar,
+  Divider,
+  Modal,
+  Fade,
+  IconButton,
+} from '@mui/material'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import {
+  EmojiEvents,
+  CalendarMonth,
+  FitnessCenter,
+  AttachMoney,
+  Close,
+  CheckCircle as MuiCheckCircle,
+  Cancel,
+  Toll,
+  TrendingUp as MuiTrendingUp,
+} from '@mui/icons-material'
 
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
+
+// Tema personalizado con colores naranja
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#ea580c',
+      light: '#fb923c',
+      dark: '#c2410c',
+    },
+    success: {
+      main: '#16a34a',
+    },
+    error: {
+      main: '#dc2626',
+    },
+    warning: {
+      main: '#eab308',
+    },
+  },
+  typography: {
+    fontFamily: 'inherit',
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 600,
+        },
+      },
+    },
+  },
+})
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -229,20 +300,34 @@ export default function MemberDashboard() {
   }
 
   if (loading || (!contextUser && !user)) {
-    return <div className="p-8 text-muted-foreground">Verificando sesión…</div>
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <CircularProgress sx={{ color: 'primary.main' }} />
+        </Box>
+      </ThemeProvider>
+    )
   }
 
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center gap-3 p-8 text-muted-foreground">
-        <CircularProgress size={24} sx={{ color: '#ff9800' }} />
-      </div>
+      <ThemeProvider theme={theme}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <CircularProgress sx={{ color: 'primary.main' }} />
+        </Box>
+      </ThemeProvider>
     )
   }
 
   if (!roleChecked) {
-    return <div className="p-8 text-muted-foreground">Verificando permisos…</div>
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <CircularProgress sx={{ color: 'primary.main' }} />
+        </Box>
+      </ThemeProvider>
+    )
   }
 
   const rawFecha = user.Fecha_vencimiento
@@ -302,523 +387,843 @@ export default function MemberDashboard() {
   const diaHoy = diasOrden[0];
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <ThemeProvider theme={theme}>
+      <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-zinc-900">
 
-      {showBanner && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        {/* Modal de Banner */}
+        <Modal
+          open={showBanner}
+          onClose={() => setShowBanner(false)}
+          closeAfterTransition
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0.8 }}
-            className="bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-xl max-w-md w-[90vw] text-center"
-          >
-            <h2 className="text-2xl font-bold mb-4">¡Gran Inauguración!</h2>
-
-            <span className="inline-block bg-orange-100 text-orange-600 font-semibold px-3 py-1 rounded-full mb-4">
-              VIERNES 20 — 17:00 HS
-            </span>
-
-            <div className="flex items-center justify-center text-sm text-zinc-700 dark:text-zinc-300 mb-6">
-              <svg
-                className="w-5 h-5 text-red-500 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
+          <Fade in={showBanner}>
+            <Paper
+              elevation={24}
+              sx={{
+                p: 4,
+                maxWidth: 400,
+                width: '90%',
+                borderRadius: 4,
+                textAlign: 'center',
+                outline: 'none',
+              }}
+            >
+              <Typography variant="h5" fontWeight={700} mb={2}>
+                ¡Gran Inauguración!
+              </Typography>
+              <Chip
+                label="VIERNES 20 — 17:00 HS"
+                sx={{
+                  bgcolor: 'rgba(234, 88, 12, 0.1)',
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  mb: 2,
+                }}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                <CalendarMonth sx={{ color: 'error.main', mr: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Humahuaca 41
+                </Typography>
+              </Box>
+              <Typography variant="body1" color="text.secondary" mb={3}>
+                Mañana celebramos la apertura de nuestra nueva sede.
+                ¡Te esperamos con amigos para compartir merienda y disfrutar de cosas ricas!
+              </Typography>
+              <button
+                onClick={() => setShowBanner(false)}
+                className="px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6zm0 8a2 2 0 110-4 2 2 0 010 4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Humahuaca 41
-            </div>
+                ¡Nos vemos allí!
+              </button>
+            </Paper>
+          </Fade>
+        </Modal>
 
-            <p className="mb-6 text-zinc-800 dark:text-zinc-200">
-              Mañana celebramos la apertura de nuestra nueva sede.
-              ¡Te esperamos con amigos para compartir merienda y disfrutar de cosas ricas!
-            </p>
-
-            <button
-              onClick={() => setShowBanner(false)}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
+        {/* Modal de Feedback */}
+        <Modal
+          open={showFeedback}
+          onClose={() => setShowFeedback(false)}
+          closeAfterTransition
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Fade in={showFeedback}>
+            <Paper
+              elevation={24}
+              sx={{
+                p: 4,
+                maxWidth: 350,
+                width: '90%',
+                borderRadius: 4,
+                textAlign: 'center',
+                outline: 'none',
+              }}
             >
-              ¡Nos vemos allí!
-            </button>
-          </motion.div>
-        </motion.div>
-      )}
-
-
-      <AnimatePresence>
-        {showFeedback && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="bg-white rounded-2xl p-6 shadow-xl max-w-xs w-full text-center space-y-4"
-            >
-              {feedbackType === "success" ? (
-                <CheckCircle className="mx-auto h-10 w-10 text-green-500" />
-              ) : (
-                <XCircle className="mx-auto h-10 w-10 text-red-500" />
-              )}
-              <p className="text-justify tracking-tight	 text-lg font-medium text-red-600">
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  bgcolor: feedbackType === "success" ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 2,
+                }}
+              >
+                {feedbackType === "success" ? (
+                  <MuiCheckCircle sx={{ fontSize: 50, color: 'success.main' }} />
+                ) : (
+                  <Cancel sx={{ fontSize: 50, color: 'error.main' }} />
+                )}
+              </Box>
+              <Typography
+                variant="body1"
+                fontWeight={500}
+                color={feedbackType === "success" ? "success.main" : "error.main"}
+                mb={3}
+              >
                 {feedbackMessage}
-              </p>
+              </Typography>
               <button
                 onClick={() => setShowFeedback(false)}
-                className="mt-2 w-full py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition"
               >
                 Cerrar
               </button>
+            </Paper>
+          </Fade>
+        </Modal>
+
+        <DashboardHeader role="Miembro" />
+
+        <Box sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
+          {/* Header de bienvenida */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                background: 'linear-gradient(135deg, #ea580c 0%, #fb923c 50%, #ea580c 100%)',
+                borderRadius: 4,
+                p: 3,
+                mb: 3,
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -50,
+                  right: -50,
+                  width: 150,
+                  height: 150,
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.1)',
+                }}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    bgcolor: 'white',
+                    color: 'primary.main',
+                    fontWeight: 700,
+                    fontSize: '1.5rem',
+                  }}
+                >
+                  {user.Nombre?.charAt(0).toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography variant="h5" sx={{ color: 'white', fontWeight: 700 }}>
+                    ¡Bienvenido, {user.Nombre}!
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                    Tu panel de control GymSpace
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+          </motion.div>
+
+          {/* Grid de tarjetas de estadísticas */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 3, mb: 3 }}>
+            {/* Plan Actual */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+              <MuiCard
+                elevation={4}
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(135deg, #fff 0%, #fef3ed 100%)',
+                  border: '1px solid rgba(234, 88, 12, 0.2)',
+                  '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
+                }}
+              >
+                <MuiCardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Typography variant="h6"  fontWeight={900} color="text.secondary">
+                      Plan Actual
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        bgcolor: 'rgba(234, 88, 12, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <EmojiEvents sx={{ color: 'primary.main' }} />
+                    </Box>
+                  </Box>
+                  <Typography variant="h5" fontWeight={700} color="primary.main" mb={1}>
+                    {user.Plan}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                    <AttachMoney sx={{ color: 'success.main', fontSize: 20 }} />
+                    <Typography variant="body1" color="text.secondary">
+                      ${user.Precio}
+                    </Typography>
+                  </Box>
+                </MuiCardContent>
+              </MuiCard>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      <DashboardHeader role="Miembro" />
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-3xl font-bold tracking-tight gradient-text">
-              GymSpace - ¡Bienvenido, {user.Nombre}!
-            </h2>
-          </div>
-        </motion.div>
-
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Plan Actual */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-            <Card className="card-hover-effect border-primary/20 h-[20vh] dark:bg-zinc-800 dark:border-none">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
-                <Award className="h-5 w-5 text-primary animate-pulse-scale" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold gradient-text">{user.Plan}</div>
-                <div className="mt-3 space-y-2">
-                  <p className="text-lg text-muted-foreground">Precio del plan: ${user.Precio}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Estado de Membresía */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            className="w-full"
-          >
-            <Card className="w-full h-[20vh] card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
-              <CardHeader className="flex justify-between h-12 px-4">
-                <CardTitle className="text-sm font-medium">
-                  Estado de Membresía
-                </CardTitle>
-                <Calendar className="h-5 w-5 text-primary" />
-              </CardHeader>
-
-              <CardContent className="pt-2 px-4 flex flex-col justify-between">
-                <div>
-                  <div className="text-2xl font-bold gradient-text">
-                    {planInhabilitado
-                      ? "Plan inhabilitado"
-                      : `${daysLeft} días restantes`}
-                  </div>
-                  <div className="flex justify-between mb-5">
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Fin: {user.Fecha_vencimiento}
-                    </div>
-                    <Badge
-                      variant={planInhabilitado ? "destructive" : "success"}
-                      className="animate-pulse-scale"
+            {/* Estado de Membresía */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+              <MuiCard
+                elevation={4}
+                sx={{
+                  height: '100%',
+                  background: planInhabilitado
+                    ? 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)'
+                    : 'linear-gradient(135deg, #fff 0%, #f0fdf4 100%)',
+                  border: `1px solid ${planInhabilitado ? 'rgba(220, 38, 38, 0.2)' : 'rgba(22, 163, 74, 0.2)'}`,
+                  '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
+                }}
+              >
+                <MuiCardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Typography variant="h6"  fontWeight={900} color="text.secondary">
+                      Estado de Membresía
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        bgcolor: planInhabilitado ? 'rgba(220, 38, 38, 0.1)' : 'rgba(22, 163, 74, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                     >
-                      {vencido
-                        ? "VENCIMIENTO"
-                        : planInhabilitado
-                          ? "INHABILITADO"
-                          : "Activo"}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Progress
+                      <CalendarMonth sx={{ color: planInhabilitado ? 'error.main' : 'success.main' }} />
+                    </Box>
+                  </Box>
+                  <Typography variant="h5" fontWeight={700} color={planInhabilitado ? 'error.main' : 'success.main'} mb={1}>
+                    {planInhabilitado ? "Inhabilitado" : `${daysLeft} días`}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Vence: {user.Fecha_vencimiento}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={vencido ? "VENCIDO" : planInhabilitado ? "INHABILITADO" : "ACTIVO"}
+                      color={planInhabilitado ? "error" : "success"}
+                      sx={{ fontSize: '0.65rem' }}
+                    />
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
                     value={progressPercentage}
-                    className="h-2 flex-1 ml-2"
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      bgcolor: 'rgba(0,0,0,0.1)',
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: planInhabilitado ? 'error.main' : 'success.main',
+                        borderRadius: 3,
+                      },
+                    }}
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                </MuiCardContent>
+              </MuiCard>
+            </motion.div>
 
-          {/* Clases Restantes */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            className="w-full"
-          >
-            <Card className="w-full h-[20vh] card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
-              <CardHeader className="flex justify-between h-12 px-4">
-                <CardTitle className="text-sm font-medium">
-                  Clases Restantes
-                </CardTitle>
-                <Dumbbell className="h-5 w-5 text-primary" />
-              </CardHeader>
-
-              <CardContent className="pt-2 px-4 flex flex-col justify-between">
-                <div>
-                  <div className="text-2xl font-bold gradient-text">
+            {/* Clases Restantes */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.3 }}>
+              <MuiCard
+                elevation={4}
+                sx={{
+                  height: '100%',
+                  background: agotado
+                    ? 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)'
+                    : 'linear-gradient(135deg, #fff 0%, #eff6ff 100%)',
+                  border: `1px solid ${agotado ? 'rgba(220, 38, 38, 0.2)' : 'rgba(59, 130, 246, 0.2)'}`,
+                  '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
+                }}
+              >
+                <MuiCardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Typography variant="h6"  fontWeight={900} color="text.secondary">
+                      Clases Restantes
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        bgcolor: agotado ? 'rgba(220, 38, 38, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <FitnessCenter sx={{ color: agotado ? 'error.main' : '#3b82f6' }} />
+                    </Box>
+                  </Box>
+                  <Typography variant="h5" fontWeight={700} color={agotado ? 'error.main' : '#3b82f6'} mb={1}>
                     {planInhabilitado ? "Sin acceso" : user.Clases_restantes}
-                  </div>
-                  <div className="flex justify-between mb-5">
-                    <div className="text-xs text-muted-foreground mt-1">
-                      De {user.Clases_pagadas} clases este mes
-                    </div>
-                    <Badge
-                      variant={planInhabilitado ? "destructive" : "success"}
-                      className="animate-pulse-scale"
-                    >
-                      {agotado
-                        ? "LÍMITE DE CLASES"
-                        : planInhabilitado
-                          ? "INHABILITADO"
-                          : "Activo"}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Progress
-                    value={(user.Clases_restantes / user.Clases_pagadas) * 100}
-                    className="h-2 flex-1 ml-2"
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      De {user.Clases_pagadas} clases/mes
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={agotado ? "AGOTADO" : planInhabilitado ? "INHABILITADO" : "DISPONIBLE"}
+                      color={agotado || planInhabilitado ? "error" : "primary"}
+                      sx={{ fontSize: '0.65rem' }}
+                    />
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={user.Clases_pagadas > 0 ? (user.Clases_restantes / user.Clases_pagadas) * 100 : 0}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      bgcolor: 'rgba(0,0,0,0.1)',
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: agotado ? 'error.main' : '#3b82f6',
+                        borderRadius: 3,
+                      },
+                    }}
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                </MuiCardContent>
+              </MuiCard>
+            </motion.div>
 
+            {/* GymSpace Coins */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.4 }}>
+              <MuiCard
+                elevation={4}
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(135deg, #fff 0%, #fefce8 100%)',
+                  border: '1px solid rgba(234, 179, 8, 0.2)',
+                  '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
+                }}
+              >
+                <MuiCardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Typography variant="h6" fontWeight={900} color="text.secondary">
+                      GymSpace Coins
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        bgcolor: 'rgba(234, 179, 8, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Toll sx={{ color: '#eab308' }} />
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Typography variant="h5" fontWeight={700} color="#eab308">
+                      #{rankingAlumno ?? "-"}
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary">
+                      •
+                    </Typography>
+                    <Typography variant="h5" fontWeight={700} color="#eab308">
+                      {planInhabilitado ? "0" : (user.GymCoins ?? 0)}
+                    </Typography>
+                    <Toll sx={{ color: '#eab308', fontSize: 24 }} />
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
+                    ¡Participa del sorteo mensual! Acumula puntos asistiendo y mejorando tu plan.
+                  </Typography>
+                </MuiCardContent>
+              </MuiCard>
+            </motion.div>
+          </Box>
+
+          {/* Ranking GymSpace Coins */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            className="w-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <Card className="w-full card-hover-effect border-primary/20 dark:bg-zinc-800 dark:border-none">
-              <CardHeader className="flex justify-between h-12 px-4">
-                <CardTitle className="text-sm font-medium">
-                  GYMSPACE COINS
-                </CardTitle>
-                <Dumbbell className="h-5 w-5 text-primary" />
-              </CardHeader>
-              <CardContent className="pt-2 px-4 flex flex-col justify-between">
-                <div>
-                  <div className="text-2xl font-bold flex items-center gap-1 gradient-text">
-                    <p className="text-2xl">
-                      #{rankingAlumno ?? "-"} - {planInhabilitado ? "Sin acceso" : (user.GymCoins ?? 0)}
-                    </p>
-                    <Coins />
-                  </div>
-                  <div className="mt-2 text-xs text-muted-foreground leading-snug ">
-                    <span className="flex items-center gap-1 mb-3">
-                      Estos puntos te serviran para llegar a estar en el ranking de los 10 mejores !Participando de un sorteo mensual!
-                    </span>
-                    <ul className="list-disc list-inside ml-1 mt-1 space-y-0.5">
-                      <li>Según tu antigüedad, compromiso de pago.</li>
-                      <li>Mientras más asistas, más puntos vas a acumular.</li>
-                      <li>Mejorando tu plan obtendrás más puntos.</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-6"
-        >
-          <Card className="border-primary/20 dark:bg-zinc-800 dark:border-none">
-            <CardHeader className="flex justify-between items-center bg-primary/5 mb-5">
-              <CardTitle>Ranking GymSpace Coins</CardTitle>
-              <CardDescription>
-                Los 10 mejores participantes {user.Tipo_de_plan === "GIMNASIO" ? "del GIMNASIO" : "del CLUB"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {user?.Tipo_de_plan === "GIMNASIO"
-                ? (topAlumnosCoins.top10Gimnasio || []).map((alumno, index) => {
-                  const esUsuarioActual = alumno.DNI === contextUser?.dni;
-                  return (
-                    <motion.div
-                      key={alumno.DNI}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: esUsuarioActual ? 1.05 : 1 }}
-                      transition={{ duration: 0.4 }}
-                      className={`rounded-lg border p-4 flex flex-col items-center justify-center text-center cursor-default
-                ${esUsuarioActual ? 'bg-yellow-400 dark:bg-yellow-900 font-bold shadow-lg' : 'bg-background dark:bg-zinc-900'}
-                hover:shadow-md transition-shadow`}
-                    >
-                      <div className="text-2xl text-primary font-extrabold mb-1">#{index + 1}</div>
-                      <div className="text-lg font-semibold truncate max-w-full">{alumno.Nombre}</div>
-                      <div className="mt-2 flex items-center gap-1 text-2xl font-bold gradient-text">
-                        {alumno.GymCoins}
-                        <Coins className="w-6 h-6" />
-                      </div>
-                    </motion.div>
-                  );
-                })
-                : (topAlumnosCoins.top10Clases || []).map((alumno, index) => {
-                  const esUsuarioActual = alumno.DNI === contextUser?.dni;
-                  return (
-                    <motion.div
-                      key={alumno.DNI}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: esUsuarioActual ? 1.05 : 1 }}
-                      transition={{ duration: 0.4 }}
-                      className={`rounded-lg border p-4 flex flex-col items-center justify-center text-center cursor-default
-                ${esUsuarioActual ? 'bg-yellow-400 dark:bg-yellow-900 font-bold shadow-lg' : 'bg-background dark:bg-zinc-900'}
-                hover:shadow-md transition-shadow`}
-                    >
-                      <div className="text-2xl text-primary font-extrabold mb-1">#{index + 1}</div>
-                      <div className="text-lg font-semibold truncate max-w-full">{alumno.Nombre}</div>
-                      <div className="mt-2 flex items-center gap-1 text-2xl font-bold gradient-text">
-                        {alumno.GymCoins}
-                        <Coins className="w-6 h-6" />
-                      </div>
-                    </motion.div>
-                  );
-                })}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-
-        {/* Historial de pagos */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
-          <Card className="dark:bg-zinc-900 dark:border-none rounded-lg">
-            <CardHeader className="bg-primary/5 dark:bg-zinc-800 dark:border-none rounded-lg">
-              <div className="flex items-center">
-                <TrendingUp className="h-5 w-5 text-primary mr-2" />
-                <CardTitle>Historial de Pagos</CardTitle>
-              </div>
-              <CardDescription>Tus pagos recientes y renovaciones de membresía.</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="overflow-auto max-w-[calc(100vw-2rem)]">
-                <div className="min-w-[700px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Descripción</TableHead>
-                        <TableHead>Monto</TableHead>
-                        <TableHead>Método</TableHead>
-                        <TableHead>Estado</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {user.Pagos.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground">
-                            No hay pagos registrados aún.
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        [...user.Pagos]
-                          .sort((a, b) =>
-                            dayjs(b.Fecha_de_Pago, "D/M/YYYY").unix() -
-                            dayjs(a.Fecha_de_Pago, "D/M/YYYY").unix()
-                          )
-                          .map((pago, index) => (
-                            <motion.tr
-                              key={index}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
-                              className="hover:bg-accent"
+            <MuiCard elevation={4} sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                  p: 3,
+                  borderRadius: '16px 16px 0 0',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <EmojiEvents sx={{ color: '#fbbf24', fontSize: 32 }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
+                      Ranking GymSpace Coins
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                      Los 10 mejores participantes {user.Tipo_de_plan === "GIMNASIO" ? "del GIMNASIO" : "del CLUB"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              <MuiCardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {user?.Tipo_de_plan === "GIMNASIO"
+                    ? (topAlumnosCoins.top10Gimnasio || []).map((alumno: any, index: number) => {
+                        const esUsuarioActual = alumno.DNI === contextUser?.dni;
+                        return (
+                          <motion.div
+                            key={alumno.DNI}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.4, delay: index * 0.05 }}
+                          >
+                            <Paper
+                              elevation={esUsuarioActual ? 8 : 2}
+                              sx={{
+                                p: 2,
+                                borderRadius: 3,
+                                border: esUsuarioActual ? '2px solid #eab308' : '1px solid rgba(0,0,0,0.1)',
+                                bgcolor: esUsuarioActual ? 'rgba(234, 179, 8, 0.1)' : 'background.paper',
+                                transition: 'all 0.3s ease',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                              }}
                             >
-                              <TableCell>{pago.Fecha_de_Pago}</TableCell>
-                              <TableCell>{`${pago.Tipo} (${pago.Responsable})`}</TableCell>
-                              <TableCell className="font-medium text-green-600">${pago.Monto}</TableCell>
-                              <TableCell>{pago.Metodo_de_Pago}</TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className={`capitalize ${pago.Fecha_de_Vencimiento
-                                    ? "text-green-600 border-green-600"
-                                    : "text-amber-600 border-amber-600"
-                                    }`}
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Typography
+                                  variant="h6"
+                                  fontWeight={800}
+                                  color="primary.main"
+                                  sx={{ minWidth: 20 }}
                                 >
-                                  {pago.Fecha_de_Vencimiento ? "Completado" : "Pendiente"}
-                                </Badge>
-                              </TableCell>
-                            </motion.tr>
-                          ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-        {/* Inscripción a Clases como cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          {user.Tipo_de_plan === "CLASE" ? (
-            <Card>
-              <CardHeader className="bg-primary/5">
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 text-primary mr-2" />
-                  <CardTitle>Inscripción a Clases</CardTitle>
-                </div>
-                <CardDescription>Elige tu clase y gestiona tu inscripción.</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {loadingClases ? (
-                  <p>Cargando clases...</p>
+                                  #{index + 1}
+                                </Typography>
+                                <Typography
+                                  variant="body1"
+                                  fontWeight={600}
+                                >
+                                  {alumno.Nombre}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="h6" fontWeight={700} color="#eab308">
+                                  {alumno.GymCoins}
+                                </Typography>
+                                <Toll sx={{ color: '#eab308', fontSize: 20 }} />
+                              </Box>
+                            </Paper>
+                          </motion.div>
+                        );
+                      })
+                    : (topAlumnosCoins.top10Clases || []).map((alumno: any, index: number) => {
+                        const esUsuarioActual = alumno.DNI === contextUser?.dni;
+                        return (
+                          <motion.div
+                            key={alumno.DNI}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.4, delay: index * 0.05 }}
+                          >
+                            <Paper
+                              elevation={esUsuarioActual ? 8 : 2}
+                              sx={{
+                                p: 2,
+                                borderRadius: 3,
+                                border: esUsuarioActual ? '2px solid #eab308' : '1px solid rgba(0,0,0,0.1)',
+                                bgcolor: esUsuarioActual ? 'rgba(234, 179, 8, 0.1)' : 'background.paper',
+                                transition: 'all 0.3s ease',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Typography
+                                  variant="h6"
+                                  fontWeight={800}
+                                  color="primary.main"
+                                  sx={{ minWidth: 40 }}
+                                >
+                                  #{index + 1}
+                                </Typography>
+                                <Typography
+                                  variant="body1"
+                                  fontWeight={600}
+                                >
+                                  {alumno.Nombre}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="h6" fontWeight={700} color="#eab308">
+                                  {alumno.GymCoins}
+                                </Typography>
+                                <Toll sx={{ color: '#eab308', fontSize: 20 }} />
+                              </Box>
+                            </Paper>
+                          </motion.div>
+                        );
+                      })}
+                </Box>
+              </MuiCardContent>
+            </MuiCard>
+          </motion.div>
+
+          {/* Historial de pagos */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
+            <MuiCard elevation={4} sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  background: 'linear-gradient(135deg, #16a34a, #22c55e)',
+                  p: 3,
+                  borderRadius: '16px 16px 0 0',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <MuiTrendingUp sx={{ color: 'white', fontSize: 32 }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
+                      Historial de Pagos
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                      Tus pagos recientes y renovaciones de membresía
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              <MuiCardContent sx={{ p: 2, position: 'relative' }}>
+                {user.Pagos.length === 0 ? (
+                  <Box sx={{ py: 4, textAlign: 'center' }}>
+                    <Typography color="text.secondary">No hay pagos registrados aún.</Typography>
+                  </Box>
                 ) : (
-                  clasesAgrupadas.map(({ dia, clases }) => (
-                    <div key={dia} className="mb-8">
-                      <h3 className="text-2xl font-bold mb-4 text-primary">{dia}</h3>
-
-                      {dia === diaHoy && clases.length === 0 ? (
-                        <p className="text-center text-muted-foreground">
-                          Ya pasaron todas las clases del día.
-                        </p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          {clases.map((clase) => {
-                            const inscritos = clase.Inscriptos
-                              ? clase.Inscriptos.split(",").map(d => d.trim()).filter(Boolean)
-                              : [];
-                            const estaInscripto = inscritos.includes(contextUser!.dni);
-
-                            const ARG_TZ = "America/Argentina/Buenos_Aires";
-                            const now = dayjs().tz(ARG_TZ);
-
-                            const fechaClase = clase.ProximaFecha?.trim() || "";
-                            const [horaStr, minutoStr] = clase.Hora.split(":");
-                            const claseDate = dayjs(fechaClase, ["D/M/YYYY", "DD/MM/YYYY"])
-                              .hour(parseInt(horaStr, 10))
-                              .minute(parseInt(minutoStr, 10))
-                              .tz(ARG_TZ);
-
-                            const minutosParaClase = claseDate.diff(now, "minute");
-                            const minutosDesdeClase = now.diff(claseDate, "minute");
-
-                            let estado = "";
-                            let puedeActuar = false;
-
-                            if (minutosDesdeClase >= 0) {
-                              estado = "Clase finalizada";
-                            } else if (inscritos.length >= Number(clase["Cupo maximo"])) {
-                              estado = "Cupo completo";
-                            } else if (!estaInscripto && minutosParaClase < 30) {
-                              estado = "Inscripción cerrada";
-                            } else if (estaInscripto && minutosDesdeClase > 60) {
-                              estado = "Desuscripción cerrada";
-                            } else {
-                              estado = estaInscripto ? "Desuscribirse" : "Inscribirse";
-                              puedeActuar = true;
-                            }
-
-                            return (
-                              <Card
-                                key={clase.ID}
-                                className="bg-background text-foreground rounded-lg border border-orange-500 transition p-7 flex flex-col justify-between"
-                              >
-                                <div>
-                                  <div className="flex items-start space-x-2 mb-4 w-full">
-                                    <CardTitle className="text-[16px] font-bold flex-1 min-w-0">
-                                      {clase["Nombre de clase"]}
-                                    </CardTitle>
-                                    <Badge
-                                      variant="outline"
-                                      className="text-sm font-semibold bg-background flex-shrink-0 whitespace-nowrap"
-                                    >
-                                      {clase.Dia} — {clase.ProximaFecha}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
-                                  <p className="text-lg">
-                                    <span className="font-semibold">{inscritos.length}</span> /{" "}
-                                    <span className="font-semibold">{clase["Cupo maximo"]}</span>{" "}
-                                    Inscriptos
-                                  </p>
-                                </div>
-                                <div className="mt-4">
-                                  <button
-                                    onClick={() =>
-                                      puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")
-                                    }
-                                    disabled={!puedeActuar || loadingClaseId === clase.ID}
-                                    className={`w-full py-3 rounded-lg font-semibold ${puedeActuar
-                                      ? estado === "Desuscribirse"
-                                        ? "bg-red-600 text-white hover:bg-red-700"
-                                        : "bg-orange-600 text-white hover:bg-orange-700"
-                                      : "bg-gray-200 text-gray-600 cursor-not-allowed"
-                                      }`}
-                                  >
-                                    {loadingClaseId === clase.ID ? (
-                                      <div className="flex items-center justify-center">
-                                        <svg
-                                          className="animate-spin mr-2 h-5 w-5 text-white"
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                          />
-                                          <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-                                          />
-                                        </svg>
-                                        {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
-                                      </div>
-                                    ) : (
-                                      estado
-                                    )}
-                                  </button>
-                                </div>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))
+                  <>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                        maxHeight: 380,
+                        overflowY: 'auto',
+                        py: 1,
+                        px: 1,
+                        mb: 1,
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                        '&::-webkit-scrollbar': {
+                          display: 'none',
+                        },
+                      }}
+                    >
+                      {[...user.Pagos]
+                        .sort((a, b) =>
+                          dayjs(b.Fecha_de_Pago, "D/M/YYYY").unix() -
+                          dayjs(a.Fecha_de_Pago, "D/M/YYYY").unix()
+                        )
+                        .map((pago, index) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                          >
+                            <Paper
+                              elevation={2}
+                              sx={{
+                                p: 2,
+                                borderRadius: 3,
+                                border: '1px solid rgba(22, 163, 74, 0.2)',
+                                bgcolor: 'background.paper',
+                                '&:hover': {
+                                  boxShadow: 4,
+                                  transform: 'translateX(4px)',
+                                  transition: 'all 0.2s ease',
+                                },
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                <Box>
+                                  <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                                    {pago.Tipo}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {pago.Responsable}
+                                  </Typography>
+                                </Box>
+                                <Chip
+                                  size="small"
+                                  label={pago.Fecha_de_Vencimiento ? "Completado" : "Pendiente"}
+                                  color={pago.Fecha_de_Vencimiento ? "success" : "warning"}
+                                  sx={{ fontWeight: 600 }}
+                                />
+                              </Box>
+                              <Divider sx={{ my: 1.5 }} />
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', gap: 3 }}>
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary" display="block">
+                                      Fecha
+                                    </Typography>
+                                    <Typography variant="body2" fontWeight={500}>
+                                      {pago.Fecha_de_Pago}
+                                    </Typography>
+                                  </Box>
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary" display="block">
+                                      Método
+                                    </Typography>
+                                    <Typography variant="body2" fontWeight={500}>
+                                      {pago.Metodo_de_Pago}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Box sx={{ textAlign: 'right' }}>
+                                  <Typography variant="caption" color="text.secondary" display="block">
+                                    Monto
+                                  </Typography>
+                                  <Typography variant="h6" fontWeight={700} color="success.main">
+                                    ${pago.Monto}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Paper>
+                          </motion.div>
+                        ))}
+                    </Box>
+                    {user.Pagos.length > 3 && (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          pt: 2,
+                          pb: 1,
+                        }}
+                      >
+                        <motion.div
+                          animate={{ y: [0, 6, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              color: 'text.secondary',
+                            }}
+                          >
+                            <Typography variant="caption" sx={{ mb: 0.5 }}>
+                              Desliza para ver más
+                            </Typography>
+                            <Box
+                              sx={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                bgcolor: 'rgba(22, 163, 74, 0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <Box
+                                component="span"
+                                sx={{
+                                  width: 0,
+                                  height: 0,
+                                  borderLeft: '5px solid transparent',
+                                  borderRight: '5px solid transparent',
+                                  borderTop: '6px solid #16a34a',
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </motion.div>
+                      </Box>
+                    )}
+                  </>
                 )}
-              </CardContent>
-            </Card>
-          ) : null}
-        </motion.div>
+              </MuiCardContent>
+            </MuiCard>
+          </motion.div>
+
+          {/* Inscripción a Clases como cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            {user.Tipo_de_plan === "CLASE" ? (
+              <Card>
+                <CardHeader className="bg-primary/5">
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-primary mr-2" />
+                    <CardTitle>Inscripción a Clases</CardTitle>
+                  </div>
+                  <CardDescription>Elige tu clase y gestiona tu inscripción.</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {loadingClases ? (
+                    <p>Cargando clases...</p>
+                  ) : (
+                    clasesAgrupadas.map(({ dia, clases }) => (
+                      <div key={dia} className="mb-8">
+                        <h3 className="text-2xl font-bold mb-4 text-primary">{dia}</h3>
+
+                        {dia === diaHoy && clases.length === 0 ? (
+                          <p className="text-center text-muted-foreground">
+                            Ya pasaron todas las clases del día.
+                          </p>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {clases.map((clase) => {
+                              const inscritos = clase.Inscriptos
+                                ? clase.Inscriptos.split(",").map(d => d.trim()).filter(Boolean)
+                                : [];
+                              const estaInscripto = inscritos.includes(contextUser!.dni);
+
+                              const ARG_TZ = "America/Argentina/Buenos_Aires";
+                              const now = dayjs().tz(ARG_TZ);
+
+                              const fechaClase = clase.ProximaFecha?.trim() || "";
+                              const [horaStr, minutoStr] = clase.Hora.split(":");
+                              const claseDate = dayjs(fechaClase, ["D/M/YYYY", "DD/MM/YYYY"])
+                                .hour(parseInt(horaStr, 10))
+                                .minute(parseInt(minutoStr, 10))
+                                .tz(ARG_TZ);
+
+                              const minutosParaClase = claseDate.diff(now, "minute");
+                              const minutosDesdeClase = now.diff(claseDate, "minute");
+
+                              let estado = "";
+                              let puedeActuar = false;
+
+                              if (minutosDesdeClase >= 0) {
+                                estado = "Clase finalizada";
+                              } else if (inscritos.length >= Number(clase["Cupo maximo"])) {
+                                estado = "Cupo completo";
+                              } else if (!estaInscripto && minutosParaClase < 30) {
+                                estado = "Inscripción cerrada";
+                              } else if (estaInscripto && minutosDesdeClase > 60) {
+                                estado = "Desuscripción cerrada";
+                              } else {
+                                estado = estaInscripto ? "Desuscribirse" : "Inscribirse";
+                                puedeActuar = true;
+                              }
+
+                              return (
+                                <Card
+                                  key={clase.ID}
+                                  className="bg-background text-foreground rounded-lg border border-orange-500 transition p-7 flex flex-col justify-between"
+                                >
+                                  <div>
+                                    <div className="flex items-start space-x-2 mb-4 w-full">
+                                      <CardTitle className="text-[16px] font-bold flex-1 min-w-0">
+                                        {clase["Nombre de clase"]}
+                                      </CardTitle>
+                                      <Badge
+                                        variant="outline"
+                                        className="text-sm font-semibold bg-background flex-shrink-0 whitespace-nowrap"
+                                      >
+                                        {clase.Dia} — {clase.ProximaFecha}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-1xl font-medium mb-3">{clase.Hora}hs</p>
+                                    <p className="text-lg">
+                                      <span className="font-semibold">{inscritos.length}</span> /{" "}
+                                      <span className="font-semibold">{clase["Cupo maximo"]}</span>{" "}
+                                      Inscriptos
+                                    </p>
+                                  </div>
+                                  <div className="mt-4">
+                                    <button
+                                      onClick={() =>
+                                        puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")
+                                      }
+                                      disabled={!puedeActuar || loadingClaseId === clase.ID}
+                                      className={`w-full py-3 rounded-lg font-semibold ${puedeActuar
+                                        ? estado === "Desuscribirse"
+                                          ? "bg-red-600 text-white hover:bg-red-700"
+                                          : "bg-orange-600 text-white hover:bg-orange-700"
+                                        : "bg-gray-200 text-gray-600 cursor-not-allowed"
+                                        }`}
+                                    >
+                                      {loadingClaseId === clase.ID ? (
+                                        <div className="flex items-center justify-center">
+                                          <svg
+                                            className="animate-spin mr-2 h-5 w-5 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <circle
+                                              className="opacity-25"
+                                              cx="12"
+                                              cy="12"
+                                              r="10"
+                                              stroke="currentColor"
+                                              strokeWidth="4"
+                                            />
+                                            <path
+                                              className="opacity-75"
+                                              fill="currentColor"
+                                              d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                                            />
+                                          </svg>
+                                          {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
+                                        </div>
+                                      ) : (
+                                        estado
+                                      )}
+                                    </button>
+                                  </div>
+                                </Card>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            ) : null}
+          </motion.div>
+        </Box>
       </div>
-    </div>
+    </ThemeProvider>
   )
 }
