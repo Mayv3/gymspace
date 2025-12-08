@@ -105,7 +105,7 @@ export default function AsistenciaPage() {
       const id = setTimeout(() => {
         setData(null)
         inputRef.current?.focus()
-      }, 500000)
+      }, 5000)
       setTimeoutId(id)
 
       setDni('')
