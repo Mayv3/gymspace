@@ -1411,9 +1411,34 @@ export default function MemberDashboard() {
                               );
                             })}
                           </Box>
+                          {clases.length > 1 && (
+                            <Box 
+                              sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                gap: 1,
+                                mt: 2,
+                                color: 'text.secondary',
+                              }}
+                            >
+                              <motion.div
+                                animate={{ x: [0, 8, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                              >
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="body1" sx={{ fontWeight: 500, letterSpacing: 0.5 }}>
+                                    Desliza para ver más horarios
+                                  </Typography>
+                                  <Box component="span" sx={{ fontSize: '1rem' }}>👉</Box>
+                                </Box>
+                              </motion.div>
+                            </Box>
+                          )}
                           </Box>
                         )}
                       </Box>
+                      
                     ))
                   )}
                 </MuiCardContent>
