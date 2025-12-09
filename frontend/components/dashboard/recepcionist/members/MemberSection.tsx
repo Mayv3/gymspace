@@ -27,7 +27,6 @@ export default function MembersSection({
   }, [members])
 
   return (
-    <TabsContent value="members" className="space-y-4">
       <MembersTab
         members={localMembers}
         searchTerm={searchTerm}
@@ -36,6 +35,5 @@ export default function MembersSection({
         onEdit={onEdit}
         onDelete={onDelete}
       />
-    </TabsContent>
   )
 }

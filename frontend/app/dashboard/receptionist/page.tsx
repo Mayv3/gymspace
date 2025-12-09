@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { formatDate } from "@/utils/dateUtils"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 import MembersSection from "@/components/dashboard/recepcionist/members/MemberSection"
 import PaymentsSection from "@/components/dashboard/recepcionist/payments/PaymentSection"
@@ -32,6 +30,9 @@ import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosS
 import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
+import { SideBar } from "@/components/ui/SideBar"
+import { recepcionistTabs } from "@/const/tabs"
+
 
 export default function ReceptionistDashboard() {
   const { user, loading } = useUser()
@@ -48,6 +49,8 @@ export default function ReceptionistDashboard() {
   const [selectedDay, setSelectedDay] = useState<number | undefined>()
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
+
+  const [selectedSection, setSelectedSection] = useState("members")
 
   const { payments, refreshPayments } = usePayments();
 
@@ -176,7 +179,17 @@ export default function ReceptionistDashboard() {
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader role="Recepcionista" />
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+
+      <SideBar
+        tabs={recepcionistTabs}
+        onSelect={setSelectedSection}
+      />
+
+      {/* Contenido principal con márgenes */}
+      <div className="flex-1 space-y-4 md:p-8 pt-6 mx-auto max-w-[95vw] md:ml-[80px] w-full">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de recepcionista</h2>
+        </div>
         {!cashOpen && cerrada && existe && (
           <div className="text-center text-xl font-bold text-gray-600">
             La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
@@ -195,81 +208,66 @@ export default function ReceptionistDashboard() {
           />
         )}
 
-        <Tabs defaultValue="members" className="space-y-4">
-          <TabsList className="grid h-auto w-full grid-cols-3 md:grid-cols-9 md:w-auto">
-            <TabsTrigger value="members">Miembros</TabsTrigger>
-            <TabsTrigger value="shift-payments">Pagos</TabsTrigger>
-            <TabsTrigger value="deudas">Deudas</TabsTrigger>
-            <TabsTrigger value="assists">Asistencias</TabsTrigger>
-            <TabsTrigger value="plans">Planes</TabsTrigger>
-            <TabsTrigger value="shifts">Turnos</TabsTrigger>
-            <TabsTrigger value="egresos">Egresos</TabsTrigger>
-            <TabsTrigger value="elclub">El Club</TabsTrigger>
-            <TabsTrigger value="difusion">Difusion</TabsTrigger> 
-          </TabsList>
+        {selectedSection === "members" && (
+          <MembersSection
+            members={members}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onAddMember={() => openDialog("addMember")}
+            onEdit={onEditMember}
+            onDelete={onDeleteMember}
+          />
+        )}
 
-          <TabsContent value="members" className="space-y-4">
-            <MembersSection
-              members={members}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              onAddMember={() => openDialog("addMember")}
-              onEdit={onEditMember}
-              onDelete={onDeleteMember}
-            />
-          </TabsContent>
+        {selectedSection === "shift-payments" && (
+          <PaymentsSection
+            currentShiftPayments={payments}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedShift={selectedShift}
+            setSelectedShift={setSelectedShift}
+            onShowAddPayment={onShowAddPayment}
+            setSelectedPaymentToDelete={onDeletePayment}
+            setShowDeletePaymentDialog={() => { }}
+            onMemberUpdated={handleMemberUpdated}
+            refreshPayments={refreshPayments}
+            cashOpen={cashOpen}
+            selectedDay={selectedDay}
+            setSelectedDay={setSelectedDay}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+            selectedYear={selectedYear}
+            setSelectedYear={setSelectedYear}
+          />
+        )}
 
-          <TabsContent value="shift-payments" className="space-y-4">
-            <PaymentsSection
-              currentShiftPayments={payments}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              selectedShift={selectedShift}
-              setSelectedShift={setSelectedShift}
-              onShowAddPayment={onShowAddPayment}
-              setSelectedPaymentToDelete={onDeletePayment}
-              setShowDeletePaymentDialog={() => { }}
-              onMemberUpdated={handleMemberUpdated}
-              refreshPayments={refreshPayments}
-              cashOpen={cashOpen}
-              selectedDay={selectedDay}
-              setSelectedDay={setSelectedDay}
-              selectedMonth={selectedMonth}
-              setSelectedMonth={setSelectedMonth}
-              selectedYear={selectedYear}
-              setSelectedYear={setSelectedYear}
-            />
-          </TabsContent>
+        {selectedSection === "assists" && (
+          <AssistsSection />
+        )}
 
-          <TabsContent value="assists" className="space-y-4">
-            <AssistsSection />
-          </TabsContent>
+        {selectedSection === "plans" && (
+          <PlansSection />
+        )}
 
-          <TabsContent value="plans" className="space-y-4">
-            <PlansSection />
-          </TabsContent>
+        {selectedSection === "shifts" && (
+          <ShiftsSection />
+        )}
 
-          <TabsContent value="shifts" className="space-y-4">
-            <ShiftsSection />
-          </TabsContent>
+        {selectedSection === "egresos" && (
+          <EgresosSection />
+        )}
 
-          <TabsContent value="egresos" className="space-y-4">
-            <EgresosSection />
-          </TabsContent>
+        {selectedSection === "deudas" && (
+          <DebtsSection />
+        )}
 
-          <TabsContent value="deudas" className="space-y-4">
-            <DebtsSection />
-          </TabsContent>
+        {selectedSection === "elclub" && (
+          <ElClub />
+        )}
 
-          <TabsContent value="elclub" className="space-y-4">
-            <ElClub />
-          </TabsContent>
-
-           <TabsContent value="difusion" className="space-y-4">
-            <EmailBroadcast />
-          </TabsContent>
-
-        </Tabs>
+        {selectedSection === "difusion" && (
+          <EmailBroadcast />
+        )}
       </div>
 
       <AddMemberDialog

@@ -216,7 +216,7 @@ export default function ShiftsSection() {
     }, [selectedDate, selectedType]);
 
     return (
-        <TabsContent value="shifts" className="space-y-4">
+        <>
             <Card>
                 <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
                     <div className="flex justify-between">
@@ -626,6 +626,6 @@ export default function ShiftsSection() {
                     </div>
                 )}
             </ConfirmDialog>
-        </TabsContent>
+        </>
     )
 }

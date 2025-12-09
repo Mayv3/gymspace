@@ -309,7 +309,7 @@ export function ShiftPaymentsTab({
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">
+                      <TableCell colSpan={11} className="text-center py-4 text-muted-foreground">
                         No hay pagos registrados para este turno
                       </TableCell>
                     </TableRow>

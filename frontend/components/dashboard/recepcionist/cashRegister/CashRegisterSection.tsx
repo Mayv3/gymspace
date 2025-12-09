@@ -32,8 +32,8 @@ export default function CashRegisterSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between space-x-2">
-        <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-          Panel de recepcionista
+        <h1 className="text-xl font-bold text-transparent sm:text-2xl">
+          .
         </h1>
         {errorMessage && (
           <div className="text-sm text-red-600 font-medium mt-2">

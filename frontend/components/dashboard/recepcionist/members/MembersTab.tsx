@@ -151,8 +151,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
               <TableHeader>
                 <TableRow>
                   {[
-                    "Nombre", "DNI", "Email", "Teléfono", "C.Pagadas", "C.Realizadas",
-                    "Inicio", "Vencimiento", "Plan", "Profesor", "Estado", "GymCoins", "Acciones"
+                    "Nombre", "DNI", "Email", "Teléfono", "Vencimiento", "Plan", "Profesor", "Estado", "GymCoins", "Acciones"
                   ].map((head, i) => (
                     <TableHead key={i} className="text-center w-[7.7%]">{head}</TableHead>
                   ))}
@@ -169,15 +168,21 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                   >
                     <TableCell className="text-center">{member.Nombre}</TableCell>
                     <TableCell className="text-center">{member.DNI}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap overflow-hidden text-ellipsis">{member.Email}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="max-w-[120px] mx-auto whitespace-nowrap overflow-hidden text-ellipsis" title={member.Email}>
+                        {member.Email}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-center">{member.Telefono}</TableCell>
-                    <TableCell className="text-center">{member.Clases_pagadas}</TableCell>
-                    <TableCell className="text-center">{member.Clases_realizadas}</TableCell>
-                    <TableCell className="text-center">{member.Fecha_inicio}</TableCell>
                     <TableCell className="text-center">{member.Fecha_vencimiento}</TableCell>
-                    <TableCell className="text-center">{member.Plan}</TableCell>
-                    <TableCell className="text-center max-w-[100px] truncate">
-                      <span title={member.Profesor_asignado}>{member.Profesor_asignado}</span>
+
+                    <TableCell className="text-center">
+                      <div className="max-w-[100px] mx-auto whitespace-nowrap overflow-hidden text-ellipsis" title={member.Plan}>{member.Plan}</div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="max-w-[100px] mx-auto whitespace-nowrap overflow-hidden text-ellipsis" title={member.Profesor_asignado}>
+                        {member.Profesor_asignado}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       {(() => {

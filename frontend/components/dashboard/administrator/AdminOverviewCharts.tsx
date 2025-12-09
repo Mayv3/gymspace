@@ -799,7 +799,7 @@ export default function AdminOverviewCharts({
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={cajasTransformadas}>
+              <LineChart data={cajasTransformadas} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
                 <XAxis
                   dataKey="fecha"
                   tickFormatter={(val) => {
@@ -807,15 +807,19 @@ export default function AdminOverviewCharts({
                     return isValid(parsed) ? format(parsed, "dd/MM/yyyy") : "Fecha inválida";
                   }}
                 />
-                <YAxis />
-                <Tooltip content={<CustomTooltipCajas />} />
+                <YAxis width={80} tickFormatter={(val) => new Intl.NumberFormat("es-AR").format(val)} />
+                <Tooltip 
+                  content={<CustomTooltipCajas />} 
+                  position={{ y: -100 }}
+                  wrapperStyle={{ zIndex: 1000 }}
+                />
                 <Line
                   type="monotone"
                   dataKey="tarde_monto"
                   name="Tarde"
                   stroke={COLORS[4]}
                   strokeWidth={2}
-                  dot={{ r: 4 }}
+                  dot={{ r: 5 }}
                 />
                 <Line
                   type="monotone"

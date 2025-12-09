@@ -120,7 +120,7 @@ export default function DebtsSection() {
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/deudas/${editingDeuda.ID}`,
                 editForm
             )
-            
+
             // Actualizar tanto deudas como filteredDeudas
             const updatedDeuda = { ...editingDeuda, ...editForm }
             setDeudas((prev) =>
@@ -129,7 +129,7 @@ export default function DebtsSection() {
             setFilteredDeudas((prev) =>
                 prev.map((d) => (d.ID === editingDeuda.ID ? updatedDeuda : d))
             )
-            
+
             setShowEditDialog(false)
             setEditingDeuda(null)
             notify.success("Deuda actualizada")
@@ -181,7 +181,7 @@ export default function DebtsSection() {
         fetchDeudas()
     }, [selectedDate])
     return (
-        <TabsContent value="deudas" className="space-y-4">
+        <>
             <Card>
                 <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
                     <div className="flex justify-between items-center">
@@ -579,6 +579,6 @@ export default function DebtsSection() {
                     </div>
                 )}
             </ConfirmDialog>
-        </TabsContent>
+        </>
     )
 }

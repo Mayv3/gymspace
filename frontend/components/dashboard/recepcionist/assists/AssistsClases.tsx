@@ -78,7 +78,7 @@ export default function AssistsSection() {
   }, [selectedDate, selectedType])
 
   return (
-    <TabsContent value="assists" className="space-y-4">
+    <>
       <Card>
         <CardHeader className="flex flex-col md:flex-row gap-2 items-center justify-between bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
           <div>
@@ -321,6 +321,6 @@ export default function AssistsSection() {
           </div>
         </FormEnterToTab>
       </ConfirmDialog>
-    </TabsContent>
+    </>
   )
 }

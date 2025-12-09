@@ -150,7 +150,7 @@ export default function PlansSection() {
 
 
     return (
-        <TabsContent value="plans" className="space-y-4">
+        <>
             <Card>
                 <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
                     <div className="flex justify-between">
@@ -595,8 +595,6 @@ export default function PlansSection() {
                     )}
                 </div>
             </ConfirmDialog>
-
-
-        </TabsContent>
+        </>
     )
 }

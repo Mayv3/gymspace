@@ -36,6 +36,8 @@ import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import axios from "axios"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
+import { SideBar } from "@/components/ui/SideBar"
+import { adminTabs } from "@/const/tabs"
 
 
 export default function AdministratorDashboard() {
@@ -52,6 +54,7 @@ export default function AdministratorDashboard() {
 
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("todos")
+  const [selectedSection, setSelectedSection] = useState("overview")
 
   const today = new Date()
 
@@ -234,7 +237,13 @@ export default function AdministratorDashboard() {
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader role="Administrador" />
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+
+      <SideBar
+        tabs={adminTabs}
+        onSelect={setSelectedSection}
+      />
+      
+      <div className="space-y-4 md:p-8 pt-6 mx-auto max-w-[95vw] md:ml-[80px] w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de administrador</h2>
         </div>
@@ -260,87 +269,63 @@ export default function AdministratorDashboard() {
           />
         )}
 
-        <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5 gap-2 h-auto md:grid-cols-10 md:w-auto">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              Resumen
-            </TabsTrigger>
-            <TabsTrigger value="members" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">
-              Miembros
-            </TabsTrigger>
-            <TabsTrigger value="shift-payments" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Pagos</TabsTrigger>
-            <TabsTrigger value="deudas" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Deudas</TabsTrigger>
-            <TabsTrigger value="assists" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Asistencias</TabsTrigger>
-            <TabsTrigger value="plans" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Planes</TabsTrigger>
-            <TabsTrigger value="shifts" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Turnos</TabsTrigger>
-            <TabsTrigger value="egresos" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Egresos</TabsTrigger>
-            <TabsTrigger value="elclub" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">El Club</TabsTrigger>
-            <TabsTrigger value="difusion" className="data-[state=active]:bg-[#ff6b00] data-[state=active]:text-white">Difusion</TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="overview" forceMount>
-            <AdminOverviewCharts isVisible={tabValue === "overview"} />
-          </TabsContent>
+        {selectedSection === "overview" && (
+          <AdminOverviewCharts isVisible />
+        )}
 
-          <TabsContent value="members" className="space-y-4">
-            <MembersStatsTab
-              members={members}
-              topAlumnos={topAlumnosCoins}
-              onMemberAdded={onMemberAdded}
-            />
-          </TabsContent>
+        {/* MIEMBROS */}
+        {selectedSection === "members" && (
+          <MembersStatsTab
+            members={members}
+            topAlumnos={topAlumnosCoins}
+            onMemberAdded={onMemberAdded}
+          />
+        )}
 
-          <TabsContent value="shift-payments" className="space-y-4">
-            <PaymentsSection
-              currentShiftPayments={payments}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              selectedShift={selectedShift}
-              setSelectedShift={setSelectedShift}
-              onShowAddPayment={onShowAddPayment}
-              setSelectedPaymentToDelete={onDeletePayment}
-              setShowDeletePaymentDialog={() => { }}
-              onMemberUpdated={handleMemberUpdated}
-              refreshPayments={refreshPayments}
-              cashOpen={cashOpen}
-              selectedDay={selectedDay}
-              setSelectedDay={setSelectedDay}
-              selectedMonth={selectedMonth}
-              setSelectedMonth={setSelectedMonth}
-              selectedYear={selectedYear}
-              setSelectedYear={setSelectedYear}
-            />
-          </TabsContent>
+        {/* PAGOS */}
+        {selectedSection === "shift-payments" && (
+          <PaymentsSection
+            currentShiftPayments={payments}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedShift={selectedShift}
+            setSelectedShift={setSelectedShift}
+            onShowAddPayment={onShowAddPayment}
+            setSelectedPaymentToDelete={onDeletePayment}
+            setShowDeletePaymentDialog={() => { }}
+            onMemberUpdated={handleMemberUpdated}
+            refreshPayments={refreshPayments}
+            cashOpen={cashOpen}
+            selectedDay={selectedDay}
+            setSelectedDay={setSelectedDay}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+            selectedYear={selectedYear}
+            setSelectedYear={setSelectedYear}
+          />
+        )}
 
-          <TabsContent value="deudas" className="space-y-4">
-            <DebtsSection />
-          </TabsContent>
+        {/* DEUDAS */}
+        {selectedSection === "deudas" && <DebtsSection />}
 
-          <TabsContent value="assists" className="space-y-4">
-            <AssistsSection />
-          </TabsContent>
+        {/* ASISTENCIAS */}
+        {selectedSection === "assists" && <AssistsSection />}
 
-          <TabsContent value="plans" className="space-y-4">
-            <PlansSection />
-          </TabsContent>
+        {/* PLANES */}
+        {selectedSection === "plans" && <PlansSection />}
 
-          <TabsContent value="shifts" className="space-y-4">
-            <ShiftsSection />
-          </TabsContent>
+        {/* TURNOS */}
+        {selectedSection === "shifts" && <ShiftsSection />}
 
-          <TabsContent value="egresos" className="space-y-4">
-            <EgresosSection />
-          </TabsContent>
+        {/* EGRESOS */}
+        {selectedSection === "egresos" && <EgresosSection />}
 
-          <TabsContent value="elclub" className="space-y-4">
-            <ElClub />
-          </TabsContent>
+        {/* EL CLUB */}
+        {selectedSection === "elclub" && <ElClub />}
 
-
-          <TabsContent value="difusion" className="space-y-4">
-            <EmailBroadcast />
-          </TabsContent>
-        </Tabs>
+        {/* DIFUSIÓN */}
+        {selectedSection === "difusion" && <EmailBroadcast />}
 
       </div>
 
