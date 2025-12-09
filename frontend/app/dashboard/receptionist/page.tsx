@@ -30,7 +30,7 @@ import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosS
 import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
-import SideBar from "@/components/ui/SideBar"
+import SideBar from "@/components/ui/sidebar-custom"
 import { recepcionistTabs } from "../../../const/tabs"
 
 

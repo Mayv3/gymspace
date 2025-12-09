@@ -36,7 +36,7 @@ import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import axios from "axios"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
-import SideBar from "@/components/ui/SideBar"
+import SideBar from "@/components/ui/sidebar-custom"
 import { adminTabs } from "../../../const/tabs"
 
 
