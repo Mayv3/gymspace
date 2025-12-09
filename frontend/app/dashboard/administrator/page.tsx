@@ -36,8 +36,8 @@ import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import axios from "axios"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
-import { SideBar } from "@/components/ui/SideBar"
-import { adminTabs } from "@/const/tabs"
+import { SideBar } from "../../../components/ui/SideBar"
+import { adminTabs } from "../../../const/tabs"
 
 
 export default function AdministratorDashboard() {
@@ -242,7 +242,7 @@ export default function AdministratorDashboard() {
         tabs={adminTabs}
         onSelect={setSelectedSection}
       />
-      
+
       <div className="space-y-4 md:p-8 pt-6 mx-auto max-w-[95vw] md:ml-[80px] w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de administrador</h2>
