@@ -14,7 +14,6 @@ import {
   Divider,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import LogoutIcon from '@mui/icons-material/Logout'
 import { useEffect, useState } from 'react'
 
 type TabItem = { label: string; icon: React.ReactNode; value: string }
@@ -34,7 +33,7 @@ function readPrimary(): string {
   }
 }
 
-export const SideBar = ({ tabs, onSelect }: SideBarProps) => {
+const SideBar = ({ tabs, onSelect }: SideBarProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -192,3 +191,5 @@ export const SideBar = ({ tabs, onSelect }: SideBarProps) => {
 
   return desktopSidebar
 }
+
+export default SideBar
