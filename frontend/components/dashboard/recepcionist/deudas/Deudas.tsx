@@ -329,7 +329,7 @@ export default function DebtsSection() {
                         {paginatedDeudas.map((deuda, idx) => (
                             <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
                                 {/* Header: Nombre y Estado */}
-                                <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
+                                <div className="bg-white dark:bg-zinc-900 px-4 py-3 flex justify-between items-center border-b">
                                     <h3 className="font-semibold text-base">{deuda.Nombre}</h3>
                                     <span
                                         className={`text-sm font-semibold px-2 py-1 rounded ${deuda.Estado === "Pagado"
@@ -341,34 +341,34 @@ export default function DebtsSection() {
                                     </span>
                                 </div>
 
-                                <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <CardContent className="bg-gray-50 dark:bg-zinc-900 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                     <div>
-                                        <p className="font-medium text-gray-600">DNI</p>
-                                        <p className="text-gray-800">{deuda.DNI}</p>
+                                        <p className="font-medium text-foreground">DNI</p>
+                                        <p className="text-muted-foreground">{deuda.DNI}</p>
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-600">Tipo</p>
-                                        <p className="text-gray-800">{deuda.Tipo}</p>
+                                        <p className="font-medium text-foreground">Tipo</p>
+                                        <p className="text-muted-foreground">{deuda.Tipo}</p>
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-600">Monto</p>
-                                        <p className="text-gray-800">${deuda.Monto}</p>
+                                        <p className="font-medium text-foreground">Monto</p>
+                                        <p className="text-muted-foreground">${deuda.Monto}</p>
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-600">Fecha</p>
-                                        <p className="text-gray-800">{deuda.Fecha}</p>
+                                        <p className="font-medium text-foreground">Fecha</p>
+                                        <p className="text-muted-foreground">{deuda.Fecha}</p>
                                     </div>
                                     <div className="col-span-2">
-                                        <p className="font-medium text-gray-600">Motivo</p>
-                                        <p className="text-gray-800">{deuda.Motivo}</p>
+                                        <p className="font-medium text-foreground">Motivo</p>
+                                        <p className="text-muted-foreground">{deuda.Motivo}</p>
                                     </div>
                                     <div className="col-span-2">
-                                        <p className="font-medium text-gray-600">Responsable</p>
-                                        <p className="text-gray-800">{deuda.Responsable}</p>
+                                        <p className="font-medium text-foreground">Responsable</p>
+                                        <p className="text-muted-foreground">{deuda.Responsable}</p>
                                     </div>
                                 </CardContent>
 
-                                <CardFooter className="bg-white flex items-end gap-2 px-4 py-3 space-y-2">
+                                <CardFooter className="bg-white dark:bg-zinc-900 flex items-end gap-2 px-4 py-3 space-y-2">
                                     <Button
                                         size="sm"
                                         variant="orange"

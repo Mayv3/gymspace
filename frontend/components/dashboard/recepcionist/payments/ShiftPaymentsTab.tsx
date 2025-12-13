@@ -17,13 +17,11 @@ interface ShiftPaymentsTabProps {
   selectedDay?: number
   setSelectedDay: (n?: number) => void
   selectedMonth?: number
-  setSelectedMonth: (n?: number) => void
+  setSelectedMonth: (n?: any) => void
   selectedYear?: number
-  setSelectedYear: (n?: number) => void
-
+  setSelectedYear: (n?: any) => void
   selectedShift: string
   setSelectedShift: (shift: string) => void
-
   setShowAddPayment: (show: boolean) => void
   setSelectedPaymentToDelete: (payment: any) => void
   setShowDeletePaymentDialog: (show: boolean) => void
@@ -323,7 +321,7 @@ export function ShiftPaymentsTab({
             {paginatedPayments.map((p, idx) => (
               <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
                 {/* Header */}
-                <CardHeader className="bg-white px-4 py-3 flex border-b">
+                <CardHeader className="dark:bg-zinc-900 px-4 py-3 flex border-b">
                   <div className="flex items-end justify-between">
                     <CardTitle className="text-base font-semibold">{p.Nombre}</CardTitle>
                     <p className="text-sm text-gray-500">{p.Hora || "—"} hs</p>
@@ -332,7 +330,7 @@ export function ShiftPaymentsTab({
                 </CardHeader>
 
                 {/* Content: grid dos columnas */}
-                <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <CardContent className="dark:bg-zinc-900 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <div>
                     <p className="font-bold text-gray-600">Monto</p>
                     <p className="text-green-600 font-medium">${p.Monto}</p>
@@ -367,7 +365,7 @@ export function ShiftPaymentsTab({
                   </div>
                 </CardContent>
 
-                <CardFooter className="bg-white px-4 py-3 space-y-2">
+                <CardFooter className="dark:bg-zinc-900 px-4 py-3 space-y-2">
                   <Button
                     size="sm"
                     variant="destructive"
@@ -411,7 +409,7 @@ export function ShiftPaymentsTab({
             </div>
           )}
 
-          <div className="bg-orange-50 dark:from-zinc-900 dark:to-zinc-800 rounded-2xl shadow-lg border border-orange-200 dark:border-zinc-700 p-6 space-y-6">
+          <div className="bg-orange-50 dark:bg-zinc-900 rounded-2xl shadow-lg border border-orange-200 dark:border-zinc-700 p-6 space-y-6">
             <div className="border-b border-orange-200 dark:border-zinc-700 pb-4">
               <h2 className="text-3xl font-bold text-orange-900 dark:text-orange-100 flex items-center gap-2">
                 Totales del turno {selectedShift !== 'todos' && ` ${selectedShift}`}
@@ -438,7 +436,7 @@ export function ShiftPaymentsTab({
                   return (
                     <div 
                       key={tipo} 
-                      className="bg-white dark:bg-zinc-900 rounded-xl p-6 border-2 border-orange-200 dark:border-zinc-700 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+                      className="bg-white dark:bg-zinc-900 rounded-xl p-6 border-2 dark:border-1 border-orange-200 dark:border-zinc-700 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
                     >
                       <div>
                         <div className="flex items-center gap-2 mb-4">

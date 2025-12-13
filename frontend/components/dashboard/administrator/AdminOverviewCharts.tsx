@@ -1,314 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parse, isValid, format } from "date-fns";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  LineChart,
-  Line,
-  TooltipProps,
-} from "recharts";
-import { DatePicker } from "@/components/dashboard/date-picker";
 import axios from "axios";
-import {
-  Users,
-  CalendarCheck,
-  PieChart as PieIcon,
-  DollarSign,
-  BarChart3Icon,
-} from "lucide-react";
-import { PlanSelect } from "@/components/PlanSelect";
-import {
-  Select,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-} from "@/components/ui/select";
-import { Tooltip as TooltipUI, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+
+import { MembersStatus } from "./stats/MembersStatus";
+import { TipoPlan, planesPorProfesor } from "@/models/stats/plan";
+import { Factura } from "@/models/stats/factura";
+import { PromedioAsistencias as Promedio, PromedioAsistencias } from "@/models/stats/AverageAssists";
+import { DashboardData } from "@/models/stats/dashboardData";
 
 import dayjs from "dayjs";
 import 'dayjs/locale/es';
+import { MonthlyBilling } from "./stats/MonthlyBilling";
+import { MembersYearsOld } from "./stats/MembersYearsOld";
+import { MembersPlan } from "./stats/MembersPlan";
+import { Assits } from "./stats/Assits";
+import { AverageAssits } from "./stats/AverageAssits";
+import { PlansByTeacher } from "./stats/PlansByTeacher";
+import { BillingBoxes } from "@/components/dashboard/administrator/stats/BillingBoxes";
+import { DashboardSkeleton } from "./stats/DashboardSkeleton";
+
 dayjs.locale('es');
-
-const COLORS = [
-  "#FFB74D",
-  "#FFA726",
-  "#FF9800",
-  "#FB8C00",
-  "#F57C00",
-  "#EF6C00",
-  "#E65100",
-  "#BF360C",
-];
-
-interface EstadoData {
-  activos: number;
-  vencidos: number;
-  abandonos: number;
-}
-
-interface Plan {
-  plan: string;
-  cantidad: number;
-  tipo: "GIMNASIO" | "CLASE";
-}
-
-interface Factura {
-  mes: string;
-  gimnasio: number;
-  clase: number;
-  egresosgimnasio: number;
-  egresosclase: number;
-  netogimnasio: number;
-  netoClase: number;
-}
-
-type TipoPlan = "TODOS" | "GIMNASIO" | "CLASE";
-
-interface Promedio {
-  rango: string;
-  promedio: number;
-}
-
-interface planesPorProfesor {
-  profesor: string;
-  cantidad: number;
-  alumnos: string[];
-}
-
-interface DashboardData {
-  estado: EstadoData;
-  edades: Record<string, number>;
-  planes: Plan[];
-  asistenciasPorHora: Record<string, number>;
-  facturacion: Factura[];
-  planesPorProfesor: planesPorProfesor[];
-  cajasDelMes: { turno: string; monto: number }[];
-}
-
-const CustomTooltip: React.FC<TooltipProps<number, string> & {
-  explicaciones?: Record<string, string>;
-}> = ({ active, payload, label, explicaciones = {} }) => {
-  if (active && payload && payload.length) {
-    const isDark = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
-
-    return (
-      <div className="p-2 rounded-md shadow text-sm border w-max max-w-[240px]"
-        style={{
-          backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
-          color: isDark ? "hsl(0, 0%, 95%)" : "#000",
-        }}>
-        {payload.length > 1 ? (
-          payload.map((entry, index) => (
-            <div key={index} className="mb-1">
-              <p className="font-semibold" style={{ color: isDark ? "hsl(30, 100%, 70%)" : "#000" }}>
-                {entry.name} : ${entry.value}
-              </p>
-            </div>
-          ))
-        ) : (
-          <>
-            <p className="font-semibold mb-1">{payload[0].name}: {payload[0].value}</p>
-            {explicaciones[payload[0].payload.estado ?? ""] && (
-              <p className="text-muted-foreground">{explicaciones[payload[0].payload.estado]}</p>
-            )}
-          </>
-        )}
-      </div>
-    );
-  }
-  return null;
-};
-
-const CustomTooltipFacturacion: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0]?.payload;
-
-    const formatNumber = (num: number) =>
-      new Intl.NumberFormat("es-AR", { minimumFractionDigits: 0 }).format(num);
-
-    const gimnasio = data.gimnasio || 0;
-    const clases = data.clase || 0;
-
-    const egresosGimnasio = data.egresosGimnasio || 0;
-    const egresosClases = data.egresosClase || 0;
-
-    const netoGimnasio = data.netoGimnasio || (gimnasio - egresosGimnasio);
-    const netoClase = data.netoClase || (clases - egresosClases);
-
-    const servicio = data.servicio || 0;
-    const producto = data.producto || 0;
-
-    const tarjeta = data.tarjeta || 0;
-    const efectivo = data.efectivo || 0;
-
-    const netoTotal = netoGimnasio + netoClase + servicio + producto;
-
-    return (
-      <div className="p-2 rounded-md shadow text-sm border w-max max-w-[260px] bg-white dark:bg-gray-800 dark:text-white">
-        <p className="font-semibold mb-1">💵 Ingreso Gimnasio: ${formatNumber(gimnasio)}</p>
-        <p>📉 Egreso Gimnasio: ${formatNumber(egresosGimnasio)}</p>
-        <p className="mb-1 text-green-500">📈 Neto Gimnasio: ${formatNumber(netoGimnasio)}</p>
-
-        <p className="font-semibold mt-2">💵 Ingreso Clases: ${formatNumber(clases)}</p>
-        <p>📉 Egreso Clases: ${formatNumber(egresosClases)}</p>
-        <p className="mb-1 text-green-500">📈 Neto Clases: ${formatNumber(netoClase)}</p>
-
-        <p className="font-semibold mt-2">💼 Ingreso Servicios: ${formatNumber(servicio)}</p>
-        <p className="font-semibold">🛒 Ingreso Productos: ${formatNumber(producto)}</p>
-
-        <hr className="my-2" />
-        <p className="font-semibold text-blue-500">💳 Pagos con Tarjeta: ${formatNumber(tarjeta)}</p>
-        <p className="font-semibold text-green-600">💵 Pagos en Efectivo: ${formatNumber(efectivo)}</p>
-
-        <hr className="my-2" />
-        <p className="font-bold text-orange-500">🧮 Neto Total: ${formatNumber(netoTotal)}</p>
-      </div>
-    );
-  }
-
-  return null;
-};
-
-const CustomTooltipCajas: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
-  if (!active || !payload || !payload.length) return null;
-  const data = payload[0].payload;
-
-  const montoTarde = data["tarde_monto"] || 0;
-  const montoManana = data["mañana_monto"] || 0;
-  const totalDia = montoTarde + montoManana;
-
-  const mañana_tarjeta = data["mañana_tarjeta"] || 0;
-  const mañana_efectivo = data["mañana_efectivo"] || 0;
-  const tarde_tarjeta = data["tarde_tarjeta"] || 0;
-  const tarde_efectivo = data["tarde_efectivo"] || 0;
-
-  const total_tarjeta = mañana_tarjeta + tarde_tarjeta;
-  const total_efectivo = mañana_efectivo + tarde_efectivo;
-
-  const montoGimnasio = (data["mañana_gimnasio"] || 0) + (data["tarde_gimnasio"] || 0);
-  const montoClase = (data["mañana_clases"] || 0) + (data["tarde_clases"] || 0);
-
-  return (
-
-
-    <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
-      <p className="font-bold mb-1">
-        📅 {isValid(parse(data.fecha, "dd/MM/yyyy", new Date()))
-          ? format(parse(data.fecha, "dd/MM/yyyy", new Date()), "dd/MM/yyyy")
-          : "Fecha inválida"}
-      </p>
-
-      {["mañana", "tarde"].map((turno) => (
-        data[`${turno}_monto`] !== undefined && (
-          <div key={turno} className="mb-2">
-            <p className="font-semibold capitalize">{turno}</p>
-            <ul className="ml-2 text-xs">
-              <li>💵 Efectivo: ${data[`${turno}_efectivo`] ?? 0}</li>
-              <li>💳 Tarjeta: ${data[`${turno}_tarjeta`] ?? 0}</li>
-              <li>💰 Final: ${data[`${turno}_monto`] ?? 0}</li>
-            </ul>
-          </div>
-        )
-      ))}
-
-      <div className="border-t mt-2 pt-2 text-sm">
-        <p className="font-semibold">🔍 Desglose por tipo:</p>
-        <ul className="ml-2 text-xs">
-          <li>🏋️ Gimnasio: ${montoGimnasio}</li>
-          <li>🤸 Clase:    ${montoClase}</li>
-        </ul>
-      </div>
-
-      <div className="border-t mt-2 pt-2 text-sm">
-        <p className="font-semibold">💳 Por método de pago</p>
-        <ul className="ml-2 text-xs">
-          <li>Total en Tarjeta: ${total_tarjeta}</li>
-          <li>Total en Efectivo: ${total_efectivo}</li>
-        </ul>
-      </div>
-
-      <div className="border-t mt-2 pt-2 text-sm font-semibold">
-        🧾 Total del día: ${totalDia}
-      </div>
-
-    </div>
-  );
-};
-
-const CustomTooltipProfesores: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const isDark =
-      typeof window !== "undefined" &&
-      document.documentElement.classList.contains("dark");
-
-    return (
-      <div
-        className="p-2 rounded-md shadow text-sm border w-max max-w-[300px]"
-        style={{
-          backgroundColor: isDark ? "hsl(220, 14%, 20%)" : "#fff",
-          color: isDark ? "hsl(0, 0%, 95%)" : "#000",
-        }}
-      >
-        <p className="font-semibold mb-2">
-          👨‍🏫 {data.profesor}: {data.cantidad} alumnos
-        </p>
-
-        {data.alumnos?.length > 0 && (
-          <div className="mt-1">
-            <p className="font-semibold text-xs mb-1">👥 Lista de alumnos:</p>
-            <div className="grid grid-cols-5 gap-x-2 gap-y-1 text-xs">
-              {data.alumnos.map((alumno: string, i: number) => (
-                <span key={i} className="truncate">
-                  {alumno}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-  return null;
-};
-
-export const CustomTooltipPlanes: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-
-    return (
-      <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
-        <p className="font-semibold">📋 Plan: {data.plan}</p>
-        <p>👥 Alumnos: {data.cantidad}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
-export const CustomTooltipEdades: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-
-    return (
-      <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white">
-        <p className="font-semibold">🎂 Edad: {data.edad}</p>
-        <p>👥 Alumnos: {data.cantidad}</p>
-      </div>
-    );
-  }
-  return null;
-};
 
 export default function AdminOverviewCharts({
   isVisible,
@@ -329,14 +41,21 @@ export default function AdminOverviewCharts({
   const [selectedMonthCajas, setSelectedMonthCajas] = useState(() => (dayjs().month() + 1).toString());
   const [selectedYearPersonalizados, setSelectedYearPersonalizados] = useState<number>(new Date().getFullYear());
   const [asistenciasPorHora, setAsistenciasPorHora] = useState<{ hora: string; cantidad: number }[]>([]);
-  const [promedios, setPromedios] = useState<Promedio[]>([
+
+  const [cajasDelMes, setCajasDelMes] = useState([]);
+  const [planesPorProfesor, setPlanesPorProfesor] = useState<planesPorProfesor[]>([]);
+  const [facturacionData, setFacturacionData] = useState<Factura[]>([]);
+
+  const [promedios, setPromedios] = useState<PromedioAsistencias[]>([
     { rango: "Mañana (7-12hs)", promedio: 0 },
     { rango: "Tarde (15-18hs)", promedio: 0 },
     { rango: "Noche (18-22hs)", promedio: 0 },
   ]);
-  const [cajasDelMes, setCajasDelMes] = useState([]);
-  const [planesPorProfesor, setPlanesPorProfesor] = useState<planesPorProfesor[]>([]);
-  const [facturacionData, setFacturacionData] = useState<Factura[]>([]);
+
+  const cajasTransformadas = Array.isArray(cajasDelMes) && cajasDelMes.length
+    && ('tarde_monto' in cajasDelMes[0] || 'mañana_monto' in cajasDelMes[0])
+    ? cajasDelMes
+    : [];
 
   const fetchFacturacion = async () => {
     try {
@@ -368,6 +87,7 @@ export default function AdminOverviewCharts({
 
       setDashboardData(res.data);
 
+      console.log("Datos del dashboard:", res.data.estado);
       const apH = Object.entries(res.data.asistenciasPorHora ?? {}).map(
         ([hora, cantidad]) => ({ hora, cantidad: Number(cantidad) })
       );
@@ -383,15 +103,9 @@ export default function AdminOverviewCharts({
       setCajasDelMes(res.data.cajasDelMes ?? []);
     } catch (error) {
       console.error("Error al cargar dashboard:", error);
+    } finally {
     }
   };
-
-  const cajasTransformadas = Array.isArray(cajasDelMes) && cajasDelMes.length
-    && ('tarde_monto' in cajasDelMes[0] || 'mañana_monto' in cajasDelMes[0])
-    ? cajasDelMes
-    : [];
-
-
 
   useEffect(() => {
     fetchDashboard();
@@ -401,440 +115,57 @@ export default function AdminOverviewCharts({
     fetchFacturacion();
   }, [selectedYearFacturacion]);
 
-  if (!dashboardData) return null;
+  if (!isVisible) return null;
+
+  if (!dashboardData) {
+    return <DashboardSkeleton />;
+  }
 
   const { estado, edades, planes } = dashboardData;
-
-  const estadoArray = [
-    { estado: "Activos", cantidad: estado.activos },
-    { estado: "Vencidos", cantidad: estado.vencidos },
-    { estado: "Abandonos", cantidad: estado.abandonos },
-  ];
-
-  const estadoExplicaciones = {
-    Activos: "Alumnos con plan vigente y clases disponibles.",
-    Vencidos: "Alumnos cuyo plan venció hace menos de 30 días.",
-    Abandonos: "Alumnos con plan vencido hace más de 30 días.",
-  };
-
-  const edadDistribucion = Object.entries(edades).map(([edad, cantidad]) => ({
-    edad: Number(edad),
-    cantidad,
-  }));
 
   const planesFiltrados = planes.filter((p) =>
     tipoPlan === "TODOS" ? true : p.tipo === tipoPlan
   );
 
-
-  const facturacionNormalizada = facturacionData.map(f => ({
-    ...f,
-    egresosClase:  f.egresosclase ?? 0,
-    egresosGimnasio: f.egresosgimnasio ?? 0,
-  }));
-
   return (
-    <div
-      className={
-        isVisible ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" : "hidden"
-      }
-    >
-      <Card className="shadow-lg hover:shadow-xl transition-all">
-        <CardHeader className="flex items-center gap-2">
-          <Users className="text-orange-500" />
-          <CardTitle>Alumnos Activos vs Vencidos vs Abandonos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {estadoArray.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center mt-8">
-              No hay datos disponibles.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={estadoArray}>
-                <XAxis dataKey="estado" />
-                <YAxis />
-                <Tooltip content={<CustomTooltip explicaciones={estadoExplicaciones} />} />
-                <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                  {estadoArray.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <MembersStatus estadoArray={estado} />
 
-      {/* 2. Distribución por Edad */}
+      <MembersYearsOld edadDistribucion={edades} />
 
-      <Card className="shadow-lg hover:shadow-xl transition-all">
-        <CardHeader className="flex items-center gap-2">
-          <CalendarCheck className="text-orange-500" />
-          <CardTitle>Distribución por Edad</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {edadDistribucion.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center mt-8">
-              No hay datos disponibles.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={edadDistribucion}>
-                <XAxis dataKey="edad" tick={false} />
-                <YAxis />
-                <Tooltip content={<CustomTooltipEdades />} />
-                <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                  {edadDistribucion.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+      <MembersPlan tipoPlan={tipoPlan} planesFiltrados={planesFiltrados} setTipoPlan={setTipoPlan} />
 
-      {/* 3. Alumnos por Plan */}
-      <Card className="shadow-lg hover:shadow-xl transition-all">
-        <CardHeader className="flex items-center gap-2">
-          <BarChart3Icon className="text-orange-500" /> {/* cambié el ícono */}
-          <CardTitle>Alumnos por Plan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-end mb-2">
-            <div className="w-[140px]">
-              <PlanSelect tipoPlan={tipoPlan} setTipoPlan={(val) => setTipoPlan(val as TipoPlan)} />
-            </div>
-          </div>
-          {planesFiltrados.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center mt-8">
-              No hay datos disponibles.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={planesFiltrados}>
-                <XAxis dataKey="plan" tick={false} />
-                <YAxis />
-                <Tooltip content={<CustomTooltipPlanes />} />
-                <Bar dataKey="cantidad" radius={[6, 6, 0, 0]}>
-                  {planesFiltrados.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+      <Assits
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        asistencias={asistenciasPorHora}
+      />
 
-      {/* 4. Asistencias por Hora */}
-      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
-        <CardHeader className="flex items-center flex-col">
-          <div className="flex flex-col items-center pb-4">
-            <Users className="text-orange-500" />
-            <CardTitle>Asistencias por hora (gimnasio)</CardTitle>
-          </div>
-          <div className="flex justify-end w-full">
-            <div className="w-auto">
-              <DatePicker date={selectedDate} setDate={setSelectedDate} />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={asistenciasPorHora}>
-              <XAxis dataKey="hora" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="cantidad"
-                stroke={COLORS[0]}
-                strokeWidth={3}
-                dot={{ r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <AverageAssits
+        promedios={promedios}
+      />
 
-      {/* 5. Promedio por Rango */}
+      <MonthlyBilling
+        facturacionData={facturacionData}
+        selectedYearFacturacion={selectedYearFacturacion}
+        setSelectedYearFacturacion={setSelectedYearFacturacion}
+      />
 
-      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
-        <CardHeader className="flex flex-col">
-          <div className="flex items-center flex-col pb-14">
-            <CalendarCheck className="text-orange-500" />
-            <CardTitle>Promedio de asistencias (gimnasio)</CardTitle>
-          </div>
-          <div className="flex flex-wrap justify-between">
-          </div>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={promedios}>
-              <XAxis dataKey="rango" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="promedio" radius={[10, 10, 0, 0]}>
-                {promedios.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <PlansByTeacher
+        selectedYearPersonalizados={selectedYearPersonalizados}
+        setSelectedYearPersonalizados={setSelectedYearPersonalizados}
+        selectedMonthPersonalizados={selectedMonthPersonalizados}
+        setSelectedMonthPersonalizados={setSelectedMonthPersonalizados}
+        planesPorProfesor={planesPorProfesor}
+      />
 
-      {/* 6. Facturación Mensual */}
-
-      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-3">
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-center gap-5">
-          <div className="flex items-center gap-2">
-            <DollarSign className="text-orange-500" />
-            <CardTitle>Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select
-              value={selectedYearFacturacion.toString()}
-              onValueChange={(val) => setSelectedYearFacturacion(Number(val))}
-            >
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Año" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((anio) => (
-                  <SelectItem key={anio} value={anio.toString()}>
-                    {anio}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {facturacionData.length === 0 || facturacionData.every(f => f.gimnasio === 0 && f.clase === 0 && (f.egresosgimnasio ?? 0) === 0 && (f.egresosclase ?? 0) === 0) ? (
-            <p className="text-sm text-muted-foreground text-center mt-8">
-              No hay datos de facturación para este año.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={facturacionNormalizada}
-                margin={{ top: 0, right: 0, left: 20, bottom: 10 }}>
-                <XAxis dataKey="mes" />
-                <YAxis />
-                <Tooltip content={<CustomTooltipFacturacion />} />
-
-                <Bar dataKey="gimnasio" name="Ingreso Gimnasio" stackId="a" >
-                  {facturacionData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[0]} />
-                  ))}
-                </Bar>
-
-                <Bar dataKey="egresosgimnasio" name="Egreso Gimnasio" stackId="a" radius={[6, 6, 0, 0]}>
-                  {facturacionData.map((_, i) => (
-                    <Cell key={i} fill="#ef4444" />
-                  ))}
-                </Bar>
-
-                <Bar dataKey="clase" name="Ingreso Clases" stackId="b" >
-                  {facturacionData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[2]} />
-                  ))}
-                </Bar>
-
-                <Bar dataKey="egresosclase" name="Egreso Clases" stackId="b" radius={[6, 6, 0, 0]}>
-                  {facturacionData.map((_, i) => (
-                    <Cell key={i} fill="#f87171" />
-                  ))}
-                </Bar>
-
-                <Bar dataKey="servicio" name="Ingreso Servicios" stackId="c" radius={[6, 6, 0, 0]}>
-                  {facturacionData.map((_, i) => (
-                    <Cell key={i} fill="#10b981" />
-                  ))}
-                </Bar>
-
-                <Bar dataKey="producto" name="Ingreso Productos" stackId="d" radius={[6, 6, 0, 0]}>
-                  {facturacionData.map((_, i) => (
-                    <Cell key={i} fill="#8b5cf6" />
-                  ))}
-                </Bar>
-
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
-
-      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
-        <CardHeader className="flex flex-col">
-          <div className="flex items-center flex-col pb-4">
-            <CalendarCheck className="text-orange-500" />
-            <CardTitle>Planes Personalizados por Profesor</CardTitle>
-          </div>
-          <div className="flex justify-end gap-4 w-full">
-            <div className="w-[100px]">
-              <Select
-                value={selectedYearPersonalizados.toString()}
-                onValueChange={(val) => setSelectedYearPersonalizados(Number(val))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Año" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["2024", "2025", "2026"].map((anio) => (
-                    <SelectItem key={anio} value={anio}>
-                      {anio}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-[120px] flex items-center gap-2">
-              <Select
-                value={selectedMonthPersonalizados}
-                onValueChange={(val) => setSelectedMonthPersonalizados(val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Mes" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <SelectItem key={i} value={(i + 1).toString()}>
-                      {dayjs().month(i).locale("es").format("MMMM")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <TooltipProvider>
-                <TooltipUI>
-                  <TooltipTrigger asChild>
-                    <Info className="text-muted-foreground cursor-pointer w-4 h-4" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p className="text-sm max-w-[220px] text-center">
-                      Se muestra la cantidad de alumnos de tipo GIMNASIO con plan que contenga PERSONALIZADO
-                      que pagaron en el mes y año seleccionado con cada profesor.
-                    </p>
-                  </TooltipContent>
-                </TooltipUI>
-              </TooltipProvider>
-            </div>
-
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!planesPorProfesor ? (
-            <p className="text-sm text-muted-foreground text-center mt-8">
-              No hay planes personalizados para esta fecha.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={planesPorProfesor}>
-                <XAxis dataKey="profesor" />
-                <YAxis />
-                <Tooltip content={<CustomTooltipProfesores />} />
-                <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
-                  {planesPorProfesor.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
-        <CardHeader className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 flex-col">
-            <DollarSign className="text-orange-500" />
-            <CardTitle>Cajas registradas por año y mes </CardTitle>
-          </div>
-          <div className="flex justify-end gap-4 w-full">
-            <div className="w-[100px]">
-              <Select
-                value={selectedYear.toString()}
-                onValueChange={(val) => setSelectedYear(Number(val))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Año" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["2024", "2025", "2026"].map((anio) => (
-                    <SelectItem key={anio} value={anio}>
-                      {anio}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-[120px]">
-              <Select
-                value={selectedMonthCajas}
-                onValueChange={(val) => setSelectedMonthCajas(val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Mes" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <SelectItem key={i} value={(i + 1).toString()}>
-                      {dayjs().month(i).locale("es").format("MMMM")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {cajasTransformadas.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center mt-8">
-              No hay datos disponibles para el mes seleccionado.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={cajasTransformadas} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
-                <XAxis
-                  dataKey="fecha"
-                  tickFormatter={(val) => {
-                    const parsed = parse(val, "dd/MM/yyyy", new Date());
-                    return isValid(parsed) ? format(parsed, "dd/MM/yyyy") : "Fecha inválida";
-                  }}
-                />
-                <YAxis width={80} tickFormatter={(val) => new Intl.NumberFormat("es-AR").format(val)} />
-                <Tooltip 
-                  content={<CustomTooltipCajas />} 
-                  position={{ y: -100 }}
-                  wrapperStyle={{ zIndex: 1000 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="tarde_monto"
-                  name="Tarde"
-                  stroke={COLORS[4]}
-                  strokeWidth={2}
-                  dot={{ r: 5 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="mañana_monto"
-                  name="Mañana"
-                  stroke={COLORS[0]}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
+      <BillingBoxes
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        selectedMonthCajas={selectedMonthCajas}
+        setSelectedMonthCajas={setSelectedMonthCajas}
+        cajasTransformadas={cajasTransformadas}
+      />
     </div>
   );
 }

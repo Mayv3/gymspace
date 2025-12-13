@@ -246,7 +246,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
         <div className="block md:hidden space-y-4">
           {paginatedMembers.map((m, idx) => (
             <Card key={m.DNI} className="shadow-sm rounded-lg overflow-hidden">
-              <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
+              <div className="bg-orange-50 dark:bg-zinc-900 px-4 py-3 flex justify-between items-center border-b">
                 <h3 className="font-semibold text-base">{m.Nombre}</h3>
                 {(() => {
                   const hoy = dayjs();
@@ -261,55 +261,54 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
                 })()}
               </div>
 
-              {/* Cuerpo: grid 2 cols */}
-              <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <CardContent className="dark:bg-zinc-900 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div>
-                  <p className="font-bold text-gray-600">DNI</p>
-                  <p className="text-gray-800">{m.DNI}</p>
+                  <p className="font-bold text-foreground">DNI</p>
+                  <p className="text-muted-foreground">{m.DNI}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Email</p>
-                  <p className="text-gray-800 truncate">{m.Email}</p>
+                  <p className="font-bold text-foreground">Email</p>
+                  <p className="text-muted-foreground truncate">{m.Email}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Teléfono</p>
-                  <p className="text-gray-800">{m.Telefono}</p>
+                  <p className="font-bold text-foreground">Teléfono</p>
+                  <p className="text-muted-foreground">{m.Telefono}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Nac.</p>
-                  <p className="text-gray-800">{m.Fecha_nacimiento}</p>
+                  <p className="font-bold text-foreground">Nac.</p>
+                  <p className="text-muted-foreground">{m.Fecha_nacimiento}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Inicio</p>
-                  <p className="text-gray-800">{m.Fecha_inicio}</p>
+                  <p className="font-bold text-foreground">Inicio</p>
+                  <p className="text-muted-foreground">{m.Fecha_inicio}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Venc.</p>
-                  <p className="text-gray-800">{m.Fecha_vencimiento}</p>
+                  <p className="font-bold text-foreground">Venc.</p>
+                  <p className="text-muted-foreground">{m.Fecha_vencimiento}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Pagadas</p>
-                  <p className="text-gray-800">{m.Clases_pagadas}</p>
+                  <p className="font-bold text-foreground">Pagadas</p>
+                  <p className="text-muted-foreground">{m.Clases_pagadas}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Realizadas</p>
-                  <p className="text-gray-800">{m.Clases_realizadas}</p>
+                  <p className="font-bold text-foreground">Realizadas</p>
+                  <p className="text-muted-foreground">{m.Clases_realizadas}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Profesor</p>
-                  <p className="text-gray-800">{m.Profesor_asignado}</p>
+                  <p className="font-bold text-foreground">Profesor</p>
+                  <p className="text-muted-foreground">{m.Profesor_asignado}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Plan</p>
-                  <p className="text-sm text-gray-800">{m.Plan}</p>
+                  <p className="font-bold text-foreground">Plan</p>
+                  <p className="text-sm text-muted-foreground">{m.Plan}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="font-bold text-gray-600">GymCoins</p>
-                  <p className="text-gray-800">{m.GymCoins}</p>
+                  <p className="font-bold text-foreground">GymCoins</p>
+                  <p className="text-muted-foreground">{m.GymCoins}</p>
                 </div>
               </CardContent>
 
-              <div className="bg-white px-4 py-3 space-y-2 flex items-end gap-2">
+              <div className="dark:bg-zinc-900 px-4 py-3 space-y-2 flex items-end gap-2">
                 <Button
                   size="sm"
                   variant="orange"

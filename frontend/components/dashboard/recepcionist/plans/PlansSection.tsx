@@ -281,28 +281,28 @@ export default function PlansSection() {
                         {paginatedPlanes.map((plan, idx) => (
                             <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
                                 {/* Header */}
-                                <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
+                                <div className="bg-white dark:bg-zinc-900 px-4 py-3 flex justify-between items-center border-b">
                                     <h3 className="font-semibold text-base">{plan['Plan o Producto']}</h3>
                                     <span className="text-sm text-gray-500">{plan.Tipo}</span>
                                 </div>
 
                                 {/* Cuerpo: grid 2 columnas */}
-                                <CardContent className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <CardContent className="bg-gray-50 dark:bg-zinc-900  px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                     <div>
-                                        <p className="font-medium text-gray-600">Precio</p>
-                                        <p className="text-gray-800">${plan.Precio}</p>
+                                        <p className="font-medium text-foreground">Precio</p>
+                                        <p className="text-muted-foreground">${plan.Precio}</p>
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-600">Clases</p>
-                                        <p className="text-gray-800">{plan.numero_Clases}</p>
+                                        <p className="font-medium text-foreground">Clases</p>
+                                        <p className="text-muted-foreground">{plan.numero_Clases}</p>
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-600">Coins</p>
-                                        <p className="text-gray-800">{plan.Coins}</p>
+                                        <p className="font-medium text-foreground">Coins</p>
+                                        <p className="text-muted-foreground">{plan.Coins}</p>
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-600">Registrado Por</p>
-                                        <p className="text-gray-800">{plan.Responsable || "—"}</p>
+                                        <p className="font-medium text-foreground">Registrado Por</p>
+                                        <p className="text-muted-foreground">{plan.Responsable || "—"}</p>
                                     </div>
                                 </CardContent>
 

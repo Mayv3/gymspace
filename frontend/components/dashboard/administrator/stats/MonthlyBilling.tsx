@@ -1,0 +1,106 @@
+import {
+    Card,
+    CardContent,
+    CardTitle,
+    CardHeader
+} from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DollarSign } from "lucide-react";
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CustomTooltipFacturacion } from "../tooltips/CustomTooltipFacturacion";
+import { COLORS } from "./colors";
+import { Factura } from "@/models/stats/factura";
+import React from 'react'
+
+export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSelectedYearFacturacion }: { facturacionData: Factura[], selectedYearFacturacion: number, setSelectedYearFacturacion: React.Dispatch<React.SetStateAction<number>> }) => {
+
+    const facturacionNormalizada = facturacionData.map(f => ({
+        ...f,
+        egresosClase: f.egresosclase ?? 0,
+        egresosGimnasio: f.egresosgimnasio ?? 0,
+    }));
+
+
+    return (
+        <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-3">
+            <CardContent>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-5">
+                    <CardHeader className="flex flex-row items-center gap-2 justify-center">
+                        <div className="flex flex-row gap-5 justify-center items-center">
+                            <CardTitle>Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
+                            <Select
+                                value={selectedYearFacturacion.toString()}
+                                onValueChange={(val) => setSelectedYearFacturacion(Number(val))}
+                            >
+                                <SelectTrigger className="w-[100px]">
+                                    <SelectValue placeholder="Año" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((anio) => (
+                                        <SelectItem key={anio} value={anio.toString()}>
+                                            {anio}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                    </CardHeader>
+
+                </div>
+                {facturacionData.length === 0 || facturacionData.every(f => f.gimnasio === 0 && f.clase === 0 && (f.egresosgimnasio ?? 0) === 0 && (f.egresosclase ?? 0) === 0) ? (
+                    <p className="text-sm text-muted-foreground text-center mt-8">
+                        No hay datos de facturación para este año.
+                    </p>
+                ) : (
+                    <ResponsiveContainer width="100%" height={350}>
+                        <BarChart data={facturacionNormalizada}
+                            margin={{ top: 0, right: 0, left: 20, bottom: 10 }}>
+                            <XAxis dataKey="mes" />
+                            <YAxis />
+                            <Tooltip content={<CustomTooltipFacturacion />} />
+
+                            <Bar dataKey="gimnasio" name="Ingreso Gimnasio" stackId="a" >
+                                {facturacionData.map((_, i) => (
+                                    <Cell key={i} fill={COLORS[0]} />
+                                ))}
+                            </Bar>
+
+                            <Bar dataKey="egresosgimnasio" name="Egreso Gimnasio" stackId="a" radius={[6, 6, 0, 0]}>
+                                {facturacionData.map((_, i) => (
+                                    <Cell key={i} fill="#ef4444" />
+                                ))}
+                            </Bar>
+
+                            <Bar dataKey="clase" name="Ingreso Clases" stackId="b" >
+                                {facturacionData.map((_, i) => (
+                                    <Cell key={i} fill={COLORS[2]} />
+                                ))}
+                            </Bar>
+
+                            <Bar dataKey="egresosclase" name="Egreso Clases" stackId="b" radius={[6, 6, 0, 0]}>
+                                {facturacionData.map((_, i) => (
+                                    <Cell key={i} fill="#f87171" />
+                                ))}
+                            </Bar>
+
+                            <Bar dataKey="servicio" name="Ingreso Servicios" stackId="c" radius={[6, 6, 0, 0]}>
+                                {facturacionData.map((_, i) => (
+                                    <Cell key={i} fill="#10b981" />
+                                ))}
+                            </Bar>
+
+                            <Bar dataKey="producto" name="Ingreso Productos" stackId="d" radius={[6, 6, 0, 0]}>
+                                {facturacionData.map((_, i) => (
+                                    <Cell key={i} fill="#8b5cf6" />
+                                ))}
+                            </Bar>
+
+                        </BarChart>
+                    </ResponsiveContainer>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+

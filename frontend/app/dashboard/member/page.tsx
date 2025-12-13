@@ -1,21 +1,12 @@
 "use client"
 
-import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle
-} from "@/components/ui/card"
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from "@/components/ui/table"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, Award, Dumbbell, TrendingUp, Coins } from "lucide-react"
+
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useUser } from "@/context/UserContext";
-import { CheckCircle, XCircle } from "lucide-react"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
@@ -31,14 +22,12 @@ import {
   Table as MuiTable,
   TableBody as MuiTableBody,
   TableCell as MuiTableCell,
-  TableContainer,
   TableHead as MuiTableHead,
   TableRow as MuiTableRow,
   Avatar,
   Divider,
   Modal,
   Fade,
-  IconButton,
 } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import {
@@ -53,10 +42,11 @@ import {
   TrendingUp as MuiTrendingUp,
 } from '@mui/icons-material'
 
+import { TopAlumnosCoins } from "@/models/Rankings"
+import { Member, Clase, Pago } from "@/models/Members"
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
 
-// Función para crear tema dinámico
 const createAppTheme = (isDark: boolean) => createTheme({
   palette: {
     mode: isDark ? 'dark' : 'light',
@@ -117,41 +107,6 @@ dayjs.extend(timezone)
 dayjs.extend(isSameOrBefore)
 dayjs.extend(customParseFormat)
 
-interface Pago {
-  ID: string;
-  "Socio DNI": string;
-  Nombre: string;
-  Monto: string;
-  Metodo_de_Pago: string;
-  Fecha_de_Pago: string;
-  Fecha_de_Vencimiento: string;
-  Responsable: string;
-  Turno: string;
-  Hora: string;
-  Tipo: string;
-}
-
-interface Member {
-  Nombre: string;
-  Plan: string;
-  Fecha_vencimiento: string;
-  Clases_restantes: number;
-  Clases_pagadas: number;
-  Precio: number;
-  Tipo_de_plan: string;
-  Pagos: Pago[];
-  GymCoins: string | number;
-}
-
-interface Clase {
-  ID: string
-  'Nombre de clase': string
-  Dia: string
-  Hora: string
-  'Cupo maximo': string
-  Inscriptos: string
-  ProximaFecha?: string
-}
 
 export default function MemberDashboard() {
   const [user, setUser] = useState<Member | null>(null);
@@ -161,7 +116,7 @@ export default function MemberDashboard() {
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success");
   const [showFeedback, setShowFeedback] = useState(false);
   const [loadingClaseId, setLoadingClaseId] = useState<string | null>(null);
-  const [topAlumnosCoins, setTopAlumnosCoins] = useState([]);
+  const [topAlumnosCoins, setTopAlumnosCoins] = useState<TopAlumnosCoins>({ top10Clases: [], top10Gimnasio: [] });
   const [rankingAlumno, setRankingAlumno] = useState<number | null>(null);
   const hasFetched = useRef(false)
   const [roleChecked, setRoleChecked] = useState(false)
@@ -173,24 +128,20 @@ export default function MemberDashboard() {
 
   const [showBanner, setShowBanner] = useState(false);
 
-  // Marcar como montado para evitar hydration mismatch
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Detectar cambios en el dark mode
   useEffect(() => {
     if (!mounted) return
-    
+
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark')
       setIsDarkMode(isDark)
     }
-    
-    // Check inicial
+
     checkDarkMode()
-    
-    // Observer para detectar cambios en la clase
+
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'class') {
@@ -198,9 +149,9 @@ export default function MemberDashboard() {
         }
       })
     })
-    
+
     observer.observe(document.documentElement, { attributes: true })
-    
+
     return () => observer.disconnect()
   }, [mounted])
 
@@ -610,7 +561,7 @@ export default function MemberDashboard() {
                 elevation={4}
                 sx={{
                   height: '100%',
-                  background: isDarkMode 
+                  background: isDarkMode
                     ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)'
                     : 'linear-gradient(135deg, #fff 0%, #fef3ed 100%)',
                   border: '1px solid rgba(234, 88, 12, 0.2)',
@@ -619,7 +570,7 @@ export default function MemberDashboard() {
               >
                 <MuiCardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                    <Typography variant="h6"  fontWeight={900} color="text.secondary">
+                    <Typography variant="h6" fontWeight={900} color="text.secondary">
                       Plan Actual
                     </Typography>
                     <Box
@@ -664,7 +615,7 @@ export default function MemberDashboard() {
               >
                 <MuiCardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                    <Typography variant="h6"  fontWeight={900} color="text.secondary">
+                    <Typography variant="h6" fontWeight={900} color="text.secondary">
                       Estado de Membresía
                     </Typography>
                     <Box
@@ -727,7 +678,7 @@ export default function MemberDashboard() {
               >
                 <MuiCardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                    <Typography variant="h6"  fontWeight={900} color="text.secondary">
+                    <Typography variant="h6" fontWeight={900} color="text.secondary">
                       Clases Restantes
                     </Typography>
                     <Box
@@ -781,7 +732,7 @@ export default function MemberDashboard() {
                 elevation={4}
                 sx={{
                   height: '100%',
-                  background: isDarkMode 
+                  background: isDarkMode
                     ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)'
                     : 'linear-gradient(135deg, #fff 0%, #fefce8 100%)',
                   border: '1px solid rgba(234, 179, 8, 0.2)',
@@ -857,103 +808,103 @@ export default function MemberDashboard() {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {user?.Tipo_de_plan === "GIMNASIO"
                     ? (topAlumnosCoins.top10Gimnasio || []).map((alumno: any, index: number) => {
-                        const esUsuarioActual = alumno.DNI === contextUser?.dni;
-                        return (
-                          <motion.div
-                            key={alumno.DNI}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.4, delay: index * 0.05 }}
+                      const esUsuarioActual = alumno.DNI === contextUser?.dni;
+                      return (
+                        <motion.div
+                          key={alumno.DNI}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.4, delay: index * 0.05 }}
+                        >
+                          <Paper
+                            elevation={esUsuarioActual ? 8 : 2}
+                            sx={{
+                              p: 2,
+                              borderRadius: 3,
+                              border: esUsuarioActual ? '2px solid #eab308' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                              bgcolor: esUsuarioActual ? (isDarkMode ? 'rgba(234, 179, 8, 0.15)' : 'rgba(234, 179, 8, 0.1)') : (isDarkMode ? '#1f1f23' : 'background.paper'),
+                              transition: 'all 0.3s ease',
+                              '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
                           >
-                            <Paper
-                              elevation={esUsuarioActual ? 8 : 2}
-                              sx={{
-                                p: 2,
-                                borderRadius: 3,
-                                border: esUsuarioActual ? '2px solid #eab308' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
-                                bgcolor: esUsuarioActual ? (isDarkMode ? 'rgba(234, 179, 8, 0.15)' : 'rgba(234, 179, 8, 0.1)') : (isDarkMode ? '#1f1f23' : 'background.paper'),
-                                transition: 'all 0.3s ease',
-                                '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                              }}
-                            >
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Typography
-                                  variant="h6"
-                                  fontWeight={800}
-                                  color="primary.main"
-                                  sx={{ minWidth: 20 }}
-                                >
-                                  #{index + 1}
-                                </Typography>
-                                <Typography
-                                  variant="body1"
-                                  fontWeight={600}
-                                >
-                                  {alumno.Nombre}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <Typography variant="h6" fontWeight={700} color="#eab308">
-                                  {alumno.GymCoins}
-                                </Typography>
-                                <Toll sx={{ color: '#eab308', fontSize: 20 }} />
-                              </Box>
-                            </Paper>
-                          </motion.div>
-                        );
-                      })
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Typography
+                                variant="h6"
+                                fontWeight={800}
+                                color="primary.main"
+                                sx={{ minWidth: 20 }}
+                              >
+                                #{index + 1}
+                              </Typography>
+                              <Typography
+                                variant="body1"
+                                fontWeight={600}
+                              >
+                                {alumno.Nombre}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography variant="h6" fontWeight={700} color="#eab308">
+                                {alumno.GymCoins}
+                              </Typography>
+                              <Toll sx={{ color: '#eab308', fontSize: 20 }} />
+                            </Box>
+                          </Paper>
+                        </motion.div>
+                      );
+                    })
                     : (topAlumnosCoins.top10Clases || []).map((alumno: any, index: number) => {
-                        const esUsuarioActual = alumno.DNI === contextUser?.dni;
-                        return (
-                          <motion.div
-                            key={alumno.DNI}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.4, delay: index * 0.05 }}
+                      const esUsuarioActual = alumno.DNI === contextUser?.dni;
+                      return (
+                        <motion.div
+                          key={alumno.DNI}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.4, delay: index * 0.05 }}
+                        >
+                          <Paper
+                            elevation={esUsuarioActual ? 8 : 2}
+                            sx={{
+                              p: 2,
+                              borderRadius: 3,
+                              border: esUsuarioActual ? '2px solid #eab308' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                              bgcolor: esUsuarioActual ? (isDarkMode ? 'rgba(234, 179, 8, 0.15)' : 'rgba(234, 179, 8, 0.1)') : (isDarkMode ? '#1f1f23' : 'background.paper'),
+                              transition: 'all 0.3s ease',
+                              '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
                           >
-                            <Paper
-                              elevation={esUsuarioActual ? 8 : 2}
-                              sx={{
-                                p: 2,
-                                borderRadius: 3,
-                                border: esUsuarioActual ? '2px solid #eab308' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
-                                bgcolor: esUsuarioActual ? (isDarkMode ? 'rgba(234, 179, 8, 0.15)' : 'rgba(234, 179, 8, 0.1)') : (isDarkMode ? '#1f1f23' : 'background.paper'),
-                                transition: 'all 0.3s ease',
-                                '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                              }}
-                            >
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Typography
-                                  variant="h6"
-                                  fontWeight={800}
-                                  color="primary.main"
-                                  sx={{ minWidth: 40 }}
-                                >
-                                  #{index + 1}
-                                </Typography>
-                                <Typography
-                                  variant="body1"
-                                  fontWeight={600}
-                                >
-                                  {alumno.Nombre}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <Typography variant="h6" fontWeight={700} color="#eab308">
-                                  {alumno.GymCoins}
-                                </Typography>
-                                <Toll sx={{ color: '#eab308', fontSize: 20 }} />
-                              </Box>
-                            </Paper>
-                          </motion.div>
-                        );
-                      })}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Typography
+                                variant="h6"
+                                fontWeight={800}
+                                color="primary.main"
+                                sx={{ minWidth: 40 }}
+                              >
+                                #{index + 1}
+                              </Typography>
+                              <Typography
+                                variant="body1"
+                                fontWeight={600}
+                              >
+                                {alumno.Nombre}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography variant="h6" fontWeight={700} color="#eab308">
+                                {alumno.GymCoins}
+                              </Typography>
+                              <Toll sx={{ color: '#eab308', fontSize: 20 }} />
+                            </Box>
+                          </Paper>
+                        </motion.div>
+                      );
+                    })}
                 </Box>
               </MuiCardContent>
             </MuiCard>
@@ -1232,213 +1183,213 @@ export default function MemberDashboard() {
                                   : [];
                                 const estaInscripto = inscritos.includes(contextUser!.dni);
 
-                              const ARG_TZ = "America/Argentina/Buenos_Aires";
-                              const now = dayjs().tz(ARG_TZ);
+                                const ARG_TZ = "America/Argentina/Buenos_Aires";
+                                const now = dayjs().tz(ARG_TZ);
 
-                              const fechaClase = clase.ProximaFecha?.trim() || "";
-                              const [horaStr, minutoStr] = clase.Hora.split(":");
-                              const claseDate = dayjs(fechaClase, ["D/M/YYYY", "DD/MM/YYYY"])
-                                .hour(parseInt(horaStr, 10))
-                                .minute(parseInt(minutoStr, 10))
-                                .tz(ARG_TZ);
+                                const fechaClase = clase.ProximaFecha?.trim() || "";
+                                const [horaStr, minutoStr] = clase.Hora.split(":");
+                                const claseDate = dayjs(fechaClase, ["D/M/YYYY", "DD/MM/YYYY"])
+                                  .hour(parseInt(horaStr, 10))
+                                  .minute(parseInt(minutoStr, 10))
+                                  .tz(ARG_TZ);
 
-                              const minutosParaClase = claseDate.diff(now, "minute");
-                              const minutosDesdeClase = now.diff(claseDate, "minute");
+                                const minutosParaClase = claseDate.diff(now, "minute");
+                                const minutosDesdeClase = now.diff(claseDate, "minute");
 
-                              let estado = "";
-                              let puedeActuar = false;
+                                let estado = "";
+                                let puedeActuar = false;
 
-                              if (minutosDesdeClase >= 0) {
-                                estado = "Clase finalizada";
-                              } else if (inscritos.length >= Number(clase["Cupo maximo"])) {
-                                estado = "Cupo completo";
-                              } else if (!estaInscripto && minutosParaClase < 30) {
-                                estado = "Inscripción cerrada";
-                              } else if (estaInscripto && minutosDesdeClase > 60) {
-                                estado = "Desuscripción cerrada";
-                              } else {
-                                estado = estaInscripto ? "Desuscribirse" : "Inscribirse";
-                                puedeActuar = true;
-                              }
+                                if (minutosDesdeClase >= 0) {
+                                  estado = "Clase finalizada";
+                                } else if (inscritos.length >= Number(clase["Cupo maximo"])) {
+                                  estado = "Cupo completo";
+                                } else if (!estaInscripto && minutosParaClase < 30) {
+                                  estado = "Inscripción cerrada";
+                                } else if (estaInscripto && minutosDesdeClase > 60) {
+                                  estado = "Desuscripción cerrada";
+                                } else {
+                                  estado = estaInscripto ? "Desuscribirse" : "Inscribirse";
+                                  puedeActuar = true;
+                                }
 
-                              const cupoPercentage = (inscritos.length / Number(clase["Cupo maximo"])) * 100;
+                                const cupoPercentage = (inscritos.length / Number(clase["Cupo maximo"])) * 100;
 
-                              return (
-                                <Paper
-                                  key={clase.ID}
-                                  elevation={3}
-                                  sx={{
-                                    px: 0,
-                                    borderRadius: 3,
-                                    overflow: 'hidden',
-                                    border: estaInscripto ? '2px solid #ea580c' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
-                                    transition: 'all 0.3s ease',
-                                    minWidth: { xs: 280, sm: 300 },
-                                    maxWidth: { xs: 280, sm: 300 },
-                                    flexShrink: 0,
-                                    bgcolor: isDarkMode ? '#1f1f23' : 'background.paper',
-                                    '&:hover': {
-                                      transform: 'translateY(-4px)',
-                                      boxShadow: 6,
-                                    },
-                                  }}
-                                >
-                                  <Box
+                                return (
+                                  <Paper
+                                    key={clase.ID}
+                                    elevation={3}
                                     sx={{
-                                      background: estaInscripto
-                                        ? 'linear-gradient(135deg, #ea580c, #f97316)'
-                                        : isDarkMode ? 'linear-gradient(135deg, #2a2a2e, #35353a)' : 'linear-gradient(135deg, #f5f5f5, #fff)',
-                                      p: 2.5,
-                                      borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
+                                      px: 0,
+                                      borderRadius: 3,
+                                      overflow: 'hidden',
+                                      border: estaInscripto ? '2px solid #ea580c' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                                      transition: 'all 0.3s ease',
+                                      minWidth: { xs: 280, sm: 300 },
+                                      maxWidth: { xs: 280, sm: 300 },
+                                      flexShrink: 0,
+                                      bgcolor: isDarkMode ? '#1f1f23' : 'background.paper',
+                                      '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: 6,
+                                      },
                                     }}
                                   >
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                    <Box
+                                      sx={{
+                                        background: estaInscripto
+                                          ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                                          : isDarkMode ? 'linear-gradient(135deg, #2a2a2e, #35353a)' : 'linear-gradient(135deg, #f5f5f5, #fff)',
+                                        p: 2.5,
+                                        borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
+                                      }}
+                                    >
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                        <Typography
+                                          variant="h6"
+                                          fontWeight={700}
+                                          sx={{ color: estaInscripto ? 'white' : 'text.primary', fontSize: '1.1rem' }}
+                                        >
+                                          {clase["Nombre de clase"]}
+                                        </Typography>
+                                        {estaInscripto && (
+                                          <Chip
+                                            size="small"
+                                            label="INSCRIPTO"
+                                            sx={{
+                                              bgcolor: 'rgba(255,255,255,0.2)',
+                                              color: 'white',
+                                              fontWeight: 600,
+                                              fontSize: '0.7rem',
+                                            }}
+                                          />
+                                        )}
+                                      </Box>
                                       <Typography
-                                        variant="h6"
-                                        fontWeight={700}
-                                        sx={{ color: estaInscripto ? 'white' : 'text.primary', fontSize: '1.1rem' }}
+                                        variant="body2"
+                                        fontWeight={500}
+                                        sx={{ color: estaInscripto ? 'rgba(255,255,255,0.9)' : 'text.secondary' }}
                                       >
-                                        {clase["Nombre de clase"]}
+                                        {clase.Dia} — {clase.ProximaFecha}
                                       </Typography>
-                                      {estaInscripto && (
-                                        <Chip
-                                          size="small"
-                                          label="INSCRIPTO"
+                                    </Box>
+
+                                    <Box sx={{ p: 2.5 }}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                                        <Box
                                           sx={{
-                                            bgcolor: 'rgba(255,255,255,0.2)',
-                                            color: 'white',
-                                            fontWeight: 600,
-                                            fontSize: '0.7rem',
+                                            width: 36,
+                                            height: 36,
+                                            borderRadius: 2,
+                                            bgcolor: 'rgba(234, 88, 12, 0.1)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                          }}
+                                        >
+                                          <FitnessCenter sx={{ color: 'primary.main', fontSize: 20 }} />
+                                        </Box>
+                                        <Typography variant="h5" fontWeight={700} color="text.primary">
+                                          {clase.Hora}hs
+                                        </Typography>
+                                      </Box>
+
+                                      <Box sx={{ mb: 2 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                          <Typography variant="body2" fontWeight={500} color="text.secondary">
+                                            Cupos disponibles
+                                          </Typography>
+                                          <Typography variant="body1" fontWeight={700} color="text.primary">
+                                            {inscritos.length}/{clase["Cupo maximo"]}
+                                          </Typography>
+                                        </Box>
+                                        <LinearProgress
+                                          variant="determinate"
+                                          value={cupoPercentage}
+                                          sx={{
+                                            height: 8,
+                                            borderRadius: 4,
+                                            bgcolor: 'rgba(0,0,0,0.1)',
+                                            '& .MuiLinearProgress-bar': {
+                                              bgcolor: cupoPercentage >= 100 ? 'error.main' : cupoPercentage >= 80 ? 'warning.main' : 'primary.main',
+                                              borderRadius: 4,
+                                            },
                                           }}
                                         />
-                                      )}
-                                    </Box>
-                                    <Typography
-                                      variant="body2"
-                                      fontWeight={500}
-                                      sx={{ color: estaInscripto ? 'rgba(255,255,255,0.9)' : 'text.secondary' }}
-                                    >
-                                      {clase.Dia} — {clase.ProximaFecha}
-                                    </Typography>
-                                  </Box>
+                                      </Box>
 
-                                  <Box sx={{ p: 2.5 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                      <Box
-                                        sx={{
-                                          width: 36,
-                                          height: 36,
-                                          borderRadius: 2,
-                                          bgcolor: 'rgba(234, 88, 12, 0.1)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                        }}
+                                      <button
+                                        onClick={() =>
+                                          puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")
+                                        }
+                                        disabled={!puedeActuar || loadingClaseId === clase.ID}
+                                        className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${puedeActuar
+                                          ? estado === "Desuscribirse"
+                                            ? "bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg"
+                                            : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg"
+                                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                          }`}
                                       >
-                                        <FitnessCenter sx={{ color: 'primary.main', fontSize: 20 }} />
-                                      </Box>
-                                      <Typography variant="h5" fontWeight={700} color="text.primary">
-                                        {clase.Hora}hs
-                                      </Typography>
+                                        {loadingClaseId === clase.ID ? (
+                                          <div className="flex items-center justify-center">
+                                            <svg
+                                              className="animate-spin mr-2 h-5 w-5 text-white"
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                              />
+                                              <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
+                                              />
+                                            </svg>
+                                            {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
+                                          </div>
+                                        ) : (
+                                          estado
+                                        )}
+                                      </button>
                                     </Box>
-
-                                    <Box sx={{ mb: 2 }}>
-                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                        <Typography variant="body2" fontWeight={500} color="text.secondary">
-                                          Cupos disponibles
-                                        </Typography>
-                                        <Typography variant="body1" fontWeight={700} color="text.primary">
-                                          {inscritos.length}/{clase["Cupo maximo"]}
-                                        </Typography>
-                                      </Box>
-                                      <LinearProgress
-                                        variant="determinate"
-                                        value={cupoPercentage}
-                                        sx={{
-                                          height: 8,
-                                          borderRadius: 4,
-                                          bgcolor: 'rgba(0,0,0,0.1)',
-                                          '& .MuiLinearProgress-bar': {
-                                            bgcolor: cupoPercentage >= 100 ? 'error.main' : cupoPercentage >= 80 ? 'warning.main' : 'primary.main',
-                                            borderRadius: 4,
-                                          },
-                                        }}
-                                      />
-                                    </Box>
-
-                                    <button
-                                      onClick={() =>
-                                        puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")
-                                      }
-                                      disabled={!puedeActuar || loadingClaseId === clase.ID}
-                                      className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${puedeActuar
-                                        ? estado === "Desuscribirse"
-                                          ? "bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg"
-                                          : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg"
-                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                        }`}
-                                    >
-                                      {loadingClaseId === clase.ID ? (
-                                        <div className="flex items-center justify-center">
-                                          <svg
-                                            className="animate-spin mr-2 h-5 w-5 text-white"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <circle
-                                              className="opacity-25"
-                                              cx="12"
-                                              cy="12"
-                                              r="10"
-                                              stroke="currentColor"
-                                              strokeWidth="4"
-                                            />
-                                            <path
-                                              className="opacity-75"
-                                              fill="currentColor"
-                                              d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-                                            />
-                                          </svg>
-                                          {estado === "Desuscribirse" ? "Desuscribiendo..." : "Inscribiendo..."}
-                                        </div>
-                                      ) : (
-                                        estado
-                                      )}
-                                    </button>
-                                  </Box>
-                                </Paper>
-                              );
-                            })}
-                          </Box>
-                          {clases.length > 1 && (
-                            <Box 
-                              sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                gap: 1,
-                                mt: 2,
-                                color: 'text.secondary',
-                              }}
-                            >
-                              <motion.div
-                                animate={{ x: [0, 8, 0] }}
-                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                              >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Typography variant="body1" sx={{ fontWeight: 500, letterSpacing: 0.5 }}>
-                                    Desliza para ver más horarios
-                                  </Typography>
-                                  <Box component="span" sx={{ fontSize: '1rem' }}>👉</Box>
-                                </Box>
-                              </motion.div>
+                                  </Paper>
+                                );
+                              })}
                             </Box>
-                          )}
+                            {clases.length > 1 && (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 1,
+                                  mt: 2,
+                                  color: 'text.secondary',
+                                }}
+                              >
+                                <motion.div
+                                  animate={{ x: [0, 8, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Typography variant="body1" sx={{ fontWeight: 500, letterSpacing: 0.5 }}>
+                                      Desliza para ver más horarios
+                                    </Typography>
+                                    <Box component="span" sx={{ fontSize: '1rem' }}>👉</Box>
+                                  </Box>
+                                </motion.div>
+                              </Box>
+                            )}
                           </Box>
                         )}
                       </Box>
-                      
+
                     ))
                   )}
                 </MuiCardContent>

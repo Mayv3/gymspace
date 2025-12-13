@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import React, { useState } from "react"
+import CircularProgress from "@mui/material/CircularProgress"
 
 interface PuntosModalProps {
     dni: string
@@ -61,7 +62,7 @@ export function PuntosModal({ dni, nombre, open, onClose }: PuntosModalProps) {
                 </DialogHeader>
 
                 {loading ? (
-                    <p className="text-center py-6 text-muted-foreground">Cargando...</p>
+                    <p className="text-center py-6 text-muted-foreground"><CircularProgress /></p>
                 ) : historial.length === 0 ? (
                     <p className="text-center py-6 text-muted-foreground">
                         No hay registros de puntos.

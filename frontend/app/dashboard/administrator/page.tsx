@@ -39,18 +39,19 @@ import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/E
 import SideBar from "@/components/ui/sidebar-custom"
 import { adminTabs } from "../../../const/tabs"
 
+import { TopAlumnosCoins } from "@/models/Rankings"
+import CircularProgress from "@mui/material/CircularProgress"
 
 export default function AdministratorDashboard() {
   const { user, loading } = useUser()
 
   const [showAddMember, setShowAddMember] = useState(false)
-  const [tabValue, setTabValue] = useState("overview")
   const router = useRouter()
 
   const { updateAttendance } = useMembers()
   const { alumnos, setAlumnos } = useAppData();
   const [members, setMembers] = useState<Member[]>([]);
-  const [topAlumnosCoins, setTopAlumnosCoins] = useState();
+  const [topAlumnosCoins, setTopAlumnosCoins] = useState<TopAlumnosCoins>({ top10Clases: [], top10Gimnasio: [] });
 
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("todos")
@@ -218,7 +219,7 @@ export default function AdministratorDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <span className="text-lg">Cargando…</span>
+        <CircularProgress />
       </div>
     )
   }
@@ -236,14 +237,8 @@ export default function AdministratorDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader role="Administrador" />
 
-      <SideBar
-        tabs={adminTabs}
-        onSelect={setSelectedSection}
-      />
-
-      <div className="space-y-4 md:p-8 pt-6 mx-auto max-w-[95vw] md:ml-[80px] w-full mb-20 md:mb-0">
+      <div className="space-y-4 md:p-8 pt-6 mx-auto max-w-[90vw] w-full mb-20 md:mb-0">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de administrador</h2>
         </div>
@@ -274,7 +269,6 @@ export default function AdministratorDashboard() {
           <AdminOverviewCharts isVisible />
         )}
 
-        {/* MIEMBROS */}
         {selectedSection === "members" && (
           <MembersStatsTab
             members={members}
@@ -283,7 +277,6 @@ export default function AdministratorDashboard() {
           />
         )}
 
-        {/* PAGOS */}
         {selectedSection === "shift-payments" && (
           <PaymentsSection
             currentShiftPayments={payments}
@@ -306,25 +299,18 @@ export default function AdministratorDashboard() {
           />
         )}
 
-        {/* DEUDAS */}
         {selectedSection === "deudas" && <DebtsSection />}
 
-        {/* ASISTENCIAS */}
         {selectedSection === "assists" && <AssistsSection />}
 
-        {/* PLANES */}
         {selectedSection === "plans" && <PlansSection />}
 
-        {/* TURNOS */}
         {selectedSection === "shifts" && <ShiftsSection />}
 
-        {/* EGRESOS */}
         {selectedSection === "egresos" && <EgresosSection />}
 
-        {/* EL CLUB */}
         {selectedSection === "elclub" && <ElClub />}
 
-        {/* DIFUSIÓN */}
         {selectedSection === "difusion" && <EmailBroadcast />}
 
       </div>

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "@emotion/is-prop-valid": "latest",
@@ -17,6 +18,7 @@
     "@hookform/resolvers": "^3.9.1",
     "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.3.4",
+    "@mui/x-date-pickers": "^8.21.0",
     "@next/font": "^14.2.15",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
@@ -50,7 +52,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
-    "date-fns": "latest",
+    "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
     "embla-carousel-react": "8.5.1",
     "emoji-picker-react": "^4.13.2",
@@ -58,7 +60,7 @@
     "input-otp": "1.4.1",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.454.0",
-    "next": "^15.2.5",
+    "next": "^16.0.10",
     "next-themes": "^0.4.4",
     "react": "^18.2.0",
     "react-day-picker": "8.10.1",

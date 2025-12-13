@@ -32,6 +32,7 @@ import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
 import SideBar from "@/components/ui/sidebar-custom"
 import { recepcionistTabs } from "../../../const/tabs"
+import CircularProgress from "@mui/material/CircularProgress"
 
 
 export default function ReceptionistDashboard() {
@@ -160,7 +161,7 @@ export default function ReceptionistDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <span className="text-lg">Cargando…</span>
+        <CircularProgress />
       </div>
     )
   }
@@ -185,7 +186,6 @@ export default function ReceptionistDashboard() {
         onSelect={setSelectedSection}
       />
 
-      {/* Contenido principal con márgenes */}
       <div className="flex-1 space-y-4 md:p-8 pt-6 mx-auto max-w-[95vw] md:ml-[80px] w-full mb-20 md:mb-0">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de recepcionista</h2>

@@ -23,14 +23,7 @@ type SideBarProps = {
 }
 
 function readPrimary(): string {
-  if (typeof window === 'undefined') return '#F57C00'
-  try {
-    const raw = localStorage.getItem('gym_settings')
-    const parsed = raw ? JSON.parse(raw) : null
-    return parsed?.colors?.primary || '#F57C00'
-  } catch {
-    return '#F57C00'
-  }
+    return  '#F57C00'
 }
 
 const SideBar = ({ tabs, onSelect }: SideBarProps) => {

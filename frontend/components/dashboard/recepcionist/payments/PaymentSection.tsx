@@ -1,36 +1,5 @@
-"use client"
-
-import { ShiftPaymentsTab } from "@/components/dashboard/recepcionist/payments/ShiftPaymentsTab"
-
-interface PaymentsSectionProps {
-  currentShiftPayments: any[]
-
-  selectedDate: Date
-  setSelectedDate: (date: Date) => void
-
-  selectedDay?: number
-  setSelectedDay: (n?: number) => void
-  selectedMonth?: number
-  setSelectedMonth: (n?: number) => void
-  selectedYear?: number
-  setSelectedYear: (n?: number) => void
-
-  selectedShift: string
-  setSelectedShift: (value: string) => void
-
-  onShowAddPayment: () => void
-  setSelectedPaymentToDelete: (value: any) => void
-  setShowDeletePaymentDialog: (value: boolean) => void
-  onMemberUpdated: (
-    dni: string,
-    nuevaFecha: string,
-    nuevoPlan: string,
-    clasesPagadas: number
-  ) => void
-  refreshPayments: () => void
-
-  cashOpen: boolean
-}
+import { PaymentsSectionProps } from "@/models/PaymentSection"
+import { ShiftPaymentsTab } from "./ShiftPaymentsTab"
 
 export default function PaymentsSection({
   currentShiftPayments,
@@ -47,24 +16,20 @@ export default function PaymentsSection({
   setShowDeletePaymentDialog,
   onMemberUpdated,
   refreshPayments,
-
   cashOpen,
 }: PaymentsSectionProps) {
   return (
     <ShiftPaymentsTab
       cashOpen={cashOpen}
       currentShiftPayments={currentShiftPayments}
-
       selectedDay={selectedDay}
       setSelectedDay={setSelectedDay}
       selectedMonth={selectedMonth}
       setSelectedMonth={setSelectedMonth}
-      selectedYear={selectedYear}
       setSelectedYear={setSelectedYear}
-
+      selectedYear={selectedYear}
       selectedShift={selectedShift}
       setSelectedShift={setSelectedShift}
-
       setShowAddPayment={onShowAddPayment}
       setSelectedPaymentToDelete={setSelectedPaymentToDelete}
       setShowDeletePaymentDialog={setShowDeletePaymentDialog}
