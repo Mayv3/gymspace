@@ -1,3 +1,4 @@
+
 import {
     Card,
     CardContent,
@@ -5,14 +6,16 @@ import {
     CardHeader
 } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign } from "lucide-react";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CustomTooltipFacturacion } from "../tooltips/CustomTooltipFacturacion";
 import { COLORS } from "./colors";
 import { Factura } from "@/models/stats/factura";
 import React from 'react'
 
+type BillingView = "gimnasio" | "clase" | "servicio" | "producto"
+
 export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSelectedYearFacturacion }: { facturacionData: Factura[], selectedYearFacturacion: number, setSelectedYearFacturacion: React.Dispatch<React.SetStateAction<number>> }) => {
+    const [billingView, setBillingView] = React.useState<BillingView>("gimnasio")
 
     const facturacionNormalizada = facturacionData.map(f => ({
         ...f,
@@ -32,6 +35,21 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
                                 value={selectedYearFacturacion.toString()}
                                 onValueChange={(val) => setSelectedYearFacturacion(Number(val))}
                             >
+                                <Select
+                                    value={billingView}
+                                    onValueChange={(val) => setBillingView(val as BillingView)}
+                                >
+                                    <SelectTrigger className="w-[160px]">
+                                        <SelectValue placeholder="Tipo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="gimnasio">Gimnasio</SelectItem>
+                                        <SelectItem value="clase">Clases</SelectItem>
+                                        <SelectItem value="servicio">Servicios</SelectItem>
+                                        <SelectItem value="producto">Productos</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
                                 <SelectTrigger className="w-[100px]">
                                     <SelectValue placeholder="Año" />
                                 </SelectTrigger>
@@ -43,6 +61,7 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
                                     ))}
                                 </SelectContent>
                             </Select>
+
                         </div>
 
                     </CardHeader>
@@ -58,44 +77,72 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
                             margin={{ top: 0, right: 0, left: 20, bottom: 10 }}>
                             <XAxis dataKey="mes" />
                             <YAxis />
-                            <Tooltip content={<CustomTooltipFacturacion />} />
+                            <Tooltip content={<CustomTooltipFacturacion billingView={billingView} />} />
 
-                            <Bar dataKey="gimnasio" name="Ingreso Gimnasio" stackId="a" >
-                                {facturacionData.map((_, i) => (
-                                    <Cell key={i} fill={COLORS[0]} />
-                                ))}
-                            </Bar>
+                            {billingView === "gimnasio" && (
+                                <Bar
+                                    dataKey="gimnasio"
+                                    stackId="gimnasio"
+                                >
+                                    {facturacionNormalizada.map((_, i) => (
+                                        <Cell key={i} fill={COLORS[0]} />
+                                    ))}
+                                </Bar>
+                            )}
 
-                            <Bar dataKey="egresosgimnasio" name="Egreso Gimnasio" stackId="a" radius={[6, 6, 0, 0]}>
-                                {facturacionData.map((_, i) => (
-                                    <Cell key={i} fill="#ef4444" />
-                                ))}
-                            </Bar>
+                            {billingView === "gimnasio" && (
+                                <Bar
+                                    dataKey="egresosgimnasio"
+                                    stackId="gimnasio"
+                                    radius={[6, 6, 0, 0]}
+                                >
+                                    {facturacionNormalizada.map((_, i) => (
+                                        <Cell key={i} fill="#ef4444" />
+                                    ))}
+                                </Bar>
+                            )}
 
-                            <Bar dataKey="clase" name="Ingreso Clases" stackId="b" >
-                                {facturacionData.map((_, i) => (
-                                    <Cell key={i} fill={COLORS[2]} />
-                                ))}
-                            </Bar>
+                            {billingView === "clase" && (
+                                <Bar
+                                    dataKey="clase"
+                                    stackId="clase"
+                                    name="Ingreso Clases"
+                                >
+                                    {facturacionNormalizada.map((_, i) => (
+                                        <Cell key={i} fill={COLORS[2]} />
+                                    ))}
+                                </Bar>
+                            )}
 
-                            <Bar dataKey="egresosclase" name="Egreso Clases" stackId="b" radius={[6, 6, 0, 0]}>
-                                {facturacionData.map((_, i) => (
-                                    <Cell key={i} fill="#f87171" />
-                                ))}
-                            </Bar>
+                            {billingView === "clase" && (
+                                <Bar
+                                    dataKey="egresosclase"
+                                    stackId="clase"
+                                    radius={[6, 6, 0, 0]}
+                                    name="Egreso Clases"
+                                >
+                                    {facturacionNormalizada.map((_, i) => (
+                                        <Cell key={i} fill="#f87171" />
+                                    ))}
+                                </Bar>
+                            )}
 
-                            <Bar dataKey="servicio" name="Ingreso Servicios" stackId="c" radius={[6, 6, 0, 0]}>
-                                {facturacionData.map((_, i) => (
-                                    <Cell key={i} fill="#10b981" />
-                                ))}
-                            </Bar>
 
-                            <Bar dataKey="producto" name="Ingreso Productos" stackId="d" radius={[6, 6, 0, 0]}>
-                                {facturacionData.map((_, i) => (
-                                    <Cell key={i} fill="#8b5cf6" />
-                                ))}
-                            </Bar>
+                            {billingView === "servicio" && (
+                                <Bar radius={[6, 6, 0, 0]} dataKey="servicio" name="Ingreso Servicios">
+                                    {facturacionNormalizada.map((_, i) => (
+                                        <Cell key={i} fill="#10b981" />
+                                    ))}
+                                </Bar>
+                            )}
 
+                            {billingView === "producto" && (
+                                <Bar radius={[6, 6, 0, 0]} dataKey="producto" name="Ingreso Productos">
+                                    {facturacionNormalizada.map((_, i) => (
+                                        <Cell key={i} fill="#8b5cf6" />
+                                    ))}
+                                </Bar>
+                            )}
                         </BarChart>
                     </ResponsiveContainer>
                 )}
@@ -103,4 +150,3 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
         </Card>
     )
 }
-

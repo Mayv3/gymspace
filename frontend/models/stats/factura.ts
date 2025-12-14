@@ -6,4 +6,6 @@ export interface Factura {
     egresosclase: number;
     netogimnasio: number;
     netoClase: number;
+    servicio: number;
+    producto: number;
 }
