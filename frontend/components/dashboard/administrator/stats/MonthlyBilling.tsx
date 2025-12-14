@@ -29,38 +29,41 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
             <CardContent>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-5">
                     <CardHeader className="flex flex-row items-center gap-2 justify-center">
-                        <div className="flex flex-row gap-5 justify-center items-center">
-                            <CardTitle>Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
-                            <Select
-                                value={selectedYearFacturacion.toString()}
-                                onValueChange={(val) => setSelectedYearFacturacion(Number(val))}
-                            >
+                        <div className="flex flex-col gap-5 justify-center items-center">
+                            <CardTitle className="text-center">Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
+                            <div className="flex gap-5">
                                 <Select
-                                    value={billingView}
-                                    onValueChange={(val) => setBillingView(val as BillingView)}
+                                    value={selectedYearFacturacion.toString()}
+                                    onValueChange={(val) => setSelectedYearFacturacion(Number(val))}
                                 >
-                                    <SelectTrigger className="w-[160px]">
-                                        <SelectValue placeholder="Tipo" />
+                                    <Select
+                                        value={billingView}
+                                        onValueChange={(val) => setBillingView(val as BillingView)}
+                                    >
+                                        <SelectTrigger className="w-[160px]">
+                                            <SelectValue placeholder="Tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="gimnasio">Gimnasio</SelectItem>
+                                            <SelectItem value="clase">Clases</SelectItem>
+                                            <SelectItem value="servicio">Servicios</SelectItem>
+                                            <SelectItem value="producto">Productos</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <SelectTrigger className="w-[100px]">
+                                        <SelectValue placeholder="Año" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="gimnasio">Gimnasio</SelectItem>
-                                        <SelectItem value="clase">Clases</SelectItem>
-                                        <SelectItem value="servicio">Servicios</SelectItem>
-                                        <SelectItem value="producto">Productos</SelectItem>
+                                        {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((anio) => (
+                                            <SelectItem key={anio} value={anio.toString()}>
+                                                {anio}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
+                            </div>
 
-                                <SelectTrigger className="w-[100px]">
-                                    <SelectValue placeholder="Año" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((anio) => (
-                                        <SelectItem key={anio} value={anio.toString()}>
-                                            {anio}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
 
                         </div>
 
