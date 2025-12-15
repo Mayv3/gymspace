@@ -4,6 +4,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Users } from "lucide-react"
 import {
   BarChart,
@@ -15,8 +22,9 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-import { CustomTooltip } from "../tooltips/CustomTooltip"
 import { COLORS } from "./colors"
+import { useState } from "react"
+import { CustomTooltipEdades } from "../tooltips/CustomTooltipEdades"
 
 interface EdadItem {
   edad: number
@@ -25,11 +33,18 @@ interface EdadItem {
 
 type EdadDistribucion = EdadItem[] | Record<string, number>
 
-interface MembersYearsOldProps {
-  edadDistribucion?: EdadDistribucion
+type EdadDistribucionMap = {
+  gimnasio?: Record<string, number>
+  clase?: Record<string, number>
 }
 
-export const MembersYearsOld = ({ edadDistribucion }: MembersYearsOldProps) => {
+interface MembersYearsOldProps {
+  edades?: EdadDistribucionMap
+}
+
+export const MembersYearsOld = ({ edades }: MembersYearsOldProps) => {
+  const [tipo, setTipo] = useState<"gimnasio" | "clase">("gimnasio")
+
   const normalizeData = (data?: EdadDistribucion): EdadItem[] => {
     if (!data) return []
 
@@ -41,15 +56,34 @@ export const MembersYearsOld = ({ edadDistribucion }: MembersYearsOldProps) => {
     }))
   }
 
-  const data = normalizeData(edadDistribucion)
+  const data = normalizeData(edades?.[tipo])
 
   return (
     <Card className="shadow-lg hover:shadow-xl transition-all">
-      <CardHeader className="flex flex-col items-center gap-2">
-        <Users className="text-orange-500" />
-        <CardTitle className="text-center">
-          Distribución por Edad
-        </CardTitle>
+      <CardHeader className="flex flex-col gap-3">
+        <div className="flex flex-col items-center gap-2">
+          <Users className="text-orange-500" />
+
+          <div>
+
+          </div>
+          <CardTitle className="text-center">
+            Distribución por Edad
+          </CardTitle>
+        </div>
+
+        <div className="w-full flex justify-end">
+          <Select value={tipo} onValueChange={(v) => setTipo(v as any)}>
+            <SelectTrigger className="w-[20%]">
+              <SelectValue placeholder="Seleccionar tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gimnasio">Gimnasio</SelectItem>
+              <SelectItem value="clase">Clase</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
       </CardHeader>
 
       <CardContent>
@@ -66,7 +100,7 @@ export const MembersYearsOld = ({ edadDistribucion }: MembersYearsOldProps) => {
               />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip
-                content={<CustomTooltip />}
+                content={<CustomTooltipEdades />}
                 cursor={{ fill: "hsl(var(--muted) / 0.3)" }}
               />
               <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>

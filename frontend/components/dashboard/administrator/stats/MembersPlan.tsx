@@ -26,8 +26,6 @@ interface MembersPlanProps {
   setTipoPlan: React.Dispatch<React.SetStateAction<TipoPlan>>;
 }
 
-
-
 export const MembersPlan = ({
   tipoPlan,
   planesFiltrados = [],
@@ -53,7 +51,7 @@ export const MembersPlan = ({
             No hay datos disponibles.
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={315}>
             <BarChart data={planesFiltrados}>
               <XAxis dataKey="plan" tick={false} />
               <YAxis />

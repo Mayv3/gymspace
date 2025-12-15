@@ -34,6 +34,11 @@ export default function AdminOverviewCharts({
     new Date().getFullYear()
   );
 
+  const [edadesPorTipo, setEdadesPorTipo] = useState<{
+    gimnasio?: Record<string, number>
+    clase?: Record<string, number>
+  } | null>(null);
+
   const [selectedMonthPersonalizados, setSelectedMonthPersonalizados] = useState(() => (dayjs().month() + 1).toString());
   const [selectedYearFacturacion, setSelectedYearFacturacion] = useState<number>(
     new Date().getFullYear()
@@ -107,8 +112,26 @@ export default function AdminOverviewCharts({
     }
   };
 
+  const fetchEdadesDistribucion = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/edades/distribucion`,
+        {
+          params: {
+            fecha: dayjs(selectedDate).format("YYYY-MM-DD"),
+          },
+        }
+      );
+
+      setEdadesPorTipo(res.data);
+    } catch (error) {
+      console.error("Error al cargar distribución de edades:", error);
+    }
+  };
+
   useEffect(() => {
     fetchDashboard();
+    fetchEdadesDistribucion();
   }, [selectedDate, selectedMonthPersonalizados, selectedYearPersonalizados, selectedMonthCajas, selectedYear]);
 
   useEffect(() => {
@@ -121,7 +144,7 @@ export default function AdminOverviewCharts({
     return <DashboardSkeleton />;
   }
 
-  const { estado, edades, planes } = dashboardData;
+  const { estado, planes } = dashboardData;
 
   const planesFiltrados = planes.filter((p) =>
     tipoPlan === "TODOS" ? true : p.tipo === tipoPlan
@@ -129,17 +152,13 @@ export default function AdminOverviewCharts({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      <MembersStatus estadoArray={estado} />
+      <MembersStatus />
 
-      <MembersYearsOld edadDistribucion={edades} />
+      <MembersYearsOld edades={edadesPorTipo ?? undefined} />
 
       <MembersPlan tipoPlan={tipoPlan} planesFiltrados={planesFiltrados} setTipoPlan={setTipoPlan} />
 
-      <Assits
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        asistencias={asistenciasPorHora}
-      />
+      <Assits/>
 
       <AverageAssits
         promedios={promedios}

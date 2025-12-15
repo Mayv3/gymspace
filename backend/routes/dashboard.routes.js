@@ -84,4 +84,87 @@ router.get('/facturacion', async (req, res) => {
   }
 })
 
+router.get("/edades/distribucion", async (req, res) => {
+  try {
+    const fecha = req.query.fecha ?? new Date().toISOString().slice(0, 10);
+
+    const { data, error } = await supabase.rpc(
+      "rpc_edades_por_tipo_plan",
+      { _fecha: fecha }
+    );
+
+    if (error) {
+      console.error("RPC ERROR:", error);
+      throw error;
+    }
+
+    return res.json(data);
+
+  } catch (err) {
+    console.error("Error edades distribucion:", err);
+    return res
+      .status(500)
+      .json({ error: "No se pudo obtener la distribución de edades" });
+  }
+});
+
+router.get("/asistencias/distribucion", async (req, res) => {
+  try {
+    const fecha =
+      typeof req.query.fecha === "string"
+        ? req.query.fecha
+        : new Date().toISOString().slice(0, 10);
+
+    const { data, error } = await supabase.rpc(
+      "rpc_horarios_por_tipo_plan",
+      { _fecha: fecha }
+    );
+
+    if (error) {
+      console.error("RPC ERROR:", error);
+      throw error;
+    }
+
+    return res.json(data);
+  } catch (e) {
+    console.error("Error asistencias distribucion:", e);
+    return res
+      .status(500)
+      .json({ error: "No se pudo obtener la distribución de asistencias" });
+  }
+});
+
+router.get("/altas-bajas", async (req, res) => {
+  try {
+    const anio = Number(req.query.anio);
+    const mes = Number(req.query.mes);
+
+    if (!anio || !mes) {
+      return res.status(400).json({
+        error: "Debe enviar anio y mes",
+      });
+    }
+
+    const { data, error } = await supabase.rpc(
+      "rpc_altas_bajas_alumnos",
+      {
+        _anio: anio,
+        _mes: mes,
+      }
+    );
+
+    if (error) {
+      console.error("RPC error:", error);
+      throw error;
+    }
+
+    return res.json(data);
+  } catch (e) {
+    console.error("Error altas-bajas:", e);
+    return res.status(500).json({
+      error: "No se pudieron obtener las altas y bajas",
+    });
+  }
+});
+
 export default router
