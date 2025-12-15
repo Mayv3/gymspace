@@ -19,6 +19,7 @@ export const CustomTooltipFacturacion: React.FC<Props> = ({
 
     const gimnasio = data.gimnasio ?? 0
     const egGim = data.egresosGimnasio ?? data.egresosgimnasio ?? 0
+    const mes = data.mes
 
     const clase = data.clase ?? 0
     const egClase = data.egresosClase ?? data.egresosclase ?? 0
@@ -28,7 +29,7 @@ export const CustomTooltipFacturacion: React.FC<Props> = ({
 
     return (
         <div className="p-2 rounded-md shadow text-sm border w-max bg-white dark:bg-gray-800 dark:text-white">
-
+            <p className="font-semibold mb-1">📅 {mes}</p>
             {billingView === "gimnasio" && (
                 <>
                     <p className="font-semibold">💵 Ingreso Gimnasio: ${format(gimnasio)}</p>
