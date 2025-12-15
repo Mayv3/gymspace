@@ -29,6 +29,7 @@ import {
 import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { CustomTooltipAltasBajas } from "../tooltips/CustomTooltipAltasBajas";
 
 const COLORS = ["#f97316", "#ef4444"];
 
@@ -234,7 +235,7 @@ export const MembersStatus = () => {
                     <Cell key={i} fill={COLORS[i]} cursor="pointer" stroke="none" />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip content={<CustomTooltipAltasBajas tipoPlan={tipoPlan} />} />
               </PieChart>
             </ResponsiveContainer>
 
@@ -307,7 +308,7 @@ export const MembersStatus = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltipAltasBajas tipoPlan={tipoPlan} />} />
                 </PieChart>
               </ResponsiveContainer>
 
@@ -328,7 +329,7 @@ export const MembersStatus = () => {
                       Filtrar por profesor:
                     </h2>
                     <input
-                    
+
                       ref={inputProfesorRef}
                       type="text"
                       placeholder="Filtrar por profesor…"
@@ -343,7 +344,6 @@ export const MembersStatus = () => {
                     />
                   </div>
 
-                  {/* CONTENIDO */}
                   {alumnosFiltrados.length === 0 ? (
                     <div className="p-6 flex flex-col items-center gap-2 text-sm text-muted-foreground min- text-center">
                       <span>No hay alumnos que coincidan con este profesor.</span>
