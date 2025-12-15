@@ -25,9 +25,9 @@ export function RankingDialog({
       {list.map((alum, i) => (
         <li
           key={`${alum.Nombre}-${i}`}
-          className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-100 transition"
+          className="flex items-center justify-between bg-orange-50  dark:bg-zinc-900 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-100 transition"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 dark:text-white">
             <span
               className={`flex items-center justify-center w-7 h-7 rounded-full text-white text-sm font-bold
                 ${i === 0 ? "bg-yellow-500" : i === 1 ? "bg-gray-400" : i === 2 ? "bg-amber-700" : "bg-orange-400"}
@@ -46,7 +46,7 @@ export function RankingDialog({
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} >
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg justify-center font-bold">
@@ -58,15 +58,15 @@ export function RankingDialog({
         {/* GRID: dos columnas en desktop, una en mobile */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section>
-            <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2">
-              <Star className="w-4 h-4 text-orange-500" />
+            <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2 dark:text-white">
+              <Star className="w-4 h-4 text-orange-500 " />
               Top 10 Clases
             </h3>
             {renderList(top10Clases, "Nombre", "GymCoins")}
           </section>
 
           <section>
-            <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2">
+            <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2 dark:text-white">
               <Star className="w-4 h-4 text-orange-500" />
               Top 10 Gimnasio
             </h3>

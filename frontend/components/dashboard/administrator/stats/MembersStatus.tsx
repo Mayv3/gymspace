@@ -247,8 +247,9 @@ export const MembersStatus = () => {
       </Card>
 
       {/* MODAL */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={setOpen} >
         <DialogContent
+          data-lenis-prevent
           className="
       p-0
       h-[70vh] w-[90vw]

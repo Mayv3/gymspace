@@ -3,24 +3,34 @@
 import { useEffect } from "react"
 import Lenis from "lenis"
 
+let lenis: Lenis | null = null
+
 export function SmoothScrollProvider() {
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1,
-      smoothWheel: true,
+    lenis = new Lenis({
+      wheelMultiplier: 0.8,
     })
 
     function raf(time: number) {
-      lenis.raf(time)
+      lenis?.raf(time)
       requestAnimationFrame(raf)
     }
 
     requestAnimationFrame(raf)
 
     return () => {
-      lenis.destroy()
+      lenis?.destroy()
+      lenis = null
     }
   }, [])
 
   return null
+}
+
+export function stopLenis() {
+  lenis?.stop()
+}
+
+export function startLenis() {
+  lenis?.start()
 }
