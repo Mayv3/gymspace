@@ -19,6 +19,7 @@ import { TipoPlan, Plan } from '@/models/stats/plan';
 import { BarChart3Icon } from 'lucide-react';
 import { PlanSelect } from '@/components/PlanSelect';
 import { CustomTooltipPlanes } from '../tooltips/CustomTooltipPlanes';
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface MembersPlanProps {
   tipoPlan: TipoPlan;
@@ -31,6 +32,7 @@ export const MembersPlan = ({
   planesFiltrados = [],
   setTipoPlan,
 }: MembersPlanProps) => {
+  const isMobile = useIsMobile()
 
   return (
     <Card className="shadow-lg hover:shadow-xl transition-all">
@@ -53,8 +55,16 @@ export const MembersPlan = ({
         ) : (
           <ResponsiveContainer width="100%" height={315}>
             <BarChart data={planesFiltrados}>
-              <XAxis dataKey="plan" tick={false} />
-              <YAxis />
+              <XAxis
+                dataKey="plan"
+                tick={!isMobile}
+                hide={isMobile}
+              />
+
+              <YAxis
+                hide={isMobile}
+              />
+
               <Tooltip content={<CustomTooltipPlanes />} />
               <Bar dataKey="cantidad" radius={[6, 6, 0, 0]}>
                 {planesFiltrados.map((_, i) => (

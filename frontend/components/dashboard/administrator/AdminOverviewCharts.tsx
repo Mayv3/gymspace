@@ -144,7 +144,7 @@ export default function AdminOverviewCharts({
     return <DashboardSkeleton />;
   }
 
-  const { estado, planes } = dashboardData;
+  const { planes } = dashboardData;
 
   const planesFiltrados = planes.filter((p) =>
     tipoPlan === "TODOS" ? true : p.tipo === tipoPlan
@@ -158,11 +158,11 @@ export default function AdminOverviewCharts({
 
       <MembersPlan tipoPlan={tipoPlan} planesFiltrados={planesFiltrados} setTipoPlan={setTipoPlan} />
 
-      <Assits/>
+      <Assits
 
-      <AverageAssits
-        promedios={promedios}
       />
+
+      <AverageAssits/>
 
       <MonthlyBilling
         facturacionData={facturacionData}
@@ -178,13 +178,7 @@ export default function AdminOverviewCharts({
         planesPorProfesor={planesPorProfesor}
       />
 
-      <BillingBoxes
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
-        selectedMonthCajas={selectedMonthCajas}
-        setSelectedMonthCajas={setSelectedMonthCajas}
-        cajasTransformadas={cajasTransformadas}
-      />
+      <BillingBoxes/>
     </div>
   );
 }

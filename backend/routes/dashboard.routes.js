@@ -167,4 +167,76 @@ router.get("/altas-bajas", async (req, res) => {
   }
 });
 
+router.get("/promedios-asistencias", async (req, res) => {
+  try {
+    const fecha = req.query.fecha;
+    const periodo = (req.query.periodo) || "30d";
+
+    if (!fecha) {
+      return res.status(400).json({
+        error: "Debe enviar la fecha (YYYY-MM-DD)",
+      });
+    }
+
+    if (!["30d", "anual"].includes(periodo)) {
+      return res.status(400).json({
+        error: "Periodo inválido. Use '30d' o 'anual'",
+      });
+    }
+
+    const { data, error } = await supabase.rpc(
+      "rpc_promedio_asistencias_por_plan",
+      {
+        _fecha: fecha,
+        _periodo: periodo,
+      }
+    );
+
+    if (error) {
+      console.error("RPC error promedios:", error);
+      throw error;
+    }
+
+    return res.json(data);
+  } catch (e) {
+    console.error("Error promedios asistencias:", e);
+    return res.status(500).json({
+      error: "No se pudieron obtener los promedios de asistencias",
+    });
+  }
+});
+
+router.get("/ingresos-mensuales", async (req, res) => {
+  try {
+    const anio = Number(req.query.anio);
+    const mes = Number(req.query.mes);
+
+    if (!anio || !mes) {
+      return res.status(400).json({
+        error: "Debe enviar anio y mes",
+      });
+    }
+
+    const { data, error } = await supabase.rpc(
+      "rpc_ingresos_mensuales_desglosados",
+      {
+        _anio: anio,
+        _mes: mes,
+      }
+    );
+
+    if (error) {
+      console.error("RPC ingresos mensuales error:", error);
+      throw error;
+    }
+
+    return res.json(data ?? []);
+  } catch (e) {
+    console.error("Error ingresos mensuales:", e);
+    return res.status(500).json({
+      error: "No se pudieron obtener los ingresos del mes",
+    });
+  }
+});
+
 export default router

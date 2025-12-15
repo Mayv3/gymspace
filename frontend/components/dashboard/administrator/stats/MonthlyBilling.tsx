@@ -11,12 +11,14 @@ import { CustomTooltipFacturacion } from "../tooltips/CustomTooltipFacturacion";
 import { COLORS } from "./colors";
 import { Factura } from "@/models/stats/factura";
 import React from 'react'
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type BillingView = "gimnasio" | "clase" | "servicio" | "producto"
 
 export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSelectedYearFacturacion }: { facturacionData: Factura[], selectedYearFacturacion: number, setSelectedYearFacturacion: React.Dispatch<React.SetStateAction<number>> }) => {
     const [billingView, setBillingView] = React.useState<BillingView>("gimnasio")
-
+    const isMobile = useIsMobile();
+    
     const facturacionNormalizada = facturacionData.map(f => ({
         ...f,
         egresosClase: f.egresosclase ?? 0,
@@ -31,7 +33,7 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
                     <CardHeader className="flex flex-row items-center gap-2 justify-center">
                         <div className="flex flex-col gap-5 justify-center items-center">
                             <CardTitle className="text-center">Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
-                            <div className="flex gap-5">
+                            <div className="flex gap-2">
                                 <Select
                                     value={selectedYearFacturacion.toString()}
                                     onValueChange={(val) => setSelectedYearFacturacion(Number(val))}
@@ -78,8 +80,8 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
                     <ResponsiveContainer width="100%" height={350}>
                         <BarChart data={facturacionNormalizada}
                             margin={{ top: 0, right: 0, left: 20, bottom: 10 }}>
-                            <XAxis dataKey="mes" />
-                            <YAxis />
+                            <XAxis dataKey="mes" hide={isMobile} />
+                            <YAxis hide={isMobile} />
                             <Tooltip content={<CustomTooltipFacturacion billingView={billingView} />} />
 
                             {billingView === "gimnasio" && (

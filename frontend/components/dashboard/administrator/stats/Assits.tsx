@@ -38,12 +38,15 @@ interface AssistItem {
 
 type TipoPlan = "gimnasio" | "clase";
 
+import { useIsMobile } from "./UseIsMobile";
+
 export const Assits = () => {
     const [tipo, setTipo] = useState<TipoPlan>("gimnasio");
     const [asistencias, setAsistencias] = useState<AssistItem[]>([]);
     const [loading, setLoading] = useState(false);
 
-    // 👉 FECHA INTERNA (HOY)
+    const isMobile = useIsMobile();
+
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
     const [rawData, setRawData] = useState<{
@@ -73,12 +76,10 @@ export const Assits = () => {
         }
     };
 
-    // 🔁 cuando cambia fecha → refetch
     useEffect(() => {
         fetchAsistencias();
     }, [selectedDate]);
 
-    // 🔁 cuando cambia tipo → recalcular data
     useEffect(() => {
         const data = rawData?.[tipo] ?? {};
 
@@ -94,14 +95,14 @@ export const Assits = () => {
 
     return (
         <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
-            <CardContent>
+            <CardContent className="p-0 md:px-0">
                 <CardHeader className="flex flex-col gap-3 items-center pb-4">
                     <Users className="text-orange-500" />
                     <CardTitle>Asistencias por hora ({tipo})</CardTitle>
 
-                    <div className="flex gap-3 justify-center w-full flex-wrap">
+                    <div className="flex gap-2 justify-center w-full flex-wrap">
                         <Select value={tipo} onValueChange={(v) => setTipo(v as TipoPlan)}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-[140px]">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -110,7 +111,7 @@ export const Assits = () => {
                             </SelectContent>
                         </Select>
 
-                        <div className="flex justify-end w-[180px]">
+                        <div className="flex justify-end w-[140px]">
                             <DatePicker date={selectedDate} setDate={setSelectedDate} />
                         </div>
                     </div>
@@ -121,10 +122,11 @@ export const Assits = () => {
                         <CircularProgress sx={{ color: "#f97316" }} size={36} />
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height={260}>
+                    <ResponsiveContainer width="100%" height={290} style={{ padding: "0 24px" }}>
                         <LineChart data={asistencias}>
+
                             <XAxis dataKey="hora" />
-                            <YAxis />
+                            <YAxis hide={isMobile} />
                             <Tooltip content={<CustomTooltip />} />
                             <Line
                                 type="monotone"

@@ -12,6 +12,7 @@ import { CalendarCheck, Info } from 'lucide-react'
 import { BarChart, Bar, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 import { COLORS } from './colors'
 import { CustomTooltipProfesores } from '../tooltips/CustomTooltipProfesores';
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PlanPorProfesor {
     profesor: string;
@@ -35,7 +36,7 @@ export const PlansByTeacher = ({
     planesPorProfesor = [],
 }: PlansByTeacherProps) => {
     const data = Array.isArray(planesPorProfesor) ? planesPorProfesor : [];
-
+    const isMobile = useIsMobile();
     return (
         <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
             <CardContent>
@@ -103,11 +104,12 @@ export const PlansByTeacher = ({
                         No hay planes personalizados para esta fecha.
                     </p>
                 ) : (
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={360}>
                         <BarChart data={data}>
-                            <XAxis dataKey="profesor" />
-                            <YAxis />
-                            <Tooltip content={<CustomTooltipProfesores />} />
+                            <XAxis dataKey="profesor" hide={isMobile} />
+                            <YAxis hide={isMobile} />
+                            <Tooltip content={<CustomTooltipProfesores />} allowEscapeViewBox={{ x: false, y: false }}
+                            />
                             <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
                                 {data.map((_, i) => (
                                     <Cell key={i} fill={COLORS[i % COLORS.length]} />

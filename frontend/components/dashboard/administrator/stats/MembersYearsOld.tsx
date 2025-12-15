@@ -25,6 +25,7 @@ import {
 import { COLORS } from "./colors"
 import { useState } from "react"
 import { CustomTooltipEdades } from "../tooltips/CustomTooltipEdades"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface EdadItem {
   edad: number
@@ -42,8 +43,11 @@ interface MembersYearsOldProps {
   edades?: EdadDistribucionMap
 }
 
+
 export const MembersYearsOld = ({ edades }: MembersYearsOldProps) => {
   const [tipo, setTipo] = useState<"gimnasio" | "clase">("gimnasio")
+
+  const isMobile = useIsMobile()
 
   const normalizeData = (data?: EdadDistribucion): EdadItem[] => {
     if (!data) return []
@@ -74,7 +78,7 @@ export const MembersYearsOld = ({ edades }: MembersYearsOldProps) => {
 
         <div className="w-full flex justify-end">
           <Select value={tipo} onValueChange={(v) => setTipo(v as any)}>
-            <SelectTrigger className="w-[20%]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Seleccionar tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -97,10 +101,16 @@ export const MembersYearsOld = ({ edades }: MembersYearsOldProps) => {
               <XAxis
                 dataKey="edad"
                 stroke="hsl(var(--muted-foreground))"
+                hide={isMobile}
               />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
+
+              <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                hide={isMobile}
+              />
               <Tooltip
                 content={<CustomTooltipEdades />}
+                allowEscapeViewBox={{ x: false, y: false }}
                 cursor={{ fill: "hsl(var(--muted) / 0.3)" }}
               />
               <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>
