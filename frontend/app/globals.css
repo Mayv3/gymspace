@@ -145,3 +145,41 @@ input[type=number] {
 input[type=number] {
   appearance: textfield;
 }
+
+/* ===== LIGHT MODE (por defecto) ===== */
+:root {
+  --sb-track-color: #f1f1f1;
+  /* fondo clarito */
+  --sb-thumb-color: #f57c00;
+  /* naranja */
+  --sb-size: 5px;
+}
+
+/* ===== DARK MODE ===== */
+.dark {
+  --sb-track-color: #232323;
+  /* oscuro */
+  --sb-thumb-color: #f57c00;
+  /* mismo naranja */
+}
+
+/* ===== Scrollbar ===== */
+*::-webkit-scrollbar {
+  width: var(--sb-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--sb-track-color);
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb-color);
+  border-radius: 5px;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  body {
+    scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
+  }
+}

@@ -22,7 +22,7 @@ export const CustomTooltipAltasBajas = ({ active, payload, tipoPlan }: Props) =>
                 <span className="font-semibold">{name}</span>
             </div>
 
-            <div className={`text-md text-foreground font-bold `}>
+            <div className={`text-md text-foreground font-bold bg-[#] `}>
                 {tipoPlan === "gimnasio" ? "Gimnasio" : "Clases"}
             </div>
 
