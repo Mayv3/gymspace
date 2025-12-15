@@ -5,6 +5,7 @@ import { UserProvider } from "@/context/UserContext";
 import 'react-toastify/dist/ReactToastify.css'
 import { ToastProvider } from '@/components/ToastProvider'
 import { Quicksand } from 'next/font/google'
+import { SmoothScrollProvider } from '@/themeProvider/SmoothScrollProvider';
 
 const quicksand = Quicksand({
   subsets: ['latin'],
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body className="font-quicksand">
         <UserProvider>
           <AppDataProvider>
+            <SmoothScrollProvider />
             {children}
             <ToastProvider />
           </AppDataProvider>
