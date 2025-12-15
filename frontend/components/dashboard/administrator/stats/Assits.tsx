@@ -39,6 +39,7 @@ interface AssistItem {
 type TipoPlan = "gimnasio" | "clase";
 
 import { useIsMobile } from "./UseIsMobile";
+import { CustomTooltipAsistenciasHora } from "../tooltips/CustomTooltipAsistenciasHora";
 
 export const Assits = () => {
     const [tipo, setTipo] = useState<TipoPlan>("gimnasio");
@@ -127,7 +128,11 @@ export const Assits = () => {
 
                             <XAxis dataKey="hora" />
                             <YAxis hide={isMobile} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip
+                                content={<CustomTooltipAsistenciasHora tipo={tipo} />}
+                                offset={30}
+                                allowEscapeViewBox={{ x: false, y: false }}
+                            />
                             <Line
                                 type="monotone"
                                 dataKey="cantidad"

@@ -258,7 +258,7 @@ export const MembersStatus = () => {
         >
           {/* HEADER */}
           <DialogHeader className="px-4 py-3 border-b sticky top-0 bg-background z-20">
-            <DialogTitle className="flex flex-wrap items-center justify-center gap-2">
+            <DialogTitle className="flex flex-wrap items-center justify-center gap-2 ">
               <span className="text-base md:text-lg font-semibold">
                 Altas y Bajas de Alumnos
               </span>
@@ -323,11 +323,12 @@ export const MembersStatus = () => {
                 </div>
               ) : (
                 <div className="border rounded-lg overflow-hidden">
-                  <div className="px-4 py-3 border-b bg-background  z-10">
+                  <div className="px-4 py-3 border-b bg-background dark:bg-gray-900 z-10">
                     <h2 className="mb-2">
                       Filtrar por profesor:
                     </h2>
                     <input
+                    
                       ref={inputProfesorRef}
                       type="text"
                       placeholder="Filtrar por profesor…"
@@ -336,6 +337,8 @@ export const MembersStatus = () => {
                       className="
                   w-full rounded-md border px-3 py-2 text-sm
                   focus:outline-none focus:ring-2 focus:ring-orange-500
+                  dark:bg-gray-800 dark:border-gray-600 dark:text-white
+                  border-none
                 "
                     />
                   </div>

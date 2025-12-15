@@ -158,9 +158,7 @@ export default function AdminOverviewCharts({
 
       <MembersPlan tipoPlan={tipoPlan} planesFiltrados={planesFiltrados} setTipoPlan={setTipoPlan} />
 
-      <Assits
-
-      />
+      <Assits/>
 
       <AverageAssits/>
 
