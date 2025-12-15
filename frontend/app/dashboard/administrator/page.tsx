@@ -36,8 +36,7 @@ import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import axios from "axios"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
-import SideBar from "@/components/ui/sidebar-custom"
-import { adminTabs } from "../../../const/tabs"
+import { useAdminNav } from "../administrator/context/AdminNavContext"
 
 import { TopAlumnosCoins } from "@/models/Rankings"
 import CircularProgress from "@mui/material/CircularProgress"
@@ -55,7 +54,7 @@ export default function AdministratorDashboard() {
 
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("todos")
-  const [selectedSection, setSelectedSection] = useState("overview")
+  const { section: selectedSection } = useAdminNav()
 
   const today = new Date()
 
