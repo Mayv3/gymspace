@@ -19,6 +19,8 @@ import { AverageAssits } from "./stats/AverageAssits";
 import { PlansByTeacher } from "./stats/PlansByTeacher";
 import { BillingBoxes } from "@/components/dashboard/administrator/stats/BillingBoxes";
 import { DashboardSkeleton } from "./stats/DashboardSkeleton";
+import { ReferencesStats } from "./stats/referencesStats";
+import { MembersStatusActivosInactivos } from "./stats/MembersStatusActivosInactivos";
 
 dayjs.locale('es');
 
@@ -154,13 +156,17 @@ export default function AdminOverviewCharts({
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       <MembersStatus />
 
+      <ReferencesStats />
+
+      <MembersStatusActivosInactivos estado={dashboardData.estado} />
+
       <MembersYearsOld edades={edadesPorTipo ?? undefined} />
 
       <MembersPlan tipoPlan={tipoPlan} planesFiltrados={planesFiltrados} setTipoPlan={setTipoPlan} />
 
-      <Assits/>
+      <Assits />
 
-      <AverageAssits/>
+      <AverageAssits />
 
       <MonthlyBilling
         facturacionData={facturacionData}
@@ -176,7 +182,7 @@ export default function AdminOverviewCharts({
         planesPorProfesor={planesPorProfesor}
       />
 
-      <BillingBoxes/>
+      <BillingBoxes />
     </div>
   );
 }

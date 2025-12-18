@@ -125,10 +125,13 @@ export async function appendAlumnoToSheet(alumno) {
         fecha_vencimiento: toISODate(alumno["Fecha_vencimiento"]),
         profesor_asignado: alumno["Profesor_asignado"] || "",
         gymcoins: alumno["GymCoins"] || 0,
+        referencia_origen: alumno["referencia_origen"] || "",
       },
     ])
     .select()
     .single();
+
+  console.log(data)
 
   if (error) throw error;
   return data;

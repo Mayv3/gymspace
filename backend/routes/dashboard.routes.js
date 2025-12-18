@@ -239,4 +239,37 @@ router.get("/ingresos-mensuales", async (req, res) => {
   }
 });
 
+router.get("/altas-por-referencia", async (req, res) => {
+  try {
+    const anio = Number(req.query.anio);
+    const mes = req.query.mes ? Number(req.query.mes) : null;
+
+    if (!anio) {
+      return res.status(400).json({
+        error: "Debe enviar el año",
+      });
+    }
+
+    const { data, error } = await supabase.rpc(
+      "rpc_altas_por_mes_referencia",
+      {
+        _anio: anio,
+        _mes: mes,
+      }
+    );
+
+    if (error) {
+      console.error("RPC altas por referencia error:", error);
+      throw error;
+    }
+
+    return res.json(data ?? []);
+  } catch (e) {
+    console.error("Error altas por referencia:", e);
+    return res.status(500).json({
+      error: "No se pudieron obtener las altas por referencia",
+    });
+  }
+});
+
 export default router

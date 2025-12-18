@@ -43,6 +43,7 @@ interface Alumno {
   profesor?: string;
   fecha_inicio?: string;
   fecha_baja?: string;
+  referencia_origen?: string;
 }
 
 export const MembersStatus = () => {
@@ -330,7 +331,6 @@ export const MembersStatus = () => {
                       Filtrar por profesor:
                     </h2>
                     <input
-
                       ref={inputProfesorRef}
                       type="text"
                       placeholder="Filtrar por profesor…"
@@ -339,6 +339,7 @@ export const MembersStatus = () => {
                       className="
                   w-full rounded-md border px-3 py-2 text-sm
                   focus:outline-none focus:ring-2 focus:ring-orange-500
+                  bg-gray-100 border-gray-300 text-gray-900
                   dark:bg-gray-800 dark:border-gray-600 dark:text-white
                   border-none
                 "
@@ -366,10 +367,13 @@ export const MembersStatus = () => {
                           className="px-4 py-3 flex justify-between items-center hover:bg-muted/40 transition"
                         >
                           <div className="flex flex-col">
-                            <span className="font-medium text-sm">{a.nombre}</span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="font-medium text-sm my-1">{a.nombre}</span>
+                            <span className="text-xs text-muted-foreground my-1">
                               {a.plan}
                               {a.profesor && ` · Profesor: ${a.profesor}`}
+                            </span>
+                            <span className="text-xs text-muted-foreground my-1">
+                              {a.referencia_origen && ` Ref: ${a.referencia_origen}`}
                             </span>
                           </div>
 

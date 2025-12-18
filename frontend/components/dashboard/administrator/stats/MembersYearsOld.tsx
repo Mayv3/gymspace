@@ -63,7 +63,7 @@ export const MembersYearsOld = ({ edades }: MembersYearsOldProps) => {
   const data = normalizeData(edades?.[tipo])
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-all">
+    <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
       <CardHeader className="flex flex-col gap-3">
         <div className="flex flex-col items-center gap-2">
           <Users className="text-orange-500" />

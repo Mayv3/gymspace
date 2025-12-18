@@ -54,6 +54,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
     fechaVencimiento: formatDate(dayjs(hoy).add(1, "month").toDate()),
     fechaNacimiento: "",
     profesorAsignado: "",
+    referencia_origen: "",
   })
 
   const [errorMessage, setErrorMessage] = useState("")
@@ -98,6 +99,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       fechaVencimiento: formatDate(dayjs(hoy).add(1, "month").toDate()),
       fechaNacimiento: "",
       profesorAsignado: "",
+      referencia_origen: "",
     })
     setTipoSeleccionado("")
     setPlanSeleccionado(null)
@@ -106,7 +108,7 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.dni || !formData.email || !formData.phone || !formData.sexo || !formData.plan || !formData.clasesPagadas || !formData.clasesRealizadas || !formData.fechaInicio || !formData.fechaVencimiento || !formData.fechaNacimiento || !formData.profesorAsignado) {
+    if (!formData.name || !formData.dni || !formData.email || !formData.phone || !formData.sexo || !formData.plan || !formData.clasesPagadas || !formData.clasesRealizadas || !formData.fechaInicio || !formData.fechaVencimiento || !formData.fechaNacimiento || !formData.profesorAsignado || !formData.referencia_origen) {
       notify.error("Por favor completa todos los campos antes de enviar.");
       return;
     }
@@ -127,7 +129,8 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
       Clases_realizadas: parseInt(formData.clasesRealizadas, 10),
       Fecha_inicio: convertToISO(formData.fechaInicio),
       Fecha_vencimiento: convertToISO(formData.fechaVencimiento),
-      Profesor_asignado: formData.profesorAsignado
+      Profesor_asignado: formData.profesorAsignado,
+      referencia_origen: formData.referencia_origen,
     }
 
     try {
@@ -266,27 +269,43 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="profesorAsignado">Profesor Asignado</Label>
-              <Select value={formData.profesorAsignado} onValueChange={(value) => handleChange("profesorAsignado", value)}>
-                <SelectTrigger id="profesorAsignado">
-                  <SelectValue placeholder="Seleccionar profesor" />
-                </SelectTrigger>
-                <SelectContent>
-                  
-                  <SelectItem value="Anyo">Anyo</SelectItem>
-                  <SelectItem value="Rami">Rami</SelectItem>
-                  <SelectItem value="Anto">Anto</SelectItem>
-                  <SelectItem value="Yaco">Yaco</SelectItem>
-                  <SelectItem value="Almen">Almen</SelectItem>
-                  <SelectItem value="Lu">Lu</SelectItem>
-                  <SelectItem value="Almen/Lu">Almen/Lu</SelectItem>
-                  <SelectItem value="Nacho/Agus">Nacho/Agus</SelectItem>
-                  <SelectItem value="Anto/Lu/Yaco">Anto/Lu/Yaco</SelectItem>
-                  <SelectItem value="Yaco/Lu/Rodri">Yaco/Lu/Rodri</SelectItem>
-                  <SelectItem value="Rodri/Jade/Doni">Rodri/Jade/Doni</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex justify-between gap-4">
+              <div className="w-[50%]">
+                <Label htmlFor="profesorAsignado">Profesor Asignado</Label>
+                <Select value={formData.profesorAsignado} onValueChange={(value) => handleChange("profesorAsignado", value)}>
+                  <SelectTrigger id="profesorAsignado">
+                    <SelectValue placeholder="Seleccionar profesor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Anyo">Anyo</SelectItem>
+                    <SelectItem value="Rami">Rami</SelectItem>
+                    <SelectItem value="Anto">Anto</SelectItem>
+                    <SelectItem value="Yaco">Yaco</SelectItem>
+                    <SelectItem value="Almen">Almen</SelectItem>
+                    <SelectItem value="Lu">Lu</SelectItem>
+                    <SelectItem value="Almen/Lu">Almen/Lu</SelectItem>
+                    <SelectItem value="Nacho/Agus">Nacho/Agus</SelectItem>
+                    <SelectItem value="Anto/Lu/Yaco">Anto/Lu/Yaco</SelectItem>
+                    <SelectItem value="Yaco/Lu/Rodri">Yaco/Lu/Rodri</SelectItem>
+                    <SelectItem value="Rodri/Jade/Doni">Rodri/Jade/Doni</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[50%]">
+                <Label htmlFor="referencia_origen">Referencia Origen</Label>
+                <Select value={formData.referencia_origen} onValueChange={(value) => handleChange("referencia_origen", value)}>
+                  <SelectTrigger id="referencia_origen">
+                    <SelectValue placeholder="Seleccionar referencia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Instagram">Instagram</SelectItem>
+                    <SelectItem value="Facebook">Cercania</SelectItem>
+                    <SelectItem value="Amigos/Familiares">Amigos/Familiares</SelectItem>
+                    <SelectItem value="Google">Google</SelectItem>
+                    <SelectItem value="Otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
