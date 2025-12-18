@@ -30,6 +30,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { CircularProgress } from "@mui/material";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AnnualCalendarModal } from "./AnnualCalendarModal";
 
 type TipoPlan = "gimnasio" | "clase";
 type Periodo = "30d" | "anual";
@@ -46,7 +47,10 @@ export const AverageAssits = () => {
   const [periodo, setPeriodo] = useState<Periodo>("30d");
   const [loading, setLoading] = useState(false);
   const [promedios, setPromedios] = useState<PromedioItem[]>([]);
+  const [openCalendar, setOpenCalendar] = useState(false);
+
   const isMobile = useIsMobile();
+
   const fetchPromedios = async () => {
     try {
       setLoading(true);
@@ -61,14 +65,13 @@ export const AverageAssits = () => {
         }
       );
 
-      const dias = Number(res.data?.dias ?? 0);
       const data = res.data?.[tipo];
 
       if (!data) {
         setPromedios([
-          { rango: "Mañana (7–12hs)", total: 0, dias, promedio: 0 },
-          { rango: "Tarde (15–18hs)", total: 0, dias, promedio: 0 },
-          { rango: "Noche (18–22hs)", total: 0, dias, promedio: 0 },
+          { rango: "Mañana (7–12hs)", total: 0, dias: 0, promedio: 0 },
+          { rango: "Tarde (15–18hs)", total: 0, dias: 0, promedio: 0 },
+          { rango: "Noche (18–22hs)", total: 0, dias: 0, promedio: 0 },
         ]);
         return;
       }
@@ -77,19 +80,19 @@ export const AverageAssits = () => {
         {
           rango: "Mañana (7–12hs)",
           total: Number(data.manana?.total ?? 0),
-          dias,
+          dias: Number(data.manana?.dias ?? 0),
           promedio: Number(data.manana?.promedio ?? 0),
         },
         {
           rango: "Tarde (15–18hs)",
           total: Number(data.tarde?.total ?? 0),
-          dias,
+          dias: Number(data.tarde?.dias ?? 0),
           promedio: Number(data.tarde?.promedio ?? 0),
         },
         {
           rango: "Noche (18–22hs)",
           total: Number(data.noche?.total ?? 0),
-          dias,
+          dias: Number(data.noche?.dias ?? 0),
           promedio: Number(data.noche?.promedio ?? 0),
         },
       ]);
@@ -166,6 +169,22 @@ export const AverageAssits = () => {
             </BarChart>
           </ResponsiveContainer>
         )}
+        {periodo === "anual" && (
+          <div className="flex w-full justify-center">
+            <button
+              className="text-md text-white bg-orange-400 w-[50%] mt-4 rounded-md py-1 hover:bg-orange-500 transition"
+              onClick={() => setOpenCalendar(true)}
+            >
+              Ver calendario anual
+            </button>
+          </div>
+        )}
+
+        <AnnualCalendarModal
+          open={openCalendar}
+          onClose={() => setOpenCalendar(false)}
+          tipo={tipo}
+        />
       </CardContent>
     </Card>
   );

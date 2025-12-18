@@ -185,7 +185,7 @@ router.get("/promedios-asistencias", async (req, res) => {
     }
 
     const { data, error } = await supabase.rpc(
-      "rpc_promedio_asistencias_por_plan",
+      "rpc_promedio_asistencias_por_plan_real",
       {
         _fecha: fecha,
         _periodo: periodo,
@@ -202,6 +202,41 @@ router.get("/promedios-asistencias", async (req, res) => {
     console.error("Error promedios asistencias:", e);
     return res.status(500).json({
       error: "No se pudieron obtener los promedios de asistencias",
+    });
+  }
+});
+
+router.get("/detalle-promedios", async (req, res) => {
+  try {
+    const fecha =
+      typeof req.query.fecha === "string"
+        ? req.query.fecha
+        : new Date().toISOString().slice(0, 10);
+
+    const periodo = "anual";
+
+    const { data, error } = await supabase.rpc(
+      "rpc_dias_con_actividad_por_plan_y_turno",
+      {
+        _fecha: fecha,
+        _periodo: periodo,
+      }
+    );
+
+    if (error) {
+      console.error("RPC error detalle-promedios:", error);
+      throw error;
+    }
+
+    return res.json({
+      fecha_hasta: fecha,
+      periodo,
+      dias: data, // lista de fechas con actividad
+    });
+  } catch (e) {
+    console.error("Error detalle-promedios:", e);
+    return res.status(500).json({
+      error: "No se pudo obtener el detalle de promedios",
     });
   }
 });
