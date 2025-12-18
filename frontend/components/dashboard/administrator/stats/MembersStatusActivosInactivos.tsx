@@ -28,6 +28,12 @@ interface MembersStatusChartProps {
     }
 }
 
+const ESTADO_DESCRIPCION: Record<string, string> = {
+    Activos: "Alumnos al día con su cuota.",
+    Vencidos: "Alumnos con la cuota vencida hasta 10 días.",
+    Abandonos: "Alumnos con más de 30 días desde el vencimiento.",
+}
+
 export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProps) => {
     const isMobile = useIsMobile()
 
@@ -84,6 +90,10 @@ const CustomTooltipEstado = ({ active, payload, label }: any) => {
     return (
         <div className="rounded-lg border bg-background p-3 shadow-md text-sm">
             <p className="font-semibold mb-2">{label}</p>
+
+            <p className="text-xs text-muted-foreground mb-2">
+                {ESTADO_DESCRIPCION[label]}
+            </p>
 
             <div className="flex justify-between gap-4 items-center">
                 <span style={{ color: item.color }}>Cantidad</span>
