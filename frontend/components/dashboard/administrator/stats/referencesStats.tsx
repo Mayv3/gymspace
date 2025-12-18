@@ -87,9 +87,11 @@ export const ReferencesStats = () => {
     const isMobile = useIsMobile()
 
     const currentYear = new Date().getFullYear()
+    const currentMonth = new Date().getMonth() + 1
 
     const [anio, setAnio] = useState<number>(currentYear)
-    const [mes, setMes] = useState<string>("all")
+
+    const [mes, setMes] = useState<string>(String(currentMonth))
 
     const [data, setData] = useState<AltasPorReferenciaMes[]>([])
     const [loading, setLoading] = useState(true)
@@ -139,7 +141,6 @@ export const ReferencesStats = () => {
                             <SelectValue placeholder="Mes" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos los meses</SelectItem>
                             {MESES.map(m => (
                                 <SelectItem key={m.value} value={m.value}>
                                     {m.label}
@@ -207,7 +208,7 @@ const CustomTooltipReferencia = ({
 
             {payload.map((item: any) => (
                 <div key={item.dataKey} className="flex justify-between gap-4">
-                    <span style={{ color: item.color }}>
+                    <span style={{ color: 'text-foregroung' }}>
                         {REFERENCIAS_LABELS[item.dataKey]}
                     </span>
                     <span className="font-medium">{item.value}</span>
