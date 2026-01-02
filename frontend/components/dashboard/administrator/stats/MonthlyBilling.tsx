@@ -18,7 +18,7 @@ type BillingView = "gimnasio" | "clase" | "servicio" | "producto"
 export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSelectedYearFacturacion }: { facturacionData: Factura[], selectedYearFacturacion: number, setSelectedYearFacturacion: React.Dispatch<React.SetStateAction<number>> }) => {
     const [billingView, setBillingView] = React.useState<BillingView>("gimnasio")
     const isMobile = useIsMobile();
-    
+
     const facturacionNormalizada = facturacionData.map(f => ({
         ...f,
         egresosClase: f.egresosclase ?? 0,
@@ -57,7 +57,7 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
                                         <SelectValue placeholder="Año" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((anio) => (
+                                        {[2025, 2026, 2027, 2028, 2029, 2030].map((anio) => (
                                             <SelectItem key={anio} value={anio.toString()}>
                                                 {anio}
                                             </SelectItem>
