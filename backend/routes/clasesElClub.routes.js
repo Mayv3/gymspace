@@ -1,9 +1,15 @@
-import { Router } from 'express'
-import { obtenerClasesElClub, updateClaseTableroByID } from '../controllers/clasesElClub.controller.js'
+import express from "express";
+import {
+    getClases,
+    getClasesConEstado,
+    updateClaseElClubByID,
+} from "../controllers/clasesElClub.controller.js";
 
-const router = Router()
 
-router.get('/', obtenerClasesElClub)
-router.put('/:id', updateClaseTableroByID)
 
-export default router
+const router = express.Router();
+router.get("/", getClases);
+router.get("/estado/:dni", getClasesConEstado);
+router.put("/:id", updateClaseElClubByID);
+
+export default router;
