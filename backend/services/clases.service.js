@@ -46,9 +46,14 @@ export async function getClasesElClubFromDB() {
         throw error;
     }
 
+    const hoy = dayjs().format("YYYY-MM-DD");
+    const maxFecha = dayjs().add(7, "day").format("YYYY-MM-DD");
+
     const { data: inscripciones } = await supabase
         .from("clases_inscripciones")
-        .select("clase_id, alumno_dni");
+        .select("clase_id, alumno_dni, fecha_clase")
+        .gte("fecha_clase", hoy)
+        .lte("fecha_clase", maxFecha);
 
     const { data: alumnos } = await supabase
         .from("alumnos")
@@ -60,8 +65,10 @@ export async function getClasesElClubFromDB() {
 
     const inscPorClase = {};
     for (const i of inscripciones || []) {
-        if (!inscPorClase[i.clase_id]) inscPorClase[i.clase_id] = [];
-        inscPorClase[i.clase_id].push(i.alumno_dni);
+        const key = `${i.clase_id}|${i.fecha_clase}`;
+
+        if (!inscPorClase[key]) inscPorClase[key] = [];
+        inscPorClase[key].push(i.alumno_dni);
     }
 
     return clases.map(c => {
@@ -70,8 +77,11 @@ export async function getClasesElClubFromDB() {
             : DIA_NUM_A_TEXTO[Number(c.dia)];
 
         const proximaFecha = calcularProximaFecha(diaTexto);
+        const proximaFechaISO = dayjs(proximaFecha, "D/M/YYYY").format("YYYY-MM-DD");
+        const key = `${c.id}|${proximaFechaISO}`;
 
-        const dniList = inscPorClase[c.id] || [];
+        const dniList = inscPorClase[key] || [];
+
         const nombreList = dniList.map(
             dni => alumnosMap[dni] || `(DNI ${dni} no encontrado)`
         );
@@ -84,7 +94,7 @@ export async function getClasesElClubFromDB() {
             "Cupo maximo": String(c.cupo_maximo),
             Inscriptos: dniList.join(", "),
             InscriptosNombres: nombreList.join(", "),
-            ProximaFecha: proximaFecha,          // 🔥 CLAVE
+            ProximaFecha: proximaFecha,
         };
     });
 }
@@ -94,7 +104,7 @@ export async function inscribirAlumno({ claseId, dni }) {
     const clase = await getClaseById(claseId);
     if (!clase) throw new Error("Clase no existe");
 
-    const fecha = calcularProximaFechaClase(clase.dia_semana);
+    const fecha = calcularProximaFecha(clase.dia_semana);
 
     const { count } = await supabase
         .from("clases_inscripciones")
@@ -127,7 +137,7 @@ export async function inscribirAlumno({ claseId, dni }) {
 
 export async function desuscribirAlumno({ claseId, dni }) {
     const clase = await getClaseById(claseId);
-    const fecha = calcularProximaFechaClase(clase.dia_semana);
+    const fecha = calcularProximaFecha(clase.dia_semana);
 
     return supabase
         .from("clases_inscripciones")
