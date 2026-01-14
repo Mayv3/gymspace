@@ -9,11 +9,10 @@ import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import puppeteer from 'puppeteer'
 
 /* =========================================================
-   ⚙️ CONFIGURACIÓN GLOBAL
+    CONFIGURACIÓN GLOBAL
    ========================================================= */
 
-// 👉 CAMBIÁ ESTO
-const SEND_MESSAGES = false  // true = envía WhatsApp | false = solo logs
+const SEND_MESSAGES = false 
 
 /* ========================================================= */
 
