@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Trophy, Star, Gift } from "lucide-react"
 import { useState } from "react"
 
@@ -194,12 +195,14 @@ export function RankingDialog({
   const [spinning, setSpinning] = useState(false)
   const [winner, setWinner] = useState<TopAlumno | null>(null)
   const [rotation, setRotation] = useState(0)
+  const [sorteoType, setSorteoType] = useState<'clases' | 'gimnasio'>('clases')
 
   // Crear lista de participantes con el primer puesto 3 veces (3x más chances)
   const getRouletteParticipants = () => {
-    if (top10Gimnasio.length === 0) return []
-    const firstPlace = top10Gimnasio[0]
-    const rest = top10Gimnasio.slice(1)
+    const selectedList = sorteoType === 'clases' ? top10Clases : top10Gimnasio
+    if (selectedList.length === 0) return []
+    const firstPlace = selectedList[0]
+    const rest = selectedList.slice(1)
     // Insertar el primer puesto 3 veces distribuido en la ruleta
     return [
       firstPlace,           // Posición 1
@@ -330,14 +333,28 @@ export function RankingDialog({
             </section>
           </div>
 
-          <DialogFooter className="flex gap-2 sm:gap-2">
-            <Button variant="outline" onClick={startRoulette} className="flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              Sorteo
-            </Button>
-            <Button variant="orange" onClick={() => onOpenChange(false)}>
-              Cerrar
-            </Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+            <div className="flex items-center gap-2 flex-1">
+              <span className="text-sm font-medium whitespace-nowrap dark:text-white">Sorteo para:</span>
+              <Select value={sorteoType} onValueChange={(value: 'clases' | 'gimnasio') => setSorteoType(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="clases">Top 10 Clases</SelectItem>
+                  <SelectItem value="gimnasio">Top 10 Gimnasio</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={startRoulette} className="flex items-center gap-2">
+                <Gift className="w-4 h-4" />
+                Sorteo
+              </Button>
+              <Button variant="orange" onClick={() => onOpenChange(false)}>
+                Cerrar
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -348,7 +365,7 @@ export function RankingDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl justify-center font-bold">
               <Gift className="w-6 h-6 text-orange-500" />
-              Sorteo - Top 10 Gimnasio
+              Sorteo - Top 10 {sorteoType === 'clases' ? 'Clases' : 'Gimnasio'}
             </DialogTitle>
           </DialogHeader>
 
