@@ -195,6 +195,24 @@ export function RankingDialog({
   const [winner, setWinner] = useState<TopAlumno | null>(null)
   const [rotation, setRotation] = useState(0)
 
+  // Crear lista de participantes con el primer puesto 3 veces (3x más chances)
+  const getRouletteParticipants = () => {
+    if (top10Gimnasio.length === 0) return []
+    const firstPlace = top10Gimnasio[0]
+    const rest = top10Gimnasio.slice(1)
+    // Insertar el primer puesto 3 veces distribuido en la ruleta
+    return [
+      firstPlace,           // Posición 1
+      ...rest.slice(0, 3),  // Posiciones 2-4
+      firstPlace,           // Posición 5 (2da aparición del 1er puesto)
+      ...rest.slice(3, 6),  // Posiciones 6-8
+      firstPlace,           // Posición 9 (3ra aparición del 1er puesto)
+      ...rest.slice(6)      // Resto
+    ]
+  }
+
+  const rouletteParticipants = getRouletteParticipants()
+
   const startRoulette = () => {
     setShowRoulette(true)
     setWinner(null)
@@ -204,12 +222,12 @@ export function RankingDialog({
     setTimeout(() => {
       setSpinning(true)
       
-      // Seleccionar ganador aleatorio
-      const randomIndex = Math.floor(Math.random() * top10Gimnasio.length)
-      const selectedWinner = top10Gimnasio[randomIndex]
+      // Seleccionar ganador aleatorio de la ruleta con pesos
+      const randomIndex = Math.floor(Math.random() * rouletteParticipants.length)
+      const selectedWinner = rouletteParticipants[randomIndex]
       
       // Calcular el ángulo para que el ganador quede en la flecha (arriba)
-      const segmentAngle = 360 / top10Gimnasio.length
+      const segmentAngle = 360 / rouletteParticipants.length
       const winnerSegmentCenter = randomIndex * segmentAngle + segmentAngle / 2
       
       // 5-8 vueltas completas + ajuste para que el ganador quede arriba (en 0°)
@@ -232,10 +250,10 @@ export function RankingDialog({
     setTimeout(() => {
       setSpinning(true)
       
-      const randomIndex = Math.floor(Math.random() * top10Gimnasio.length)
-      const selectedWinner = top10Gimnasio[randomIndex]
+      const randomIndex = Math.floor(Math.random() * rouletteParticipants.length)
+      const selectedWinner = rouletteParticipants[randomIndex]
       
-      const segmentAngle = 360 / top10Gimnasio.length
+      const segmentAngle = 360 / rouletteParticipants.length
       const winnerSegmentCenter = randomIndex * segmentAngle + segmentAngle / 2
       
       const spinRotations = 5 + Math.floor(Math.random() * 4)
@@ -336,7 +354,7 @@ export function RankingDialog({
 
           <div className="py-8 relative">
             <RouletteWheel 
-              participants={top10Gimnasio} 
+              participants={rouletteParticipants} 
               rotation={rotation} 
               spinning={spinning}
               showWinner={!!winner && !spinning}
