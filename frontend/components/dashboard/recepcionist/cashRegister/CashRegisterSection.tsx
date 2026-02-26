@@ -2,7 +2,103 @@
 import { Button } from "@/components/ui/button"
 import { DollarSign } from "lucide-react"
 import { CashRegisterCard } from "@/components/dashboard/recepcionist/cashRegister/CashRegisterCard"
-import { useState } from "react"
+import { useState, useRef, useCallback } from "react"
+
+const HOLD_DURATION = 1250
+
+function HoldButton({
+  onConfirm,
+  disabled,
+  variant,
+  label,
+  loadingLabel,
+}: {
+  onConfirm: () => Promise<void>
+  disabled?: boolean
+  variant: "orange" | "destructive"
+  label: string
+  loadingLabel: string
+}) {
+  const [progress, setProgress] = useState(0)
+  const [executing, setExecuting] = useState(false)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const startTimeRef = useRef<number | null>(null)
+  const triggeredRef = useRef(false)
+
+  const startHold = useCallback(() => {
+    if (disabled || executing) return
+    triggeredRef.current = false
+    startTimeRef.current = Date.now()
+    intervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - (startTimeRef.current ?? Date.now())
+      const pct = Math.min((elapsed / HOLD_DURATION) * 100, 100)
+      setProgress(pct)
+      if (pct >= 100 && !triggeredRef.current) {
+        triggeredRef.current = true
+        clearInterval(intervalRef.current!)
+        setExecuting(true)
+        onConfirm().finally(() => {
+          setExecuting(false)
+          setProgress(0)
+        })
+      }
+    }, 16)
+  }, [disabled, executing, onConfirm])
+
+  const cancelHold = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (!triggeredRef.current) setProgress(0)
+  }, [])
+
+  const radius = 10
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference - (progress / 100) * circumference
+
+  const isOrange = variant === "orange"
+  const trackColor = isOrange ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.25)"
+  const progressColor = "white"
+
+  return (
+    <Button
+      variant={variant}
+      disabled={disabled || executing}
+      className={isOrange ? "animate-pulse-scale select-none" : "select-none"}
+      onMouseDown={startHold}
+      onMouseUp={cancelHold}
+      onMouseLeave={cancelHold}
+      onTouchStart={startHold}
+      onTouchEnd={cancelHold}
+      onClick={(e) => e.preventDefault()}
+    >
+      <span className="relative flex items-center gap-2">
+        {(progress > 0 || executing) ? (
+          <svg width="24" height="24" viewBox="0 0 24 24" className="-ml-1">
+            <circle
+              cx="12" cy="12" r={radius}
+              fill="none"
+              stroke={trackColor}
+              strokeWidth="3"
+            />
+            <circle
+              cx="12" cy="12" r={radius}
+              fill="none"
+              stroke={progressColor}
+              strokeWidth="3"
+              strokeDasharray={circumference}
+              strokeDashoffset={executing ? 0 : dashOffset}
+              strokeLinecap="round"
+              transform="rotate(-90 12 12)"
+              style={{ transition: "stroke-dashoffset 16ms linear" }}
+            />
+          </svg>
+        ) : (
+          <DollarSign className="h-4 w-4" />
+        )}
+        {executing ? loadingLabel : label}
+      </span>
+    </Button>
+  )
+}
 
 type CashRegisterSectionProps = {
   cashRegisterOpen: boolean
@@ -26,9 +122,6 @@ export default function CashRegisterSection({
   errorMessage
 }: CashRegisterSectionProps) {
 
-  const [loading, setLoading] = useState(false)
-  const [closing, setClosing] = useState(false)
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between space-x-2">
@@ -41,95 +134,20 @@ export default function CashRegisterSection({
           </div>
         )}
         {!cashRegisterOpen ? (
-          <Button
+          <HoldButton
             variant="orange"
-            onClick={async () => {
-              setLoading(true)
-              try {
-                await onOpenCashRegister()
-              } finally {
-                setLoading(false)
-              }
-            }}
-            className="animate-pulse-scale"
-            disabled={selectedShift === "todos" || loading}
-          >
-            {loading ? (
-              <div className="flex items-center">
-                <svg
-                  className="animate-spin mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-                  />
-                </svg>
-                Abriendo...
-              </div>
-            ) : (
-              <>
-                <DollarSign className="mr-2 h-4 w-4" />
-                Abrir Caja
-              </>
-            )}
-          </Button>
-
+            label="Abrir Caja"
+            loadingLabel="Abriendo..."
+            disabled={selectedShift === "todos"}
+            onConfirm={async () => { await onOpenCashRegister() }}
+          />
         ) : (
-          <Button
+          <HoldButton
             variant="destructive"
-            onClick={async () => {
-              setClosing(true)
-              try {
-                await onCloseCashRegister()
-              } finally {
-                setClosing(false)
-              }
-            }}
-            disabled={closing}
-          >
-            {closing ? (
-              <div className="flex items-center">
-                <svg
-                  className="animate-spin mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-                  />
-                </svg>
-                Cerrando...
-              </div>
-            ) : (
-              <>
-                <DollarSign className="mr-2 h-4 w-4" />
-                Cerrar Caja
-              </>
-            )}
-          </Button>
+            label="Cerrar Caja"
+            loadingLabel="Cerrando..."
+            onConfirm={async () => { await onCloseCashRegister() }}
+          />
         )}
       </div>
 
