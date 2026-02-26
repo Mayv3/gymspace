@@ -8,12 +8,22 @@ import {
     updateAlumnoByDNI,
     appendRegistroPuntoToSheet
 } from '../services/googleSheets.js';
+import supabase from '../db/supabase.js';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import "dayjs/locale/es.js";
 
 dayjs.locale("es");
 dayjs.extend(customParseFormat);
+
+function formatFechaDB(dateStr) {
+    if (!dateStr) return "";
+    if (dateStr.includes("-")) {
+        const [year, month, day] = dateStr.split("-");
+        return `${parseInt(day)}/${parseInt(month)}/${year}`;
+    }
+    return dateStr;
+}
 
 export const getPagosPorDNI = async (req, res) => {
     try {
@@ -164,31 +174,57 @@ export const getPagosPorFechaYTurno = async (req, res) => {
 export const getPagos = async (req, res) => {
     try {
         const { dia, mes, anio, turno } = req.query;
-        const pagos = await getPagosFromSheet();
 
-        const pagosFiltrados = pagos.filter(pago => {
-            const fecha = dayjs(pago['Fecha_de_Pago'], 'D/M/YYYY');
+        let query = supabase
+            .from("pagos")
+            .select("*")
+            .order("fecha_de_pago", { ascending: false })
+            .order("hora", { ascending: false });
 
-            if (dia && fecha.date() !== parseInt(dia, 10)) {
-                return false;
+        if (anio) {
+            const year = parseInt(anio, 10);
+            if (mes) {
+                const month = parseInt(mes, 10);
+                const paddedMonth = String(month).padStart(2, '0');
+                if (dia) {
+                    const day = parseInt(dia, 10);
+                    const dateStr = `${year}-${paddedMonth}-${String(day).padStart(2, '0')}`;
+                    query = query.eq("fecha_de_pago", dateStr);
+                } else {
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    const startDate = `${year}-${paddedMonth}-01`;
+                    const endDate = `${year}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+                    query = query.gte("fecha_de_pago", startDate).lte("fecha_de_pago", endDate);
+                }
+            } else {
+                query = query
+                    .gte("fecha_de_pago", `${year}-01-01`)
+                    .lte("fecha_de_pago", `${year}-12-31`);
             }
-            if (mes && (fecha.month() + 1) !== parseInt(mes, 10)) {
-                return false;
-            }
-            if (anio && fecha.year() !== parseInt(anio, 10)) {
-                return false;
-            }
-            const turnoParam = turno?.toLowerCase();
-            if (
-                turnoParam &&
-                turnoParam !== 'todos' &&
-                pago.Turno?.toLowerCase() !== turnoParam
-            ) {
-                return false;
-            }
+        }
 
-            return true;
-        });
+        const turnoParam = turno?.toLowerCase();
+        if (turnoParam && turnoParam !== 'todos') {
+            query = query.eq("turno", turnoParam);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        const pagosFiltrados = data.map((pago) => ({
+            ID: String(pago.id),
+            "Socio DNI": pago.socio_dni || "",
+            Nombre: pago.nombre || "",
+            Monto: String(pago.monto || ""),
+            Metodo_de_Pago: pago.metodo_de_pago || "",
+            Fecha_de_Pago: formatFechaDB(pago.fecha_de_pago),
+            Fecha_de_Vencimiento: formatFechaDB(pago.fecha_de_vencimiento),
+            Responsable: pago.responsable || "",
+            Turno: pago.turno || "",
+            Hora: pago.hora || "",
+            Tipo: pago.tipo || "",
+            Ultimo_Plan: pago.ultimo_plan || "",
+        }));
 
         res.json(pagosFiltrados);
     } catch (error) {
