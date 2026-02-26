@@ -94,6 +94,16 @@ export const ElClub = () => {
     const [claseToDelete, setClaseToDelete] = useState<Clase | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
+    const [search, setSearch] = useState('')
+
+    const clasesFiltradas = search.trim()
+        ? clases.filter(c => c['Nombre de clase'].toLowerCase().includes(search.toLowerCase()))
+        : clases
+
+    const diasConClases = DIAS.filter(dia =>
+        clasesFiltradas.some(c => c.Dia.toLowerCase() === dia.toLowerCase())
+    )
+
     // Mobile slider
     const sliderRef = useRef<HTMLDivElement>(null)
     const [currentSlide, setCurrentSlide] = useState(0)
@@ -190,14 +200,24 @@ export const ElClub = () => {
                     </div>
                 </CardHeader>
                 <CardContent className="p-4">
+                    <div className="mb-4">
+                        <Input
+                            placeholder="Buscar clase..."
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setCurrentSlide(0) }}
+                            className="max-w-xs"
+                        />
+                    </div>
                     {loading ? (
                         <p className="text-sm text-muted-foreground">Cargando clases...</p>
+                    ) : clasesFiltradas.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-8">No se encontraron clases.</p>
                     ) : (
                         <>
                             {/* DESKTOP: columnas por día */}
                             <div className="hidden md:flex gap-4 overflow-x-auto pb-2">
-                                {DIAS.map(dia => {
-                                    const clasesDelDia = clases
+                                {diasConClases.map(dia => {
+                                    const clasesDelDia = clasesFiltradas
                                         .filter(c => c.Dia.toLowerCase() === dia.toLowerCase())
                                         .sort((a, b) => a.Hora.localeCompare(b.Hora))
                                     return (
@@ -234,8 +254,8 @@ export const ElClub = () => {
                                             setCurrentSlide(Math.round(el.scrollLeft / el.clientWidth))
                                         }}
                                     >
-                                        {DIAS.map(dia => {
-                                            const clasesDelDia = clases
+                                        {diasConClases.map(dia => {
+                                            const clasesDelDia = clasesFiltradas
                                                 .filter(c => c.Dia.toLowerCase() === dia.toLowerCase())
                                                 .sort((a, b) => a.Hora.localeCompare(b.Hora))
                                             return (
@@ -277,7 +297,7 @@ export const ElClub = () => {
 
                                         {/* Dots */}
                                         <div className="flex gap-1.5">
-                                            {DIAS.map((_, i) => (
+                                            {diasConClases.map((_, i) => (
                                                 <button
                                                     key={i}
                                                     onClick={() => scrollToSlide(i)}
@@ -290,7 +310,7 @@ export const ElClub = () => {
                                             size="icon"
                                             variant="outline"
                                             className="h-8 w-8"
-                                            disabled={currentSlide === DIAS.length - 1}
+                                            disabled={currentSlide === diasConClases.length - 1}
                                             onClick={() => scrollToSlide(currentSlide + 1)}
                                         >
                                             <ChevronRight className="h-4 w-4" />
