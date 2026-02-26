@@ -10,6 +10,61 @@ import timezone from "dayjs/plugin/timezone.js"
 import supabase from "../db/supabase.js";
 dayjs.extend(timezone)
 
+export const createClase = async (req, res) => {
+  try {
+    const { nombre_clase, dia, hora, cupo_maximo } = req.body;
+    if (!nombre_clase || !dia || !hora || !cupo_maximo) {
+      return res.status(400).json({ message: "Todos los campos son requeridos" });
+    }
+    const { data, error } = await supabase
+      .from("clases")
+      .insert({ nombre_clase, dia, hora, cupo_maximo: Number(cupo_maximo) })
+      .select()
+      .single();
+    if (error) throw error;
+    return res.status(201).json(data);
+  } catch (error) {
+    console.error("createClase:", error);
+    return res.status(500).json({ message: "Error al crear la clase" });
+  }
+};
+
+export const updateClaseProperties = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre_clase, dia, hora, cupo_maximo } = req.body;
+    if (!nombre_clase || !dia || !hora || !cupo_maximo) {
+      return res.status(400).json({ message: "Todos los campos son requeridos" });
+    }
+    const { data, error } = await supabase
+      .from("clases")
+      .update({ nombre_clase, dia, hora, cupo_maximo: Number(cupo_maximo) })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error("updateClaseProperties:", error);
+    return res.status(500).json({ message: "Error al actualizar la clase" });
+  }
+};
+
+export const deleteClase = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase
+      .from("clases")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+    return res.status(200).json({ message: "Clase eliminada con éxito" });
+  } catch (error) {
+    console.error("deleteClase:", error);
+    return res.status(500).json({ message: "Error al eliminar la clase" });
+  }
+};
+
 
 const ARG_TZ = "America/Argentina/Buenos_Aires"
 
