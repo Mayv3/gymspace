@@ -140,6 +140,8 @@ export async function appendAlumnoToSheet(alumno) {
 export async function updateAlumnoByDNI(dni, nuevosDatos) {
   const patch = {};
 
+  if ('dni' in nuevosDatos) patch.dni = nuevosDatos['dni'];
+
   if ('Nombre' in nuevosDatos) patch.nombre = nuevosDatos['Nombre'];
   if ('nombre' in nuevosDatos) patch.nombre = nuevosDatos['nombre'];
   if ('name' in nuevosDatos) patch.nombre = nuevosDatos['name'];

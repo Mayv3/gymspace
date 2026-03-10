@@ -67,6 +67,24 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
   const handleSave = async () => {
     setIsSubmitting(true)
 
+    // Si el DNI cambió, verificar que no exista otro alumno con ese DNI
+    if (editedMember.DNI !== member.DNI) {
+      try {
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${editedMember.DNI}`)
+        // Si llega acá, el DNI ya existe
+        notify.error(`El DNI ya pertenece a: ${data.Nombre}`)
+        setIsSubmitting(false)
+        return
+      } catch (err: any) {
+        if (err.response?.status !== 404) {
+          notify.error("Error al verificar el DNI")
+          setIsSubmitting(false)
+          return
+        }
+        // 404 = no existe, podemos continuar
+      }
+    }
+
     const payload = {
       dni: editedMember.DNI,
       nombre: editedMember.Nombre,
@@ -91,7 +109,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
 
     try {
       const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${payload.dni}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${member.DNI}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       )
@@ -145,7 +163,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="DNI">DNI</Label>
-                <Input id="DNI" value={editedMember.DNI || ""} disabled />
+                <Input id="DNI" value={editedMember.DNI || ""} onChange={(e) => handleChange("DNI", e.target.value)} />
               </div>
             </div>
 

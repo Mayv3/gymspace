@@ -57,6 +57,7 @@ export const updateAlumno = async (req, res) => {
     const actualizado = await updateAlumnoByDNI(dni, alumnoData);
 
     if (actualizado) {
+      cachedAlumnos = null;
       res.json({ message: 'Alumno actualizado correctamente' });
     } else {
       res.status(404).json({ message: 'Alumno no encontrado' });
