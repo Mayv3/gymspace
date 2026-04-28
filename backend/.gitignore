@@ -7,4 +7,5 @@
 /backend/session/session
 /.wwebjs_cachep
 
+/.env
 .env

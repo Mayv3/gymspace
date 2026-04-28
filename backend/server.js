@@ -22,6 +22,7 @@ import { emailsRouter } from './routes/emails.routes.js'
 
 import { getAlumnosFromSheet } from './services/googleSheets.js';
 import { enviarRankingEmail, enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
+import { iniciarWhatsapp, triggerRecordatorios } from './services/whatsappBaileysService.js';
 
 dotenv.config();
 
@@ -46,6 +47,16 @@ app.use("/api/puntos", puntosRoutes);
 app.use('/api/emails', emailsRouter)
 
 app.get('/ping', (req, res) => res.sendStatus(200));
+
+app.post('/api/trigger-whatsapp', async (req, res) => {
+  try {
+    const resultado = await triggerRecordatorios()
+    return res.status(200).json(resultado)
+  } catch (err) {
+    console.error('❌ Error en trigger-whatsapp:', err.message)
+    return res.status(500).json({ error: err.message })
+  }
+});
 
 app.post('/api/enviar-ranking', async (req, res) => {
   try {
@@ -97,4 +108,5 @@ io.on('connection', (socket) => {
 
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  iniciarWhatsapp().catch(err => console.error('❌ Error iniciando WhatsApp:', err.message))
 });
