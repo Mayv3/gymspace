@@ -31,6 +31,7 @@ console.log = (...args) => {
 }
 
 let sock = null
+let mensajeInicioEnviado = false
 
 /* ================= INICIAR ================= */
 
@@ -60,8 +61,11 @@ export async function iniciarWhatsapp() {
 
     if (connection === 'open') {
       console.log('✅ WhatsApp conectado')
-      await new Promise(r => setTimeout(r, 3000))
-      await enviarMensajeDeInicio()
+      if (!mensajeInicioEnviado) {
+        mensajeInicioEnviado = true
+        await new Promise(r => setTimeout(r, 3000))
+        await enviarMensajeDeInicio()
+      }
     }
 
     if (connection === 'close') {
@@ -87,7 +91,7 @@ export async function iniciarWhatsapp() {
 async function enviarMensajeDeInicio() {
   const modo = SEND_MESSAGES ? 'ENVÍO ACTIVO' : 'MODO SIMULACIÓN'
   try {
-    await sock.sendMessage(MI_NUMERO, { text: `✅ Gymspace WhatsApp inicializado — ${modo}` })
+    await sock.sendMessage(MI_NUMERO, { text: `✅ Sesión de WhatsApp abierta correctamente — ${modo}` })
     console.log('📡 Mensaje de inicio enviado')
   } catch (err) {
     console.log('⚠️ No se pudo enviar mensaje de inicio:', err.message)
@@ -160,8 +164,26 @@ export async function triggerRecordatorios() {
       await enviarMensaje(alumno)
     }
     console.log('🚀 Mensajes enviados')
+
+    const resumen = porVencer.map((a, i) =>
+      `${i + 1}. ${a.Nombre} — ${a.Plan} — vence ${a.Fecha_vencimiento}`
+    ).join('\n')
+
+    await sock.sendMessage(MI_NUMERO, {
+      text: `📋 Recordatorios enviados (${porVencer.length}):\n\n${resumen}`
+    })
   } else {
     console.log('🧪 Simulación terminada — no se envió ningún mensaje')
+
+    if (porVencer.length > 0) {
+      const resumen = porVencer.map((a, i) =>
+        `${i + 1}. ${a.Nombre} — ${a.Plan} — vence ${a.Fecha_vencimiento}`
+      ).join('\n')
+
+      await sock.sendMessage(MI_NUMERO, {
+        text: `🧪 Simulación — se enviaría a ${porVencer.length} alumno(s):\n\n${resumen}`
+      })
+    }
   }
 
   await supabase
