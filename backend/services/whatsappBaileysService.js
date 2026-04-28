@@ -159,8 +159,15 @@ export async function triggerRecordatorios() {
     .from('whatsapp_session')
     .upsert({ id: 'ultima-ejecucion', data: { fecha: hoy }, updated_at: new Date().toISOString() })
 
+  const lista = porVencer.map(a => ({
+    nombre: a.Nombre,
+    telefono: `549${a.Telefono.replace(/^0/, '').replace(/[^0-9]/g, '')}`,
+    vencimiento: a.Fecha_vencimiento,
+    plan: a.Plan
+  }))
+
   console.log('✅ Proceso finalizado')
-  return { status: 'ok', total: porVencer.length, modo: SEND_MESSAGES ? 'real' : 'simulacion' }
+  return { status: 'ok', total: porVencer.length, modo: SEND_MESSAGES ? 'real' : 'simulacion', lista }
 }
 
 /* ================= ALERTA EMAIL ================= */
