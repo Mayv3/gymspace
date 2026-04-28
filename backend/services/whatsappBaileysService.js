@@ -99,6 +99,15 @@ async function enviarMensaje(alumno) {
   const jid = `549${numero}@s.whatsapp.net`
   const mensaje = `Hola ${alumno.Nombre}, desde Gymspace te informamos que tu plan de ${alumno.Plan} vence el ${alumno.Fecha_vencimiento}. ¡Renoválo para seguir entrenando duro! 💪❤️`
   await sock.sendMessage(jid, { text: mensaje })
+
+  await supabase.from('whatsapp_mensajes').insert({
+    nombre: alumno.Nombre,
+    telefono: `549${numero}`,
+    plan: alumno.Plan,
+    vencimiento: alumno.Fecha_vencimiento,
+    mensaje
+  })
+
   console.log(`📤 Enviado a ${alumno.Nombre}`)
 }
 
