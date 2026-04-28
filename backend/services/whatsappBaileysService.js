@@ -91,9 +91,8 @@ export async function iniciarWhatsapp() {
 /* ================= MENSAJES ================= */
 
 async function enviarMensajeDeInicio() {
-  const modo = SEND_MESSAGES ? 'ENVÍO ACTIVO' : 'MODO SIMULACIÓN'
   try {
-    await sock.sendMessage(MI_NUMERO, { text: `✅ Sesión de WhatsApp abierta correctamente — ${modo}` })
+    await sock.sendMessage(MI_NUMERO, { text: `✅ Sesión de WhatsApp abierta correctamente` })
     console.log('📡 Mensaje de inicio enviado')
   } catch (err) {
     console.log('⚠️ No se pudo enviar mensaje de inicio:', err.message)
