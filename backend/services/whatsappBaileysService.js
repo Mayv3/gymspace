@@ -14,7 +14,6 @@ import supabase from '../db/supabase.js'
     CONFIGURACIÓN GLOBAL
    ========================================================= */
 
-export const SEND_MESSAGES = false
 
 /* ========================================================= */
 
@@ -32,6 +31,7 @@ console.log = (...args) => {
 
 let sock = null
 let mensajeInicioEnviado = false
+let connectedAt = null
 
 /* ================= INICIAR ================= */
 
@@ -60,6 +60,7 @@ export async function iniciarWhatsapp() {
     }
 
     if (connection === 'open') {
+      connectedAt = Date.now()
       console.log('✅ WhatsApp conectado')
       if (!mensajeInicioEnviado) {
         mensajeInicioEnviado = true
@@ -74,9 +75,10 @@ export async function iniciarWhatsapp() {
         : null
 
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut
+      const tiempoConectado = connectedAt ? Date.now() - connectedAt : 0
 
       if (shouldReconnect) {
-        console.log('🔄 WhatsApp reconectando...')
+        if (tiempoConectado > 10000) console.log('🔄 WhatsApp reconectando...')
         setTimeout(iniciarWhatsapp, 3000)
       } else {
         console.log('🚪 Sesión cerrada — escaneá el QR de nuevo')
@@ -123,22 +125,10 @@ async function enviarMensaje(alumno) {
 
 /* ================= RECORDATORIOS ================= */
 
-export async function triggerRecordatorios() {
+async function procesarRecordatorios(enviar) {
   if (!sock) throw new Error('WhatsApp no está conectado')
 
-  const hoy = dayjs().format('DD-MM-YYYY')
-
-  const { data: ultimaRow } = await supabase
-    .from('whatsapp_session')
-    .select('data')
-    .eq('id', 'ultima-ejecucion')
-    .maybeSingle()
-
-  if (ultimaRow?.data?.fecha === hoy) {
-    return { status: 'already_run', message: 'Ya se ejecutó hoy' }
-  }
-
-  console.log('\n📅 Buscando alumnos por vencer en 4 días...\n')
+  console.log(`\n📅 Buscando alumnos por vencer en 4 días... [${enviar ? 'ENVÍO REAL' : 'SIMULACIÓN'}]\n`)
 
   const alumnos = await getAlumnosFromSheet()
 
@@ -151,7 +141,6 @@ export async function triggerRecordatorios() {
 
   console.log('📋 MENSAJES A PROCESAR')
   console.log('--------------------------------------------')
-
   if (porVencer.length === 0) {
     console.log('🚫 Nadie cumple la condición hoy')
   } else {
@@ -160,23 +149,8 @@ export async function triggerRecordatorios() {
       console.log(`${i + 1}. ${a.Nombre} | 📞 549${numero} | 📅 ${a.Fecha_vencimiento} | 🧾 ${a.Plan}`)
     })
   }
-
   console.log('--------------------------------------------')
-  console.log(`📊 Total: ${porVencer.length}`)
-  console.log(`⚙️ Modo: ${SEND_MESSAGES ? 'ENVÍO REAL' : 'SIMULACIÓN'}\n`)
-
-  if (SEND_MESSAGES) {
-    for (const alumno of porVencer) {
-      await enviarMensaje(alumno)
-    }
-    console.log('🚀 Mensajes enviados')
-  } else {
-    console.log('🧪 Simulación terminada — no se envió ningún mensaje')
-  }
-
-  await supabase
-    .from('whatsapp_session')
-    .upsert({ id: 'ultima-ejecucion', data: { fecha: hoy }, updated_at: new Date().toISOString() })
+  console.log(`📊 Total: ${porVencer.length}\n`)
 
   const lista = porVencer.map(a => ({
     nombre: a.Nombre,
@@ -185,28 +159,79 @@ export async function triggerRecordatorios() {
     plan: a.Plan
   }))
 
+  if (enviar) {
+    for (const alumno of porVencer) {
+      await enviarMensaje(alumno)
+    }
+    await supabase
+      .from('whatsapp_session')
+      .upsert({ id: 'ultima-ejecucion', data: { fecha: dayjs().format('DD-MM-YYYY') }, updated_at: new Date().toISOString() })
+    console.log('🚀 Mensajes enviados')
+  } else {
+    if (porVencer.length > 0) {
+      const resumen = lista.map((a, i) => `${i + 1}. ${a.nombre} — ${a.plan} — vence ${a.vencimiento}`).join('\n')
+      await sock.sendMessage(MI_NUMERO, { text: `🧪 Simulación — se enviaría a ${lista.length} alumno(s):\n\n${resumen}` })
+    }
+    console.log('🧪 Simulación terminada')
+  }
+
   console.log('✅ Proceso finalizado')
-  return { status: 'ok', total: porVencer.length, modo: SEND_MESSAGES ? 'real' : 'simulacion', lista }
+  return { status: 'ok', total: porVencer.length, modo: enviar ? 'real' : 'simulacion', lista }
+}
+
+export async function simularRecordatorios() {
+  return procesarRecordatorios(false)
+}
+
+export async function triggerRecordatorios() {
+  const hoy = dayjs().format('DD-MM-YYYY')
+  const { data: ultimaRow } = await supabase
+    .from('whatsapp_session')
+    .select('data')
+    .eq('id', 'ultima-ejecucion')
+    .maybeSingle()
+
+  if (ultimaRow?.data?.fecha === hoy) {
+    return { status: 'already_run', message: 'Ya se ejecutó hoy' }
+  }
+
+  return procesarRecordatorios(true)
 }
 
 /* ================= ALERTA EMAIL ================= */
 
+export async function simularError() {
+  await alertarError('Error de prueba — mensaje simulado para testear las alertas')
+}
+
+async function enviarMailAlerta(subject, htmlContent) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      'api-key': process.env.BREVO_API_KEY
+    },
+    body: JSON.stringify({
+      sender: { email: process.env.FROM_EMAIL, name: 'Gymspace' },
+      to: [{ email: 'nicopereyra855@gmail.com' }],
+      subject,
+      htmlContent
+    })
+  })
+
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`Brevo ${res.status}: ${errText}`)
+  }
+}
+
 async function alertarError(motivo) {
   try {
-    await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        'api-key': process.env.BREVO_API_KEY
-      },
-      body: JSON.stringify({
-        sender: { email: process.env.FROM_EMAIL, name: 'Gymspace' },
-        to: [{ email: 'nicopereyra855@gmail.com' }],
-        subject: '❌ Error al enviar mensaje de WhatsApp — Gymspace',
-        htmlContent: `<p>Hubo un error al enviar un mensaje de WhatsApp.</p><p><strong>Detalle:</strong> ${motivo}</p>`
-      })
-    })
+    await enviarMailAlerta(
+      '❌ Error al enviar mensaje de WhatsApp — Gymspace',
+      `<p>Hubo un error al enviar un mensaje de WhatsApp.</p><p><strong>Detalle:</strong> ${motivo}</p>`
+    )
     console.log('📧 Alerta de error enviada por email')
   } catch (err) {
     console.log('⚠️ No se pudo enviar alerta de error:', err.message)
@@ -215,20 +240,10 @@ async function alertarError(motivo) {
 
 async function alertarDesconexion(motivo) {
   try {
-    await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        'api-key': process.env.BREVO_API_KEY
-      },
-      body: JSON.stringify({
-        sender: { email: process.env.FROM_EMAIL, name: 'Gymspace' },
-        to: [{ email: 'nicopereyra855@gmail.com' }],
-        subject: '⚠️ WhatsApp Gymspace desconectado',
-        htmlContent: `<p>El servicio de WhatsApp de Gymspace se desconectó.</p><p><strong>Motivo:</strong> ${motivo}</p><p>Revisá el servidor y volvé a escanear el QR si es necesario.</p>`
-      })
-    })
+    await enviarMailAlerta(
+      '⚠️ WhatsApp Gymspace desconectado',
+      `<p>El servicio de WhatsApp de Gymspace se desconectó.</p><p><strong>Motivo:</strong> ${motivo}</p><p>Revisá el servidor y volvé a escanear el QR si es necesario.</p>`
+    )
     console.log('📧 Alerta de desconexión enviada por email')
   } catch (err) {
     console.log('⚠️ No se pudo enviar alerta por email:', err.message)
