@@ -102,17 +102,23 @@ async function enviarMensaje(alumno) {
   const numero = alumno.Telefono.replace(/^0/, '').replace(/[^0-9]/g, '')
   const jid = `549${numero}@s.whatsapp.net`
   const mensaje = `Hola ${alumno.Nombre}, desde Gymspace te informamos que tu plan de ${alumno.Plan} vence el ${alumno.Fecha_vencimiento}. ¡Renoválo para seguir entrenando duro! 💪❤️`
-  await sock.sendMessage(jid, { text: mensaje })
 
-  await supabase.from('whatsapp_mensajes').insert({
-    nombre: alumno.Nombre,
-    telefono: `549${numero}`,
-    plan: alumno.Plan,
-    vencimiento: alumno.Fecha_vencimiento,
-    mensaje
-  })
+  try {
+    await sock.sendMessage(jid, { text: mensaje })
 
-  console.log(`📤 Enviado a ${alumno.Nombre}`)
+    await supabase.from('whatsapp_mensajes').insert({
+      nombre: alumno.Nombre,
+      telefono: `549${numero}`,
+      plan: alumno.Plan,
+      vencimiento: alumno.Fecha_vencimiento,
+      mensaje
+    })
+
+    console.log(`📤 Enviado a ${alumno.Nombre}`)
+  } catch (err) {
+    console.error(`❌ Error al enviar a ${alumno.Nombre}:`, err.message)
+    await alertarError(`No se pudo enviar mensaje a ${alumno.Nombre} (${alumno.Telefono}): ${err.message}`)
+  }
 }
 
 /* ================= RECORDATORIOS ================= */
@@ -164,26 +170,8 @@ export async function triggerRecordatorios() {
       await enviarMensaje(alumno)
     }
     console.log('🚀 Mensajes enviados')
-
-    const resumen = porVencer.map((a, i) =>
-      `${i + 1}. ${a.Nombre} — ${a.Plan} — vence ${a.Fecha_vencimiento}`
-    ).join('\n')
-
-    await sock.sendMessage(MI_NUMERO, {
-      text: `📋 Recordatorios enviados (${porVencer.length}):\n\n${resumen}`
-    })
   } else {
     console.log('🧪 Simulación terminada — no se envió ningún mensaje')
-
-    if (porVencer.length > 0) {
-      const resumen = porVencer.map((a, i) =>
-        `${i + 1}. ${a.Nombre} — ${a.Plan} — vence ${a.Fecha_vencimiento}`
-      ).join('\n')
-
-      await sock.sendMessage(MI_NUMERO, {
-        text: `🧪 Simulación — se enviaría a ${porVencer.length} alumno(s):\n\n${resumen}`
-      })
-    }
   }
 
   await supabase
@@ -202,6 +190,28 @@ export async function triggerRecordatorios() {
 }
 
 /* ================= ALERTA EMAIL ================= */
+
+async function alertarError(motivo) {
+  try {
+    await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        sender: { email: process.env.FROM_EMAIL, name: 'Gymspace' },
+        to: [{ email: 'nicopereyra855@gmail.com' }],
+        subject: '❌ Error al enviar mensaje de WhatsApp — Gymspace',
+        htmlContent: `<p>Hubo un error al enviar un mensaje de WhatsApp.</p><p><strong>Detalle:</strong> ${motivo}</p>`
+      })
+    })
+    console.log('📧 Alerta de error enviada por email')
+  } catch (err) {
+    console.log('⚠️ No se pudo enviar alerta de error:', err.message)
+  }
+}
 
 async function alertarDesconexion(motivo) {
   try {
