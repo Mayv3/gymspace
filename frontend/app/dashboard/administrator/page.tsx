@@ -239,7 +239,7 @@ export default function AdministratorDashboard() {
 
       <div className="space-y-4 md:p-8 pt-6 mx-auto max-w-[90vw] w-full mb-20 md:mb-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de administrador</h2>
+          <h2 className="text-3xl font-bold tracking-tight gradient-text">GYMSPACE - Panel de administrador</h2>
         </div>
         {!cashOpen && cerrada && existe && (
           <div className="flex justify-center">

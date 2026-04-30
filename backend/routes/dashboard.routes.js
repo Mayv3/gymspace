@@ -140,30 +140,70 @@ router.get("/altas-bajas", async (req, res) => {
     const mes = Number(req.query.mes);
 
     if (!anio || !mes) {
-      return res.status(400).json({
-        error: "Debe enviar anio y mes",
-      });
+      return res.status(400).json({ error: "Debe enviar anio y mes" });
     }
 
-    const { data, error } = await supabase.rpc(
-      "rpc_altas_bajas_alumnos",
-      {
-        _anio: anio,
-        _mes: mes,
-      }
-    );
+    // Altas: from RPC (by fecha_inicio)
+    const { data: rpcData, error: rpcError } = await supabase.rpc("rpc_altas_bajas_alumnos", { _anio: anio, _mes: mes });
+    if (rpcError) throw rpcError;
 
-    if (error) {
-      console.error("RPC error:", error);
-      throw error;
+    // Bajas: alumnos cuyo fecha_vencimiento cae en el mes (igual que abandonos)
+    const paddedMonth = String(mes).padStart(2, '0');
+    const daysInMonth = new Date(anio, mes, 0).getDate();
+    const startDate = `${anio}-${paddedMonth}-01`;
+    const endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+
+    const [{ data: alumnosVenc, error: alumnosError }, { data: planes, error: planesError }] = await Promise.all([
+      supabase
+        .from('alumnos')
+        .select('dni, nombre, plan, profesor_asignado, fecha_vencimiento')
+        .is('deleted_at', null)
+        .gte('fecha_vencimiento', startDate)
+        .lte('fecha_vencimiento', endDate),
+      supabase.from('planes').select('plan_o_producto, tipo'),
+    ]);
+
+    if (alumnosError) throw alumnosError;
+    if (planesError) throw planesError;
+
+    const planTipoMap = {};
+    for (const p of planes ?? []) {
+      planTipoMap[(p.plan_o_producto || '').trim().toUpperCase()] = (p.tipo || '').trim().toUpperCase();
     }
 
-    return res.json(data);
+    const bajas = { gimnasio: [], clase: [] };
+
+    for (const a of alumnosVenc ?? []) {
+      const tipo = planTipoMap[(a.plan || '').trim().toUpperCase()] || '';
+      const entry = {
+        nombre: a.nombre,
+        dni: a.dni,
+        plan: a.plan,
+        profesor: a.profesor_asignado,
+        fecha_baja: a.fecha_vencimiento,
+      };
+      if (tipo === 'GIMNASIO') bajas.gimnasio.push(entry);
+      else if (tipo === 'CLASE') bajas.clase.push(entry);
+      else bajas.gimnasio.push(entry); // fallback
+    }
+
+    return res.json({
+      altas: rpcData?.altas ?? { gimnasio: [], clase: [] },
+      bajas,
+      totales: {
+        altas: {
+          gimnasio: (rpcData?.altas?.gimnasio ?? []).length,
+          clase: (rpcData?.altas?.clase ?? []).length,
+        },
+        bajas: {
+          gimnasio: bajas.gimnasio.length,
+          clase: bajas.clase.length,
+        },
+      },
+    });
   } catch (e) {
     console.error("Error altas-bajas:", e);
-    return res.status(500).json({
-      error: "No se pudieron obtener las altas y bajas",
-    });
+    return res.status(500).json({ error: "No se pudieron obtener las altas y bajas" });
   }
 });
 
@@ -271,6 +311,105 @@ router.get("/ingresos-mensuales", async (req, res) => {
     return res.status(500).json({
       error: "No se pudieron obtener los ingresos del mes",
     });
+  }
+});
+
+router.get("/abandonos-por-mes", async (req, res) => {
+  try {
+    const mes = Number(req.query.mes);
+    const anio = Number(req.query.anio);
+
+    if (!mes || !anio) {
+      return res.status(400).json({ error: "Debe enviar mes y anio" });
+    }
+
+    const paddedMonth = String(mes).padStart(2, '0');
+    const startDate = `${anio}-${paddedMonth}-01`;
+    const daysInMonth = new Date(anio, mes, 0).getDate();
+    const endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+
+    // Abandonos del mes = alumnos cuyo vencimiento cayó dentro de ese mes
+    const { data, error } = await supabase
+      .from('alumnos')
+      .select('dni, nombre, fecha_vencimiento')
+      .is('deleted_at', null)
+      .gte('fecha_vencimiento', startDate)
+      .lte('fecha_vencimiento', endDate);
+
+    if (error) throw error;
+
+    const alumnos = (data ?? []).map(a => ({
+      dni: a.dni,
+      nombre: a.nombre,
+      fecha_vencimiento: a.fecha_vencimiento,
+    }));
+
+    return res.json({ mes, anio, cantidad: alumnos.length, alumnos });
+  } catch (e) {
+    console.error("Error abandonos-por-mes:", e);
+    return res.status(500).json({ error: "No se pudieron obtener los abandonos del mes" });
+  }
+});
+
+router.get("/vencidos", async (req, res) => {
+  try {
+    const hoy = dayjs().format('YYYY-MM-DD');
+    const hace30 = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
+
+    const { data, error } = await supabase
+      .from('alumnos')
+      .select('dni, nombre, fecha_vencimiento, plan')
+      .is('deleted_at', null)
+      .gte('fecha_vencimiento', hace30)
+      .lte('fecha_vencimiento', hoy)
+      .order('fecha_vencimiento', { ascending: false });
+
+    if (error) throw error;
+
+    return res.json({ cantidad: data.length, alumnos: data });
+  } catch (e) {
+    console.error("Error vencidos:", e);
+    return res.status(500).json({ error: "No se pudieron obtener los vencidos" });
+  }
+});
+
+router.get("/activos-por-mes", async (req, res) => {
+  try {
+    const mes = Number(req.query.mes);
+    const anio = Number(req.query.anio);
+
+    if (!mes || !anio) {
+      return res.status(400).json({ error: "Debe enviar mes y anio" });
+    }
+
+    const paddedMonth = String(mes).padStart(2, '0');
+    const daysInMonth = new Date(anio, mes, 0).getDate();
+    const startDate = `${anio}-${paddedMonth}-01`;
+    const endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+
+    const { data, error } = await supabase
+      .from("pagos")
+      .select("socio_dni, nombre, fecha_de_pago, tipo")
+      .gte("fecha_de_pago", startDate)
+      .lte("fecha_de_pago", endDate)
+      .in("tipo", ["GIMNASIO", "DEUDA GIMNASIO", "CLASE", "DEUDA CLASES"]);
+
+    if (error) throw error;
+
+    const vistos = new Set();
+    const alumnos = [];
+    for (const p of data) {
+      const key = p.socio_dni || p.nombre;
+      if (!vistos.has(key)) {
+        vistos.add(key);
+        alumnos.push({ dni: p.socio_dni, nombre: p.nombre });
+      }
+    }
+
+    return res.json({ mes, anio, cantidad: alumnos.length, alumnos });
+  } catch (e) {
+    console.error("Error activos-por-mes:", e);
+    return res.status(500).json({ error: "No se pudieron obtener los activos del mes" });
   }
 });
 

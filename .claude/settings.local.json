@@ -8,5 +8,9 @@
       "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); const entries=Object.entries\\(d\\).filter\\(\\([k]\\)=>k!=='created'&&k!=='modified'\\).slice\\(-10\\); entries.forEach\\(\\([v,t]\\)=>console.log\\(v, t.slice\\(0,10\\)\\)\\)\")",
       "Bash(npm uninstall *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "aidesigner"
+  ],
+  "enableAllProjectMcpServers": true
 }

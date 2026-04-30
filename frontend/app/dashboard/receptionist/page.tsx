@@ -188,7 +188,7 @@ export default function ReceptionistDashboard() {
 
       <div className="flex-1 space-y-4 md:p-8 pt-6 mx-auto max-w-[95vw] md:ml-[80px] w-full mb-20 md:mb-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold tracking-tight gradient-text">GymSpace - Panel de recepcionista</h2>
+          <h2 className="text-3xl font-bold tracking-tight gradient-text">GYMSPACE - Panel de recepcionista</h2>
         </div>
         {!cashOpen && cerrada && existe && (
           <div className="text-center text-xl font-bold text-gray-600">

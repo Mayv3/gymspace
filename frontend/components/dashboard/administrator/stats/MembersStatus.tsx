@@ -89,6 +89,14 @@ export const MembersStatus = () => {
     setFiltroProfesor("");
   }, [tipoPlan]);
 
+  const totalBajas = data
+    ? (data.bajas?.gimnasio?.length ?? 0) + (data.bajas?.clase?.length ?? 0)
+    : 0;
+
+  const todosBajas = data
+    ? [...(data.bajas?.gimnasio ?? []), ...(data.bajas?.clase ?? [])]
+    : [];
+
   const pieData = data
     ? [
       {
@@ -99,7 +107,7 @@ export const MembersStatus = () => {
       {
         name: "Bajas",
         key: "bajas",
-        value: data.totales.bajas[tipoPlan],
+        value: totalBajas,
       },
     ]
     : [];
@@ -112,7 +120,7 @@ export const MembersStatus = () => {
     }, 0);
 
     setSelectedSlice(key);
-    setAlumnos(data[key][tipoPlan] ?? []);
+    setAlumnos(key === "bajas" ? todosBajas : (data[key][tipoPlan] ?? []));
     setFiltroProfesor("");
     setOpen(true);
   };
@@ -121,7 +129,7 @@ export const MembersStatus = () => {
   const cantidad =
     selectedSlice === "altas"
       ? data?.altas?.[tipoPlan]?.length ?? 0
-      : data?.bajas?.[tipoPlan]?.length ?? 0;
+      : totalBajas;
 
   const alumnosOrdenados = [...alumnos].sort((a, b) => {
     const fechaA =
@@ -181,18 +189,22 @@ export const MembersStatus = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1">Enero</SelectItem>
-              <SelectItem value="2">Febrero</SelectItem>
-              <SelectItem value="3">Marzo</SelectItem>
-              <SelectItem value="4">Abril</SelectItem>
-              <SelectItem value="5">Mayo</SelectItem>
-              <SelectItem value="6">Junio</SelectItem>
-              <SelectItem value="7">Julio</SelectItem>
-              <SelectItem value="8">Agosto</SelectItem>
-              <SelectItem value="9">Septiembre</SelectItem>
-              <SelectItem value="10">Octubre</SelectItem>
-              <SelectItem value="11">Noviembre</SelectItem>
-              <SelectItem value="12">Diciembre</SelectItem>
+              {[
+                { value: 1, label: "Enero" }, { value: 2, label: "Febrero" },
+                { value: 3, label: "Marzo" }, { value: 4, label: "Abril" },
+                { value: 5, label: "Mayo" }, { value: 6, label: "Junio" },
+                { value: 7, label: "Julio" }, { value: 8, label: "Agosto" },
+                { value: 9, label: "Septiembre" }, { value: 10, label: "Octubre" },
+                { value: 11, label: "Noviembre" }, { value: 12, label: "Diciembre" },
+              ].map((m) => {
+                const isFuture = selectedYear === new Date().getFullYear() && m.value > new Date().getMonth() + 1;
+                const isTooOld = selectedYear === 2025 && m.value < 6;
+                return (
+                  <SelectItem key={m.value} value={String(m.value)} disabled={isFuture || isTooOld}>
+                    {m.label}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
 
@@ -206,7 +218,7 @@ export const MembersStatus = () => {
             </SelectTrigger>
             <SelectContent>
               {[2025, 2026, 2027, 2028, 2029, 2030].map((y) => (
-                <SelectItem key={y} value={String(y)}>
+                <SelectItem key={y} value={String(y)} disabled={y > new Date().getFullYear()}>
                   {y}
                 </SelectItem>
               ))}

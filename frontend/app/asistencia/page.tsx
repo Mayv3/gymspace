@@ -237,7 +237,7 @@ export default function AsistenciaPage() {
             >
               <img
                 src="/Gymspace-logo-png.png"
-                alt="Gymspace Logo"
+                alt="GYMSPACE Logo"
                 style={{ width: 70, height: 'auto' }}
               />
             </Box>
@@ -522,7 +522,7 @@ export default function AsistenciaPage() {
                           <MonetizationOn sx={{ color: 'white' }} />
                         </Box>
                         <Typography variant="body2" color="text.secondary">
-                          GymspaceCoins
+                          GYMSPACE Coins
                         </Typography>
                       </Box>
                       <Chip

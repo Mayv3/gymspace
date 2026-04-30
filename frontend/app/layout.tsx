@@ -15,7 +15,7 @@ const quicksand = Quicksand({
 
 export const metadata: Metadata = {
   title: 'GYMSPACE',
-  description: 'GymSpace y el club',
+  description: 'GYMSPACE y el club',
   generator: 'N',
 }
 

@@ -183,7 +183,7 @@ const LoginPage = () => {
             >
               <img
                 src="/Gymspace-logo-png.png"
-                alt="Gymspace Logo"
+                alt="GYMSPACE Logo"
                 style={{ width: 70, height: 'auto' }}
               />
             </Box>

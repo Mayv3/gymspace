@@ -25,7 +25,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { COLORS } from "./colors"
 import CircularProgress from "@mui/material/CircularProgress"
 
 interface AltasPorReferenciaMes {
@@ -44,6 +43,13 @@ const REFERENCIAS_KEYS = [
     "google",
     "otro",
 ]
+
+const REFERENCIAS_COLORS: Record<string, string> = {
+    instagram: "#E1306C",
+    amigos_familiares: "#f97316",
+    google: "#4285F4",
+    otro: "#8b5cf6",
+}
 
 const MESES = [
     { value: "1", label: "Enero" },
@@ -173,11 +179,13 @@ export const ReferencesStats = () => {
                                 content={<CustomTooltipReferencia anio={anio} />}
                             />
 
-                            {REFERENCIAS_KEYS.map((key, index) => (
+                            {REFERENCIAS_KEYS.filter(key =>
+                                data.some(d => (d as any)[key] > 0)
+                            ).map((key) => (
                                 <Bar
                                     key={key}
                                     dataKey={key}
-                                    fill={COLORS[index % COLORS.length]}
+                                    fill={REFERENCIAS_COLORS[key]}
                                     radius={[4, 4, 0, 0]}
                                 />
                             ))}
@@ -206,9 +214,9 @@ const CustomTooltipReferencia = ({
                 {mesNombre} de {anio}
             </p>
 
-            {payload.map((item: any) => (
-                <div key={item.dataKey} className="flex justify-between gap-4">
-                    <span style={{ color: 'text-foregroung' }}>
+            {payload.filter((item: any) => item.value > 0).map((item: any) => (
+                <div key={item.dataKey} className="flex justify-between gap-4 items-center">
+                    <span style={{ color: REFERENCIAS_COLORS[item.dataKey] }} className="font-medium">
                         {REFERENCIAS_LABELS[item.dataKey]}
                     </span>
                     <span className="font-medium">{item.value}</span>

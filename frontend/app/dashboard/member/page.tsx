@@ -546,7 +546,7 @@ export default function MemberDashboard() {
                     ¡Bienvenido, {user.Nombre}!
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Tu panel de control GymSpace
+                    Tu panel de control GYMSPACE
                   </Typography>
                 </Box>
               </Box>
@@ -726,7 +726,7 @@ export default function MemberDashboard() {
               </MuiCard>
             </motion.div>
 
-            {/* GymSpace Coins */}
+            {/* GYMSPACE Coins */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.4 }}>
               <MuiCard
                 elevation={4}
@@ -742,7 +742,7 @@ export default function MemberDashboard() {
                 <MuiCardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                     <Typography variant="h6" fontWeight={900} color="text.secondary">
-                      GymSpace Coins
+                      GYMSPACE Coins
                     </Typography>
                     <Box
                       sx={{
@@ -778,7 +778,7 @@ export default function MemberDashboard() {
             </motion.div>
           </Box>
 
-          {/* Ranking GymSpace Coins */}
+          {/* Ranking GYMSPACE Coins */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -796,7 +796,7 @@ export default function MemberDashboard() {
                   <EmojiEvents sx={{ color: '#fbbf24', fontSize: 32 }} />
                   <Box>
                     <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
-                      Ranking GymSpace Coins
+                      Ranking GYMSPACE Coins
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
                       Los 10 mejores participantes {user.Tipo_de_plan === "GIMNASIO" ? "del GIMNASIO" : "del CLUB"}

@@ -90,7 +90,7 @@ export const getAlumnoByDNI = async (req, res) => {
     const dni = req.params.dni;
 
     const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find(a => a.DNI === dni);
+    const alumno = alumnos.find(a => String(a.DNI) === String(dni));
 
     if (!alumno) {
       return res.status(404).json({ message: 'Alumno no encontrado' });
@@ -100,7 +100,7 @@ export const getAlumnoByDNI = async (req, res) => {
     const plan = planes.find(p => p["Plan o Producto"].toUpperCase() === alumno.Plan.toUpperCase());
 
     const pagos = await getPagosFromSheet();
-    const pagosDelAlumno = pagos.filter(pago => pago["Socio DNI"] === dni);
+    const pagosDelAlumno = pagos.filter(pago => String(pago["Socio DNI"]) === String(dni));
 
     pagosDelAlumno.sort((a, b) => {
       return new Date(b["Fecha_de_Pago"].split('/').reverse().join('/')) -
