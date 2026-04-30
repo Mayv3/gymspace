@@ -329,19 +329,23 @@ router.get("/abandonos-por-mes", async (req, res) => {
     const endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
 
     // Abandonos del mes = alumnos cuyo vencimiento cayó dentro de ese mes
-    const { data, error } = await supabase
-      .from('alumnos')
-      .select('dni, nombre, fecha_vencimiento')
-      .is('deleted_at', null)
-      .gte('fecha_vencimiento', startDate)
-      .lte('fecha_vencimiento', endDate);
+    const [{ data, error }, { data: planes, error: planesError }] = await Promise.all([
+      supabase.from('alumnos').select('dni, nombre, fecha_vencimiento, plan').is('deleted_at', null).gte('fecha_vencimiento', startDate).lte('fecha_vencimiento', endDate),
+      supabase.from('planes').select('plan_o_producto, tipo'),
+    ]);
 
     if (error) throw error;
+    if (planesError) throw planesError;
+
+    const planTipoMap = {};
+    for (const p of planes ?? []) planTipoMap[(p.plan_o_producto || '').trim().toUpperCase()] = (p.tipo || '').trim().toUpperCase();
 
     const alumnos = (data ?? []).map(a => ({
       dni: a.dni,
       nombre: a.nombre,
       fecha_vencimiento: a.fecha_vencimiento,
+      plan: a.plan,
+      tipo: planTipoMap[(a.plan || '').trim().toUpperCase()] || 'OTRO',
     }));
 
     return res.json({ mes, anio, cantidad: alumnos.length, alumnos });
@@ -356,17 +360,26 @@ router.get("/vencidos", async (req, res) => {
     const hoy = dayjs().format('YYYY-MM-DD');
     const hace30 = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
 
-    const { data, error } = await supabase
-      .from('alumnos')
-      .select('dni, nombre, fecha_vencimiento, plan')
-      .is('deleted_at', null)
-      .gte('fecha_vencimiento', hace30)
-      .lte('fecha_vencimiento', hoy)
-      .order('fecha_vencimiento', { ascending: false });
+    const [{ data, error }, { data: planes, error: planesError }] = await Promise.all([
+      supabase.from('alumnos').select('dni, nombre, fecha_vencimiento, plan').is('deleted_at', null).gte('fecha_vencimiento', hace30).lte('fecha_vencimiento', hoy).order('fecha_vencimiento', { ascending: false }),
+      supabase.from('planes').select('plan_o_producto, tipo'),
+    ]);
 
     if (error) throw error;
+    if (planesError) throw planesError;
 
-    return res.json({ cantidad: data.length, alumnos: data });
+    const planTipoMap = {};
+    for (const p of planes ?? []) planTipoMap[(p.plan_o_producto || '').trim().toUpperCase()] = (p.tipo || '').trim().toUpperCase();
+
+    const alumnos = (data ?? []).map(a => ({
+      dni: a.dni,
+      nombre: a.nombre,
+      fecha_vencimiento: a.fecha_vencimiento,
+      plan: a.plan,
+      tipo: planTipoMap[(a.plan || '').trim().toUpperCase()] || 'OTRO',
+    }));
+
+    return res.json({ cantidad: alumnos.length, alumnos });
   } catch (e) {
     console.error("Error vencidos:", e);
     return res.status(500).json({ error: "No se pudieron obtener los vencidos" });
@@ -396,15 +409,17 @@ router.get("/activos-por-mes", async (req, res) => {
 
     if (error) throw error;
 
-    const vistos = new Set();
-    const alumnos = [];
+    // Get plan tipo for each unique payer
+    const vistos = new Map();
     for (const p of data) {
       const key = p.socio_dni || p.nombre;
       if (!vistos.has(key)) {
-        vistos.add(key);
-        alumnos.push({ dni: p.socio_dni, nombre: p.nombre });
+        const tipoFromPago = ["GIMNASIO", "DEUDA GIMNASIO"].includes(p.tipo) ? "GIMNASIO"
+          : ["CLASE", "DEUDA CLASES"].includes(p.tipo) ? "CLASE" : "OTRO";
+        vistos.set(key, { dni: p.socio_dni, nombre: p.nombre, tipo: tipoFromPago });
       }
     }
+    const alumnos = Array.from(vistos.values());
 
     return res.json({ mes, anio, cantidad: alumnos.length, alumnos });
   } catch (e) {

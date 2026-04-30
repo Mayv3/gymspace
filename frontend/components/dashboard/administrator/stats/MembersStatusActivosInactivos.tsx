@@ -71,12 +71,12 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
     const [selectedMes, setSelectedMes] = useState(String(currentMonth))
     const [selectedAnio, setSelectedAnio] = useState(String(currentYear))
     const [activosPorMes, setActivosPorMes] = useState<number | null>(null)
-    const [alumnosActivos, setAlumnosActivos] = useState<{ dni: string; nombre: string }[]>([])
+    const [alumnosActivos, setAlumnosActivos] = useState<{ dni: string; nombre: string; tipo: string }[]>([])
     const [modalActivosOpen, setModalActivosOpen] = useState(false)
     const [abandonosPorMes, setAbandonosPorMes] = useState<number | null>(null)
-    const [alumnosAbandonos, setAlumnosAbandonos] = useState<{ dni: string; nombre: string; fecha_vencimiento: string }[]>([])
+    const [alumnosAbandonos, setAlumnosAbandonos] = useState<{ dni: string; nombre: string; fecha_vencimiento: string; tipo: string }[]>([])
     const [modalAbandonosOpen, setModalAbandonosOpen] = useState(false)
-    const [alumnosVencidos, setAlumnosVencidos] = useState<{ dni: string; nombre: string; fecha_vencimiento: string; plan: string }[]>([])
+    const [alumnosVencidos, setAlumnosVencidos] = useState<{ dni: string; nombre: string; fecha_vencimiento: string; plan: string; tipo: string }[]>([])
     const [modalVencidosOpen, setModalVencidosOpen] = useState(false)
     const [alumnoDetalle, setAlumnoDetalle] = useState<AlumnoDetalle | null>(null)
     const [loadingDetalle, setLoadingDetalle] = useState(false)
@@ -125,11 +125,26 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
         { estado: "Vencidos", cantidad: estado.vencidos },
     ]
 
+    const breakdowns: Record<string, { gimnasio: number; clase: number }> = {
+        Activos: {
+            gimnasio: alumnosActivos.filter(a => a.tipo === "GIMNASIO").length,
+            clase: alumnosActivos.filter(a => a.tipo === "CLASE").length,
+        },
+        Abandonos: {
+            gimnasio: alumnosAbandonos.filter(a => a.tipo === "GIMNASIO").length,
+            clase: alumnosAbandonos.filter(a => a.tipo === "CLASE").length,
+        },
+        Vencidos: {
+            gimnasio: alumnosVencidos.filter(a => a.tipo === "GIMNASIO").length,
+            clase: alumnosVencidos.filter(a => a.tipo === "CLASE").length,
+        },
+    }
+
     const years = Array.from({ length: 6 }, (_, i) => String(2025 + i))
     const mesLabel = MESES.find(m => m.value === selectedMes)?.label ?? ""
 
     const handleBarClick = (entry: any) => {
-        const label = entry?.activePayload?.[0]?.payload?.estado
+        const label = entry?.estado
         if (label === "Activos") { setAlumnoDetalle(null); setModalActivosOpen(true) }
         if (label === "Abandonos") { setAlumnoDetalle(null); setModalAbandonosOpen(true) }
         if (label === "Vencidos") { setAlumnoDetalle(null); setModalVencidosOpen(true) }
@@ -214,11 +229,11 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
 
                 <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={data} barGap={12} barCategoryGap={32} onClick={handleBarClick} style={{ cursor: "pointer" }}>
+                        <BarChart data={data} barGap={12} barCategoryGap={32} style={{ cursor: "pointer" }}>
                             <XAxis dataKey="estado" tick={!isMobile} hide={isMobile} />
                             <YAxis hide={isMobile} />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Bar dataKey="cantidad" radius={[6, 6, 0, 0]}>
+                            <Tooltip content={<CustomTooltip breakdowns={breakdowns} />} />
+                            <Bar dataKey="cantidad" radius={[6, 6, 0, 0]} onClick={handleBarClick}>
                                 {data.map((_, i) => (
                                     <Cell key={i} fill={COLORS[i]} />
                                 ))}
@@ -242,17 +257,7 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
                 {alumnosActivos.length === 0 ? (
                     <EmptyState text="Sin pagos registrados en este período." />
                 ) : (
-                    <ul className="space-y-1">
-                        {alumnosActivos.map((a, i) => (
-                            <MemberRow
-                                key={i}
-                                nombre={a.nombre}
-                                dni={a.dni}
-                                accentColor="green"
-                                onClick={() => fetchDetalle(a.dni)}
-                            />
-                        ))}
-                    </ul>
+                    <GroupedMemberList alumnos={alumnosActivos} accentColor="green" onClickMember={fetchDetalle} />
                 )}
             </MemberListModal>
 
@@ -270,18 +275,12 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
                 {alumnosAbandonos.length === 0 ? (
                     <EmptyState text="Sin abandonos en este período." />
                 ) : (
-                    <ul className="space-y-1">
-                        {alumnosAbandonos.map((a, i) => (
-                            <MemberRow
-                                key={i}
-                                nombre={a.nombre}
-                                dni={a.dni}
-                                accentColor="red"
-                                subtitle={a.fecha_vencimiento ? `Venció ${dayjs(a.fecha_vencimiento).format("DD/MM/YYYY")}` : undefined}
-                                onClick={() => fetchDetalle(a.dni)}
-                            />
-                        ))}
-                    </ul>
+                    <GroupedMemberList
+                        alumnos={alumnosAbandonos}
+                        accentColor="red"
+                        onClickMember={fetchDetalle}
+                        getSubtitle={a => a.fecha_vencimiento ? `Venció ${dayjs(a.fecha_vencimiento).format("DD/MM/YYYY")}` : undefined}
+                    />
                 )}
             </MemberListModal>
 
@@ -299,18 +298,12 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
                 {alumnosVencidos.length === 0 ? (
                     <EmptyState text="Sin alumnos vencidos." />
                 ) : (
-                    <ul className="space-y-1">
-                        {alumnosVencidos.map((a, i) => (
-                            <MemberRow
-                                key={i}
-                                nombre={a.nombre}
-                                dni={a.dni}
-                                accentColor="amber"
-                                subtitle={a.fecha_vencimiento ? `Venció ${dayjs(a.fecha_vencimiento).format("DD/MM/YYYY")} · ${a.plan}` : undefined}
-                                onClick={() => fetchDetalle(a.dni)}
-                            />
-                        ))}
-                    </ul>
+                    <GroupedMemberList
+                        alumnos={alumnosVencidos}
+                        accentColor="amber"
+                        onClickMember={fetchDetalle}
+                        getSubtitle={a => a.fecha_vencimiento ? `Venció ${dayjs(a.fecha_vencimiento).format("DD/MM/YYYY")}` : undefined}
+                    />
                 )}
             </MemberListModal>
         </>
@@ -318,6 +311,59 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
 }
 
 /* ── Sub-components ── */
+
+function GroupedMemberList({ alumnos, accentColor, onClickMember, getSubtitle }: {
+    alumnos: { dni: string; nombre: string; tipo: string; [key: string]: any }[]
+    accentColor: "green" | "red" | "amber"
+    onClickMember: (dni: string) => void
+    getSubtitle?: (a: any) => string | undefined
+}) {
+    const gimnasio = alumnos.filter(a => a.tipo === "GIMNASIO")
+    const clase = alumnos.filter(a => a.tipo === "CLASE")
+    const otro = alumnos.filter(a => a.tipo !== "GIMNASIO" && a.tipo !== "CLASE")
+
+    const GROUP_STYLES: Record<string, { bg: string; label: string; dot: string }> = {
+        Gimnasio: { bg: "bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/40", label: "text-orange-700 dark:text-orange-400", dot: "bg-orange-500" },
+        Clase:    { bg: "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40", label: "text-amber-700 dark:text-amber-400", dot: "bg-amber-500" },
+        Otro:     { bg: "bg-muted/40 border border-border", label: "text-muted-foreground", dot: "bg-muted-foreground" },
+    }
+
+    const renderGroup = (label: string, list: typeof alumnos) => {
+        if (list.length === 0) return null
+        const style = GROUP_STYLES[label]
+        return (
+            <div className={`rounded-xl p-3 ${style.bg}`}>
+                <div className="flex items-center gap-2 mb-2">
+                    <span className={`w-2 h-2 rounded-full ${style.dot} flex-shrink-0`} />
+                    <p className={`text-xs font-bold uppercase tracking-wider ${style.label}`}>{label}</p>
+                    <span className={`text-xs font-semibold ${style.label} opacity-70`}>({list.length})</span>
+                </div>
+                <ul className="space-y-1">
+                    {list.map((a, i) => (
+                        <MemberRow
+                            key={i}
+                            nombre={a.nombre}
+                            dni={a.dni}
+                            accentColor={accentColor}
+                            subtitle={getSubtitle?.(a)}
+                            onClick={() => onClickMember(a.dni)}
+                        />
+                    ))}
+                </ul>
+            </div>
+        )
+    }
+
+    const hasMultiple = [gimnasio, clase, otro].filter(g => g.length > 0).length > 1
+
+    return (
+        <div className={hasMultiple ? "grid grid-cols-2 gap-3" : ""}>
+            {renderGroup("Gimnasio", gimnasio)}
+            {renderGroup("Clase", clase)}
+            {renderGroup("Otro", otro)}
+        </div>
+    )
+}
 
 function MemberListModal({ open, onOpenChange, title, count, accentColor, alumnoDetalle, loadingDetalle, onBack, children }: {
     open: boolean
@@ -338,7 +384,7 @@ function MemberListModal({ open, onOpenChange, title, count, accentColor, alumno
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md p-0 overflow-hidden" hideClose>
+            <DialogContent className="max-w-2xl p-0 overflow-hidden" hideClose>
                 <DialogHeader className="px-8 pt-8 pb-5 border-b">
                     {alumnoDetalle ? (
                         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit">
@@ -495,15 +541,32 @@ function EmptyState({ text }: { text: string }) {
     )
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, breakdowns }: any) {
     if (!active || !payload?.length) return null
     const idx = ["Activos", "Vencidos", "Abandonos"].indexOf(label)
     const color = BAR_COLORS[idx]?.bg ?? "#888"
+    const bd = breakdowns?.[label]
     return (
-        <div className="rounded-xl border bg-background px-4 py-3 shadow-lg text-sm">
-            <p className="font-semibold mb-1" style={{ color }}>{label}</p>
-            <p className="text-xs text-muted-foreground mb-2">{ESTADO_DESCRIPCION[label]}</p>
-            <p className="text-lg font-bold">{payload[0].value}</p>
+        <div className="rounded-xl border bg-background px-6 py-4 shadow-lg min-w-[220px]">
+            <p className="text-base font-bold mb-1" style={{ color }}>{label}</p>
+            <p className="text-sm text-muted-foreground mb-3">{ESTADO_DESCRIPCION[label]}</p>
+            <p className="text-3xl font-bold mb-3">{payload[0].value}</p>
+            {bd && (bd.gimnasio > 0 || bd.clase > 0) && (
+                <div className="space-y-2 border-t pt-3">
+                    {bd.gimnasio > 0 && (
+                        <div className="flex justify-between gap-6 text-sm">
+                            <span className="text-orange-600 font-medium">Gimnasio</span>
+                            <span className="font-bold">{bd.gimnasio}</span>
+                        </div>
+                    )}
+                    {bd.clase > 0 && (
+                        <div className="flex justify-between gap-6 text-sm">
+                            <span className="text-amber-600 font-medium">Clase</span>
+                            <span className="font-bold">{bd.clase}</span>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
