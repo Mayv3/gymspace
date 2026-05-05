@@ -20,7 +20,7 @@ import supabase from '../db/supabase.js'
 dayjs.extend(customParseFormat)
 dotenv.config()
 
-const MI_NUMERO = '5493518123902@s.whatsapp.net'
+const MI_NUMERO = '5493513274314@s.whatsapp.net'
 const logger = P({ level: 'silent' })
 
 const _origLog = console.log
