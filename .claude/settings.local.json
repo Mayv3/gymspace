@@ -4,5 +4,9 @@
       "Bash(node -e ' *)",
       "Bash(node *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "aidesigner"
+  ],
+  "enableAllProjectMcpServers": true
 }
