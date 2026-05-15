@@ -23,7 +23,7 @@ interface Clase {
     ProximaFecha?: string
 }
 
-const DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"]
+const DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"]
 const emptyForm = { nombre_clase: '', dia: '', hora: '', cupo_maximo: '' }
 
 function ClaseCard({
