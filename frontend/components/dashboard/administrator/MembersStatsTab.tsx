@@ -282,31 +282,31 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
 
         <div className="block md:hidden space-y-4">
           {paginatedAlumnos.map((a) => (
-            <Card key={a.DNI} className="shadow-sm rounded-lg overflow-hidden">
-              <div className="bg-white px-4 py-3 flex justify-between items-center border-b">
-                <h3 className="font-semibold text-base">{a.Nombre}</h3>
+            <Card key={a.DNI} className="shadow-sm rounded-lg overflow-hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800">
+              <div className="bg-white dark:bg-zinc-900 px-4 py-3 flex justify-between items-center border-b dark:border-zinc-800">
+                <h3 className="font-semibold text-base text-gray-900 dark:text-zinc-100">{a.Nombre}</h3>
               </div>
 
-              <div className="bg-gray-50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div className="bg-gray-50 dark:bg-zinc-800/50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div>
-                  <p className="font-bold text-gray-600">DNI</p>
-                  <p className="text-gray-800">{a.DNI}</p>
+                  <p className="font-bold text-gray-600 dark:text-zinc-400">DNI</p>
+                  <p className="text-gray-800 dark:text-zinc-200">{a.DNI}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Plan</p>
-                  <p className="text-gray-800">{a.Plan}</p>
+                  <p className="font-bold text-gray-600 dark:text-zinc-400">Plan</p>
+                  <p className="text-gray-800 dark:text-zinc-200">{a.Plan}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Profesional</p>
-                  <p className="text-gray-800">{a.Profesor_asignado}</p>
+                  <p className="font-bold text-gray-600 dark:text-zinc-400">Profesional</p>
+                  <p className="text-gray-800 dark:text-zinc-200">{a.Profesor_asignado}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600">Vencimiento</p>
-                  <p className="text-gray-800">{a.Fecha_vencimiento}</p>
+                  <p className="font-bold text-gray-600 dark:text-zinc-400">Vencimiento</p>
+                  <p className="text-gray-800 dark:text-zinc-200">{a.Fecha_vencimiento}</p>
                 </div>
               </div>
 
-              <div className=" flex justify-center items-center gap-2 px-3 pb-4 bg-white">
+              <div className=" flex justify-center items-center gap-2 px-3 pb-4 pt-3 bg-white dark:bg-zinc-900">
                 <Button
                   size="sm"
                   variant="orange"

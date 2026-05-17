@@ -2,11 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(node -e ' *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__list_tables"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "aidesigner"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

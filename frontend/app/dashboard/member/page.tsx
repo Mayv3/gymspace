@@ -120,7 +120,10 @@ export default function MemberDashboard() {
   const [rankingAlumno, setRankingAlumno] = useState<number | null>(null);
   const hasFetched = useRef(false)
   const [roleChecked, setRoleChecked] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark")
+  )
   const [mounted, setMounted] = useState(false)
 
   const { user: contextUser, loading } = useUser()
@@ -133,27 +136,25 @@ export default function MemberDashboard() {
   }, [])
 
   useEffect(() => {
-    if (!mounted) return
-
     const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains('dark')
-      setIsDarkMode(isDark)
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
     }
 
     checkDarkMode()
 
     const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
+      for (const m of mutations) {
+        if (m.attributeName === 'class') {
           checkDarkMode()
+          break
         }
-      })
+      }
     })
 
-    observer.observe(document.documentElement, { attributes: true })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 
     return () => observer.disconnect()
-  }, [mounted])
+  }, [])
 
   // Crear tema dinámico basado en dark mode
   const theme = createAppTheme(isDarkMode)

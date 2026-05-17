@@ -428,6 +428,26 @@ router.get("/activos-por-mes", async (req, res) => {
   }
 });
 
+router.get("/whatsapp-mensajes", async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit ?? 20), 100);
+
+    const { data, error } = await supabase
+      .from('whatsapp_mensajes')
+      .select('id, nombre, telefono, plan, vencimiento, mensaje, enviado_at')
+      .order('enviado_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    res.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return res.json(data ?? []);
+  } catch (e) {
+    console.error("Error whatsapp-mensajes:", e);
+    return res.status(500).json({ error: "No se pudieron obtener los mensajes de WhatsApp" });
+  }
+});
+
 router.get("/altas-por-referencia", async (req, res) => {
   try {
     const anio = Number(req.query.anio);

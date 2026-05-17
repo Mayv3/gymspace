@@ -21,6 +21,7 @@ import { BillingBoxes } from "@/components/dashboard/administrator/stats/Billing
 import { DashboardSkeleton } from "./stats/DashboardSkeleton";
 import { ReferencesStats } from "./stats/referencesStats";
 import { MembersStatusActivosInactivos } from "./stats/MembersStatusActivosInactivos";
+import { WhatsappMessages } from "./stats/WhatsappMessages";
 
 dayjs.locale('es');
 
@@ -183,6 +184,8 @@ export default function AdminOverviewCharts({
       />
 
       <BillingBoxes />
+
+      <WhatsappMessages />
     </div>
   );
 }
