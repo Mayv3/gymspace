@@ -4,7 +4,13 @@
       "Bash(node -e ' *)",
       "Bash(node *)",
       "mcp__claude_ai_Supabase__list_projects",
-      "mcp__claude_ai_Supabase__list_tables"
+      "mcp__claude_ai_Supabase__list_tables",
+      "Bash(claude mcp *)",
+      "mcp__supabase-fitflow__list_projects",
+      "mcp__supabase-fitflow__list_tables",
+      "Read(//c/c/Users/nicop/OneDrive/Desktop/Proyectos/gymspace/**)",
+      "Read(//c/c/Users/nicop/OneDrive/Desktop/Proyectos/gymspace/backend/**)",
+      "mcp__supabase-fitflow__execute_sql"
     ]
   },
   "enableAllProjectMcpServers": true,

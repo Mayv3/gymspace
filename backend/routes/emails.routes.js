@@ -1,6 +1,10 @@
 import express from 'express'
 import fetch from 'node-fetch'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import { getAlumnosFromSheet, getPlanesFromSheet } from '../services/googleSheets.js'
+
+dayjs.extend(customParseFormat)
 
 export const emailsRouter = express.Router()
 
@@ -105,6 +109,14 @@ emailsRouter.post('/broadcast', async (req, res) => {
     if (filters?.tipo) {
       const t = String(filters.tipo).trim().toUpperCase()
       alumnos = alumnos.filter(a => a.__PlanTipo === t)
+
+      // Solo activos ahora + los que estuvieron activos el mes pasado:
+      // vencimiento >= primer día del mes anterior.
+      const cutoff = dayjs().startOf('month').subtract(1, 'month')
+      alumnos = alumnos.filter(a => {
+        const venc = dayjs(a.Fecha_vencimiento, 'DD/MM/YYYY', true)
+        return venc.isValid() && !venc.isBefore(cutoff, 'day')
+      })
     }
 
     if (Array.isArray(onlyEmails) && onlyEmails.length) {
