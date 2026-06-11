@@ -151,7 +151,12 @@ router.get("/altas-bajas", async (req, res) => {
     const paddedMonth = String(mes).padStart(2, '0');
     const daysInMonth = new Date(anio, mes, 0).getDate();
     const startDate = `${anio}-${paddedMonth}-01`;
-    const endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+    let endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+
+    // Solo cuenta vencimientos cuyo día ya pasó. Si es el mes actual, excluye a
+    // quienes vencen más adelante este mes (su día de vencimiento aún no pasó).
+    const ayer = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+    if (endDate >= ayer) endDate = ayer;
 
     const [{ data: alumnosVenc, error: alumnosError }, { data: planes, error: planesError }] = await Promise.all([
       supabase
@@ -326,7 +331,12 @@ router.get("/abandonos-por-mes", async (req, res) => {
     const paddedMonth = String(mes).padStart(2, '0');
     const startDate = `${anio}-${paddedMonth}-01`;
     const daysInMonth = new Date(anio, mes, 0).getDate();
-    const endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+    let endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+
+    // Solo cuenta vencimientos cuyo día ya pasó. Si el mes seleccionado es el actual,
+    // no contar a quienes vencen más adelante este mes (su día de vencimiento aún no pasó).
+    const ayer = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+    if (endDate >= ayer) endDate = ayer;
 
     // Abandonos del mes = alumnos cuyo vencimiento cayó dentro de ese mes
     const [{ data, error }, { data: planes, error: planesError }] = await Promise.all([
