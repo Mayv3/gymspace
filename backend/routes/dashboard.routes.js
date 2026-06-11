@@ -151,14 +151,16 @@ router.get("/altas-bajas", async (req, res) => {
     const paddedMonth = String(mes).padStart(2, '0');
     const daysInMonth = new Date(anio, mes, 0).getDate();
     const startDate = `${anio}-${paddedMonth}-01`;
-    let endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+    const monthEnd = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+    let endDate = monthEnd;
 
     // Solo cuenta vencimientos cuyo día ya pasó. Si es el mes actual, excluye a
     // quienes vencen más adelante este mes (su día de vencimiento aún no pasó).
     const ayer = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+    const hoy = dayjs().format('YYYY-MM-DD');
     if (endDate >= ayer) endDate = ayer;
 
-    const [{ data: alumnosVenc, error: alumnosError }, { data: planes, error: planesError }] = await Promise.all([
+    const [{ data: alumnosVenc, error: alumnosError }, { data: planes, error: planesError }, { data: porVencerAlumnos, error: porVencerError }] = await Promise.all([
       supabase
         .from('alumnos')
         .select('dni, nombre, plan, profesor_asignado, fecha_vencimiento')
@@ -166,10 +168,18 @@ router.get("/altas-bajas", async (req, res) => {
         .gte('fecha_vencimiento', startDate)
         .lte('fecha_vencimiento', endDate),
       supabase.from('planes').select('plan_o_producto, tipo'),
+      // porVencer = alumnos que vencen hoy o más adelante dentro del mes (su día aún no pasó)
+      supabase
+        .from('alumnos')
+        .select('plan')
+        .is('deleted_at', null)
+        .gte('fecha_vencimiento', hoy)
+        .lte('fecha_vencimiento', monthEnd),
     ]);
 
     if (alumnosError) throw alumnosError;
     if (planesError) throw planesError;
+    if (porVencerError) throw porVencerError;
 
     const planTipoMap = {};
     for (const p of planes ?? []) {
@@ -192,9 +202,17 @@ router.get("/altas-bajas", async (req, res) => {
       else bajas.gimnasio.push(entry); // fallback
     }
 
+    const porVencer = { gimnasio: 0, clase: 0 };
+    for (const a of porVencerAlumnos ?? []) {
+      const tipo = planTipoMap[(a.plan || '').trim().toUpperCase()] || '';
+      if (tipo === 'CLASE') porVencer.clase++;
+      else porVencer.gimnasio++; // gimnasio + fallback
+    }
+
     return res.json({
       altas: rpcData?.altas ?? { gimnasio: [], clase: [] },
       bajas,
+      porVencer,
       totales: {
         altas: {
           gimnasio: (rpcData?.altas?.gimnasio ?? []).length,
@@ -331,21 +349,26 @@ router.get("/abandonos-por-mes", async (req, res) => {
     const paddedMonth = String(mes).padStart(2, '0');
     const startDate = `${anio}-${paddedMonth}-01`;
     const daysInMonth = new Date(anio, mes, 0).getDate();
-    let endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+    const monthEnd = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
+    let endDate = monthEnd;
 
     // Solo cuenta vencimientos cuyo día ya pasó. Si el mes seleccionado es el actual,
     // no contar a quienes vencen más adelante este mes (su día de vencimiento aún no pasó).
     const ayer = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+    const hoy = dayjs().format('YYYY-MM-DD');
     if (endDate >= ayer) endDate = ayer;
 
     // Abandonos del mes = alumnos cuyo vencimiento cayó dentro de ese mes
-    const [{ data, error }, { data: planes, error: planesError }] = await Promise.all([
+    // porVencer = alumnos que vencen hoy o más adelante dentro del mes (su día aún no pasó)
+    const [{ data, error }, { data: planes, error: planesError }, { count: porVencer, error: porVencerError }] = await Promise.all([
       supabase.from('alumnos').select('dni, nombre, fecha_vencimiento, plan').is('deleted_at', null).gte('fecha_vencimiento', startDate).lte('fecha_vencimiento', endDate),
       supabase.from('planes').select('plan_o_producto, tipo'),
+      supabase.from('alumnos').select('dni', { count: 'exact', head: true }).is('deleted_at', null).gte('fecha_vencimiento', hoy).lte('fecha_vencimiento', monthEnd),
     ]);
 
     if (error) throw error;
     if (planesError) throw planesError;
+    if (porVencerError) throw porVencerError;
 
     const planTipoMap = {};
     for (const p of planes ?? []) planTipoMap[(p.plan_o_producto || '').trim().toUpperCase()] = (p.tipo || '').trim().toUpperCase();
@@ -358,7 +381,7 @@ router.get("/abandonos-por-mes", async (req, res) => {
       tipo: planTipoMap[(a.plan || '').trim().toUpperCase()] || 'OTRO',
     }));
 
-    return res.json({ mes, anio, cantidad: alumnos.length, alumnos });
+    return res.json({ mes, anio, cantidad: alumnos.length, alumnos, porVencer: porVencer ?? 0 });
   } catch (e) {
     console.error("Error abandonos-por-mes:", e);
     return res.status(500).json({ error: "No se pudieron obtener los abandonos del mes" });

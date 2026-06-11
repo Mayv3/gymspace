@@ -2,9 +2,10 @@ import { TooltipProps } from "recharts"
 
 interface Props extends TooltipProps<number, string> {
     tipoPlan: "gimnasio" | "clase"
+    porVencer?: number
 }
 
-export const CustomTooltipAltasBajas = ({ active, payload, tipoPlan }: Props) => {
+export const CustomTooltipAltasBajas = ({ active, payload, tipoPlan, porVencer = 0 }: Props) => {
     if (!active || !payload || !payload.length) return null
 
     const data = payload[0]
@@ -29,6 +30,12 @@ export const CustomTooltipAltasBajas = ({ active, payload, tipoPlan }: Props) =>
             <div className="mt-1 text-md font-medium">
                 Total: {value}
             </div>
+
+            {name === "Bajas" && porVencer > 0 && (
+                <div className="mt-1 text-sm text-muted-foreground">
+                    Faltan vencer: <span className="font-bold text-foreground">{porVencer}</span>
+                </div>
+            )}
         </div>
     )
 }

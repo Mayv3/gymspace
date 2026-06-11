@@ -74,6 +74,7 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
     const [alumnosActivos, setAlumnosActivos] = useState<{ dni: string; nombre: string; tipo: string }[]>([])
     const [modalActivosOpen, setModalActivosOpen] = useState(false)
     const [abandonosPorMes, setAbandonosPorMes] = useState<number | null>(null)
+    const [porVencer, setPorVencer] = useState<number>(0)
     const [alumnosAbandonos, setAlumnosAbandonos] = useState<{ dni: string; nombre: string; fecha_vencimiento: string; tipo: string }[]>([])
     const [modalAbandonosOpen, setModalAbandonosOpen] = useState(false)
     const [alumnosVencidos, setAlumnosVencidos] = useState<{ dni: string; nombre: string; fecha_vencimiento: string; plan: string; tipo: string }[]>([])
@@ -94,6 +95,7 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
             setAlumnosActivos(resActivos.data.alumnos)
             setAbandonosPorMes(resAbandonos.data.cantidad)
             setAlumnosAbandonos(resAbandonos.data.alumnos)
+            setPorVencer(resAbandonos.data.porVencer ?? 0)
             setAlumnosVencidos(resVencidos.data.alumnos)
         } catch (e) {
             console.error("Error datos-por-mes:", e)
@@ -232,7 +234,7 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
                         <BarChart data={data} barGap={12} barCategoryGap={32} style={{ cursor: "pointer" }}>
                             <XAxis dataKey="estado" tick={!isMobile} hide={isMobile} />
                             <YAxis hide={isMobile} />
-                            <Tooltip content={<CustomTooltip breakdowns={breakdowns} />} />
+                            <Tooltip content={<CustomTooltip breakdowns={breakdowns} porVencer={porVencer} />} />
                             <Bar dataKey="cantidad" radius={[6, 6, 0, 0]} onClick={handleBarClick}>
                                 {data.map((_, i) => (
                                     <Cell key={i} fill={COLORS[i]} />
@@ -541,7 +543,7 @@ function EmptyState({ text }: { text: string }) {
     )
 }
 
-function CustomTooltip({ active, payload, label, breakdowns }: any) {
+function CustomTooltip({ active, payload, label, breakdowns, porVencer }: any) {
     if (!active || !payload?.length) return null
     const idx = ["Activos", "Vencidos", "Abandonos"].indexOf(label)
     const color = BAR_COLORS[idx]?.bg ?? "#888"
@@ -551,6 +553,9 @@ function CustomTooltip({ active, payload, label, breakdowns }: any) {
             <p className="text-base font-bold mb-1" style={{ color }}>{label}</p>
             <p className="text-sm text-muted-foreground mb-3">{ESTADO_DESCRIPCION[label]}</p>
             <p className="text-3xl font-bold mb-3">{payload[0].value}</p>
+            {label === "Abandonos" && porVencer > 0 && (
+                <p className="text-sm text-muted-foreground mb-3 -mt-2">Faltan vencer: <span className="font-bold text-foreground">{porVencer}</span></p>
+            )}
             {bd && (bd.gimnasio > 0 || bd.clase > 0) && (
                 <div className="space-y-2 border-t pt-3">
                     {bd.gimnasio > 0 && (

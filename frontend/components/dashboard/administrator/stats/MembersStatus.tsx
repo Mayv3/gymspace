@@ -248,7 +248,7 @@ export const MembersStatus = () => {
                     <Cell key={i} fill={COLORS[i]} cursor="pointer" stroke="none" />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltipAltasBajas tipoPlan={tipoPlan} />} />
+                <Tooltip content={<CustomTooltipAltasBajas tipoPlan={tipoPlan} porVencer={data?.porVencer?.[tipoPlan] ?? 0} />} />
               </PieChart>
             </ResponsiveContainer>
 
@@ -322,7 +322,7 @@ export const MembersStatus = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltipAltasBajas tipoPlan={tipoPlan} />} />
+                  <Tooltip content={<CustomTooltipAltasBajas tipoPlan={tipoPlan} porVencer={data?.porVencer?.[tipoPlan] ?? 0} />} />
                 </PieChart>
               </ResponsiveContainer>
 
