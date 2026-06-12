@@ -25,13 +25,13 @@ export const MonthCalendar = ({ year, month, isActiveDay }: Props) => {
   const firstDayIndex = (start.day() + 6) % 7;
 
   return (
-    <div className="border rounded p-2">
-      <p className="text-sm font-semibold mb-2 text-center capitalize">
+    <div className="border border-border/60 rounded-xl bg-card shadow-soft p-2">
+      <p className="text-sm font-bold mb-2 text-center capitalize">
         {start.format("MMMM")}
       </p>
 
       {/* Encabezado días de la semana */}
-      <div className="grid grid-cols-7 gap-1 text-[10px] mb-1 text-center text-muted-foreground">
+      <div className="grid grid-cols-7 gap-1 text-[10px] font-bold mb-1 text-center text-muted-foreground">
         {WEEK_DAYS.map((d) => (
           <div key={d}>{d}</div>
         ))}
@@ -53,10 +53,10 @@ export const MonthCalendar = ({ year, month, isActiveDay }: Props) => {
           return (
             <div
               key={key}
-              className={`h-7 flex items-center justify-center rounded
+              className={`h-7 flex items-center justify-center rounded-md font-medium
                 ${
                   active
-                    ? "bg-orange-500 text-white"
+                    ? "bg-brand-500 text-white font-bold"
                     : "bg-muted text-muted-foreground"
                 }
               `}

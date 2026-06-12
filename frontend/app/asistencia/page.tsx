@@ -33,9 +33,9 @@ import {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#ea580c',
-      light: '#fb923c',
-      dark: '#c2410c',
+      main: '#ff6a00',
+      light: '#ff7033',
+      dark: '#f04b00',
     },
     success: {
       main: '#16a34a',
@@ -166,9 +166,9 @@ export default function AsistenciaPage() {
   return (
     <ThemeProvider theme={theme}>
       <Box
+        className="bg-background"
         sx={{
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #ea580c 0%, #fb923c 50%, #ea580c 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -186,7 +186,7 @@ export default function AsistenciaPage() {
             width: 300,
             height: 300,
             borderRadius: '50%',
-            background: 'rgba(255,255,255,0.1)',
+            background: 'rgba(255, 106, 0, 0.08)',
           }}
         />
         <Box
@@ -197,24 +197,26 @@ export default function AsistenciaPage() {
             width: 400,
             height: 400,
             borderRadius: '50%',
-            background: 'rgba(255,255,255,0.08)',
+            background: 'rgba(255, 106, 0, 0.05)',
           }}
         />
 
         <Card
-          elevation={24}
+          elevation={0}
           sx={{
             width: '100%',
             maxWidth: 500,
             position: 'relative',
             zIndex: 1,
             overflow: 'visible',
+            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08)',
+            border: '1px solid rgba(0, 0, 0, 0.06)',
           }}
         >
           {/* Header con logo */}
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+              background: 'linear-gradient(135deg, #ff6a00, #f04b00)',
               p: 4,
               display: 'flex',
               flexDirection: 'column',
@@ -295,9 +297,9 @@ export default function AsistenciaPage() {
                 sx={{
                   py: 1.5,
                   fontSize: '1.1rem',
-                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.4)',
+                  boxShadow: '0 8px 20px -8px rgba(255, 106, 0, 0.6)',
                   '&:hover': {
-                    boxShadow: '0 6px 20px rgba(234, 88, 12, 0.5)',
+                    boxShadow: '0 10px 24px -8px rgba(255, 106, 0, 0.7)',
                   },
                 }}
               >
@@ -438,10 +440,10 @@ export default function AsistenciaPage() {
                       sx={{
                         height: 12,
                         borderRadius: 6,
-                        bgcolor: 'rgba(234, 88, 12, 0.1)',
+                        bgcolor: 'rgba(255, 106, 0, 0.1)',
                         '& .MuiLinearProgress-bar': {
                           borderRadius: 6,
-                          background: 'linear-gradient(90deg, #ea580c, #fb923c)',
+                          background: 'linear-gradient(90deg, #ff6a00, #ff7033)',
                         },
                       }}
                     />

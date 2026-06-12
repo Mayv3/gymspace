@@ -164,19 +164,19 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[600px] overflow-y-auto max-h-[90vh]">
+      <DialogContent className="w-[95vw] max-w-[600px] overflow-y-auto max-h-[90vh] rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <UserPlus className="mr-2 h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center font-bold">
+            <UserPlus className="mr-2 h-5 w-5 text-brand-500" />
             Añadir Nuevo Miembro
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs text-muted-foreground font-medium">
             Completa el formulario para registrar un nuevo miembro en el gimnasio.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage && (
-          <div className="rounded-md bg-red-100 p-2 text-sm text-red-600">
+          <div className="rounded-xl bg-rose-50 border border-rose-100 p-2 text-sm font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900">
             {errorMessage}
           </div>
         )}
@@ -310,9 +310,9 @@ export function AddMemberDialog({ open, onOpenChange, onMemberAdded }: AddMember
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" className="bg-card border border-border rounded-xl font-bold hover:bg-muted" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="orange" type="submit" disabled={isSubmitting}>
+              <Button variant="orange" type="submit" disabled={isSubmitting} className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press">
                 {isSubmitting ? "Registrando..." : "Registrar Miembro"}
               </Button>
             </motion.div>

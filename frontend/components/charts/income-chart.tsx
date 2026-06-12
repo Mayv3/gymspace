@@ -69,15 +69,15 @@ export function IncomeChart() {
           content={({ active, payload }) => {
             if (active && payload && payload.length) {
               return (
-                <div className="rounded-lg border bg-background p-2 shadow-sm max-w-[200px]">
+                <div className="bg-card rounded-xl border border-border/60 shadow-floating px-3 py-2 text-sm font-medium max-w-[200px]">
                   <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[0.70rem] uppercase text-muted-foreground">Mes:</span>
+                    <div className="flex justify-between items-center gap-3">
+                      <span className="text-[0.70rem] font-bold uppercase tracking-widest text-muted-foreground">Mes:</span>
                       <span className="font-bold text-muted-foreground">{payload[0].payload.name}</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-[0.70rem] uppercase text-muted-foreground">Ingresos:</span>
-                      <span className="font-bold text-primary">${payload[0].value}</span>
+                    <div className="flex justify-between items-center gap-3">
+                      <span className="text-[0.70rem] font-bold uppercase tracking-widest text-muted-foreground">Ingresos:</span>
+                      <span className="font-bold text-brand-500">${payload[0].value}</span>
                     </div>
                   </div>
                 </div>
@@ -89,11 +89,11 @@ export function IncomeChart() {
         <Line
           type="monotone"
           dataKey="total"
-          stroke="hsl(var(--primary))"
+          stroke="#ff6a00"
           strokeWidth={2}
           activeDot={{
             r: 6,
-            style: { fill: "hsl(var(--primary))", opacity: 0.8 },
+            style: { fill: "#ff6a00", opacity: 0.8 },
           }}
         />
       </LineChart>

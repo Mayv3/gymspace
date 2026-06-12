@@ -53,14 +53,14 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px]">
+      <DialogContent className="max-w-[500px] rounded-2xl border border-border/60 shadow-floating">
         <DialogHeader>
-          <DialogTitle>Registrar Presentes</DialogTitle>
+          <DialogTitle className="font-bold">Registrar Presentes</DialogTitle>
         </DialogHeader>
 
         <FormEnterToTab onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Tipo de Clase</Label>
+            <Label className="font-bold">Tipo de Clase</Label>
             <Select required value={formData.tipoClase} onValueChange={(value) => handleChange("tipoClase", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar clase" />
@@ -73,21 +73,22 @@ export default function RegisterClassDialog({ open, onOpenChange }: RegisterClas
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Cantidad de Personas</Label>
+            <Label className="font-bold">Cantidad de Personas</Label>
             <Input
               type="number"
               max={40}
               value={formData.cantidadPersonas}
               onChange={(e) => handleChange("cantidadPersonas", e.target.value)}
               required
+              className="rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" className="bg-card border border-border rounded-xl font-bold hover:bg-muted" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="orange" type="submit" disabled={isSubmitting}>{isSubmitting ? "Registrando..." : "Registrar"}</Button>
+              <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" type="submit" disabled={isSubmitting}>{isSubmitting ? "Registrando..." : "Registrar"}</Button>
             </motion.div>
           </DialogFooter>
         </FormEnterToTab>

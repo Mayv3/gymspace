@@ -12,13 +12,13 @@ export const PlanSelect = ({ tipoPlan, setTipoPlan }: PlanSelectProps) => {
             value={tipoPlan}
             onValueChange={(value) => setTipoPlan(value as TipoPlan)}
         >
-            <SelectTrigger>
+            <SelectTrigger className="rounded-xl border-input font-medium focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
                 <SelectValue placeholder="Tipo de plan" />
             </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="TODOS">Todos</SelectItem>
-                <SelectItem value="GIMNASIO">Gimnasio</SelectItem>
-                <SelectItem value="CLASE">Clases</SelectItem>
+            <SelectContent className="rounded-xl border-border/60 shadow-floating">
+                <SelectItem value="TODOS" className="rounded-lg font-medium">Todos</SelectItem>
+                <SelectItem value="GIMNASIO" className="rounded-lg font-medium">Gimnasio</SelectItem>
+                <SelectItem value="CLASE" className="rounded-lg font-medium">Clases</SelectItem>
             </SelectContent>
         </Select>
     );

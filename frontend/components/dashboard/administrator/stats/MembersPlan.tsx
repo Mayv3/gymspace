@@ -8,6 +8,7 @@ import {
 import {
   BarChart,
   Bar,
+  CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
@@ -35,11 +36,13 @@ export const MembersPlan = ({
   const isMobile = useIsMobile()
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-all">
+    <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow">
       <CardContent>
         <CardHeader className="flex flex-col items-center gap-2">
-          <BarChart3Icon className="text-orange-500" />
-          <CardTitle>Alumnos por Plan</CardTitle>
+          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+            <BarChart3Icon className="w-5 h-5" />
+          </div>
+          <CardTitle className="font-bold">Alumnos por Plan</CardTitle>
         </CardHeader>
 
         <div className="flex justify-end mb-2">
@@ -55,14 +58,20 @@ export const MembersPlan = ({
         ) : (
           <ResponsiveContainer width="100%" height={315}>
             <BarChart data={planesFiltrados}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
               <XAxis
                 dataKey="plan"
-                tick={!isMobile}
+                tick={!isMobile && { fontSize: 12 }}
                 hide={isMobile}
+                tickLine={false}
+                axisLine={false}
               />
 
               <YAxis
                 hide={isMobile}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 12 }}
               />
 
               <Tooltip content={<CustomTooltipPlanes />} />

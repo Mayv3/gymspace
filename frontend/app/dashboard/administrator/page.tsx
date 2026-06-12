@@ -39,7 +39,6 @@ import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/E
 import { useAdminNav } from "../administrator/context/AdminNavContext"
 
 import { TopAlumnosCoins } from "@/models/Rankings"
-import CircularProgress from "@mui/material/CircularProgress"
 
 export default function AdministratorDashboard() {
   const { user, loading } = useUser()
@@ -218,7 +217,7 @@ export default function AdministratorDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <CircularProgress />
+        <div className="w-10 h-10 rounded-full border-4 border-brand-500 border-t-transparent animate-spin" />
       </div>
     )
   }
@@ -226,7 +225,7 @@ export default function AdministratorDashboard() {
   if (!user || user.rol !== "Administrador") {
     return (
       <div className="flex items-center justify-center h-screen">
-        <span className="text-red-600 text-center">
+        <span className="text-rose-600 text-center font-medium">
           No estás autorizado.<br />
           Redirigiendo al login…
         </span>
@@ -243,7 +242,7 @@ export default function AdministratorDashboard() {
         </div>
         {!cashOpen && cerrada && existe && (
           <div className="flex justify-center">
-            <p className="text-lg text-white mt-1 text-center p-4 bg-red-600 rounded-lg">
+            <p className="text-sm md:text-base font-bold text-rose-700 bg-rose-50 border border-rose-200 mt-1 text-center px-5 py-3 rounded-xl dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/50">
               La caja del turno {selectedShift} ya está cerrada, cambia de turno en pagos para abrir una nueva caja.
             </p>
           </div>

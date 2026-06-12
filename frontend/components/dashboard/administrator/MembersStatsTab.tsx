@@ -5,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash, PlusCircle, CoinsIcon } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Edit, Trash, PlusCircle, CoinsIcon, MoreVertical } from "lucide-react"
 
 import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add-member-dialog"
 import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
@@ -124,9 +130,9 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
   }, [sexo, edadMin, edadMax, profe, plan, nombre])
 
   return (
-    <Card>
-      <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
-        <CardTitle className="pb-3">Estadísticas de Alumnos</CardTitle>
+    <Card className="rounded-2xl border-border/60 shadow-soft overflow-hidden">
+      <CardHeader className="bg-brand-50 dark:bg-zinc-900 rounded-t-2xl mb-4 border-b border-border/60">
+        <CardTitle className="pb-3 font-bold">Estadísticas de Alumnos</CardTitle>
         <div className="flex flex-wrap justify-between gap-4 mt-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:flex gap-2">
             <Input
@@ -167,26 +173,26 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
             </Select>
 
             <div className="flex flex-col items-start mt-3 md:mt-0">
-              <label className="text-sm">Edad mínima: {edadMin || 0}</label>
+              <label className="text-sm font-bold">Edad mínima: {edadMin || 0}</label>
               <input
                 type="range"
                 min={0}
                 max={100}
                 value={edadMin}
                 onChange={(e) => setEdadMin(e.target.value)}
-                className="w-full md:w-[150px] accent-orange-500"
+                className="w-full md:w-[150px] accent-brand-500"
               />
             </div>
 
             <div className="flex flex-col items-start mt-3 md:mt-0">
-              <label className="text-sm">Edad máxima: {edadMax || 100}</label>
+              <label className="text-sm font-bold">Edad máxima: {edadMax || 100}</label>
               <input
                 type="range"
                 min={0}
                 max={100}
                 value={edadMax}
                 onChange={(e) => setEdadMax(e.target.value)}
-                className="w-full md:w-[150px] accent-orange-500"
+                className="w-full md:w-[150px] accent-brand-500"
               />
             </div>
           </div>
@@ -203,55 +209,83 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
         </div>
       </CardHeader>
       <CardContent>
-        <p className="mb-2 text-sm text-muted-foreground">
+        <p className="mb-2 text-sm font-medium text-muted-foreground">
           Total de alumnos: {total} | Filtrados: {filteredAlumnos.length}
         </p>
-        <div className="overflow-auto hidden md:block">
-          <Table className="table-fixed w-full">
-            <TableHeader>
-              <TableRow>
+        <div className="overflow-auto hidden md:block rounded-2xl border border-border/60">
+          <Table className="w-full">
+            <TableHeader className="bg-muted/50">
+              <TableRow className="border-b">
                 {[
-                  "Nombre", "DNI", "Email", "Teléfono", "Sexo", "Nacimiento",
-                  "Plan", "C.Pagadas", "C.Realizadas", "Inicio", "Vencimiento", "Profesor", "Acciones"
+                  { label: "Nombre", cls: "" },
+                  { label: "DNI", cls: "" },
+                  { label: "Email", cls: "hidden 2xl:table-cell" },
+                  { label: "Teléfono", cls: "hidden xl:table-cell" },
+                  { label: "Plan", cls: "" },
+                  { label: "C.Pagadas", cls: "hidden lg:table-cell" },
+                  { label: "C.Realizadas", cls: "hidden lg:table-cell" },
+                  { label: "Inicio", cls: "hidden xl:table-cell" },
+                  { label: "Vencimiento", cls: "" },
+                  { label: "Profesor", cls: "hidden lg:table-cell" },
+                  { label: "Acciones", cls: "" },
                 ].map((head, i) => (
-                  <TableHead key={i} className="text-center w-[7.7%]">{head}</TableHead>
+                  <TableHead key={i} className={`text-center px-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground ${head.cls}`}>{head.label}</TableHead>
                 ))}
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="divide-y divide-border/60">
               {paginatedAlumnos.map((a) => (
-                <TableRow key={a.DNI}>
-                  <TableCell className="text-center">{a.Nombre}</TableCell>
-                  <TableCell className="text-center">{a.DNI}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap overflow-hidden text-ellipsis">{a.Email}</TableCell>
-                  <TableCell className="text-center">{a.Telefono}</TableCell>
-                  <TableCell className="text-center">{a.Sexo}</TableCell>
-                  <TableCell className="text-center">{a.Fecha_nacimiento}</TableCell>
-                  <TableCell className="text-center">{a.Plan}</TableCell>
-                  <TableCell className="text-center">{a.Clases_pagadas}</TableCell>
-                  <TableCell className="text-center">{a.Clases_realizadas}</TableCell>
-                  <TableCell className="text-center">{a.Fecha_inicio}</TableCell>
-                  <TableCell className="text-center">{a.Fecha_vencimiento}</TableCell>
-                  <TableCell className="text-center">{a.Profesor_asignado}</TableCell>
+                <TableRow key={a.DNI} className="hover:bg-muted/40 transition-colors">
+                  <TableCell className="text-center px-3">{a.Nombre}</TableCell>
+                  <TableCell className="text-center px-3 whitespace-nowrap">{a.DNI}</TableCell>
+                  <TableCell className="text-center px-3 hidden 2xl:table-cell">
+                    <div className="max-w-[160px] mx-auto whitespace-nowrap overflow-hidden text-ellipsis" title={a.Email}>{a.Email}</div>
+                  </TableCell>
+                  <TableCell className="text-center px-3 whitespace-nowrap hidden xl:table-cell">{a.Telefono}</TableCell>
+                  <TableCell className="text-center px-3">
+                    <div className="max-w-[120px] mx-auto whitespace-nowrap overflow-hidden text-ellipsis" title={a.Plan}>{a.Plan}</div>
+                  </TableCell>
+                  <TableCell className="text-center px-3 hidden lg:table-cell">{a.Clases_pagadas}</TableCell>
+                  <TableCell className="text-center px-3 hidden lg:table-cell">{a.Clases_realizadas}</TableCell>
+                  <TableCell className="text-center px-3 whitespace-nowrap hidden xl:table-cell">{a.Fecha_inicio}</TableCell>
+                  <TableCell className="text-center px-3 whitespace-nowrap">{a.Fecha_vencimiento}</TableCell>
+                  <TableCell className="text-center px-3 hidden lg:table-cell">
+                    <div className="max-w-[100px] mx-auto whitespace-nowrap overflow-hidden text-ellipsis" title={a.Profesor_asignado}>{a.Profesor_asignado}</div>
+                  </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex justify-center gap-2">
-                      <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenEdit(true) }}>
-                        <Edit className="w-4 h-4 text-primary" />
-                      </Button>
-                      <Button size="icon" variant="ghost" onClick={() => { setSelectedAlumno(a); setOpenDelete(true) }}>
-                        <Trash className="w-4 h-4 text-destructive" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          setDniHistorial(a.DNI)
-                          setNombreHistorial(a.Nombre)
-                        }}
-                      >
-                        <CoinsIcon className="h-4 w-4 text-yellow-500" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost" className="rounded-full" aria-label="Acciones">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-xl shadow-floating">
+                        <DropdownMenuItem
+                          className="cursor-pointer rounded-lg font-medium"
+                          onClick={() => { setSelectedAlumno(a); setOpenEdit(true) }}
+                        >
+                          <Edit className="w-4 h-4 mr-2 text-brand-500" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer rounded-lg font-medium"
+                          onClick={() => {
+                            setDniHistorial(a.DNI)
+                            setNombreHistorial(a.Nombre)
+                          }}
+                        >
+                          <CoinsIcon className="w-4 h-4 mr-2 text-amber-500" />
+                          GymCoins
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer rounded-lg font-medium text-red-500 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
+                          onClick={() => { setSelectedAlumno(a); setOpenDelete(true) }}
+                        >
+                          <Trash className="w-4 h-4 mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -282,31 +316,31 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
 
         <div className="block md:hidden space-y-4">
           {paginatedAlumnos.map((a) => (
-            <Card key={a.DNI} className="shadow-sm rounded-lg overflow-hidden bg-white dark:bg-zinc-900 border dark:border-zinc-800">
-              <div className="bg-white dark:bg-zinc-900 px-4 py-3 flex justify-between items-center border-b dark:border-zinc-800">
-                <h3 className="font-semibold text-base text-gray-900 dark:text-zinc-100">{a.Nombre}</h3>
+            <Card key={a.DNI} className="shadow-soft rounded-2xl overflow-hidden bg-card border-border/60">
+              <div className="bg-card px-4 py-3 flex justify-between items-center border-b border-border/60">
+                <h3 className="font-bold text-base text-foreground">{a.Nombre}</h3>
               </div>
 
-              <div className="bg-gray-50 dark:bg-zinc-800/50 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div className="bg-muted/40 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div>
-                  <p className="font-bold text-gray-600 dark:text-zinc-400">DNI</p>
-                  <p className="text-gray-800 dark:text-zinc-200">{a.DNI}</p>
+                  <p className="font-bold text-muted-foreground">DNI</p>
+                  <p className="font-medium text-foreground">{a.DNI}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600 dark:text-zinc-400">Plan</p>
-                  <p className="text-gray-800 dark:text-zinc-200">{a.Plan}</p>
+                  <p className="font-bold text-muted-foreground">Plan</p>
+                  <p className="font-medium text-foreground">{a.Plan}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600 dark:text-zinc-400">Profesional</p>
-                  <p className="text-gray-800 dark:text-zinc-200">{a.Profesor_asignado}</p>
+                  <p className="font-bold text-muted-foreground">Profesional</p>
+                  <p className="font-medium text-foreground">{a.Profesor_asignado}</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-600 dark:text-zinc-400">Vencimiento</p>
-                  <p className="text-gray-800 dark:text-zinc-200">{a.Fecha_vencimiento}</p>
+                  <p className="font-bold text-muted-foreground">Vencimiento</p>
+                  <p className="font-medium text-foreground">{a.Fecha_vencimiento}</p>
                 </div>
               </div>
 
-              <div className=" flex justify-center items-center gap-2 px-3 pb-4 pt-3 bg-white dark:bg-zinc-900">
+              <div className="flex justify-center items-center gap-2 px-3 pb-4 pt-3 bg-card">
                 <Button
                   size="sm"
                   variant="orange"
@@ -326,7 +360,7 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="w-1/3 justify-center bg-yellow-200"
+                  className="w-1/3 justify-center rounded-xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40"
                   onClick={() => {
                     setDniHistorial(a.DNI)
                     setNombreHistorial(a.Nombre)

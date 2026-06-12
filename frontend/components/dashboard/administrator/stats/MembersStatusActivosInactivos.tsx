@@ -51,7 +51,7 @@ const BAR_COLORS = [
     { bg: "#ef4444", light: "#fee2e2", label: "Abandonos" },
 ]
 
-const COLORS = ["#FFB74D", "#FFA726", "#FF9800"]
+const COLORS = ["#ff6a00", "#ffa170", "#f04b00"]
 
 const ESTADO_DESCRIPCION: Record<string, string> = {
     Activos: "Pagaron en el mes seleccionado",
@@ -154,10 +154,12 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
 
     return (
         <>
-            <Card className="shadow-lg hover:shadow-xl transition-all">
+            <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow">
                 <CardHeader className="flex flex-col items-center gap-2">
-                    <Users className="text-orange-500" />
-                    <CardTitle>Estado de Alumnos</CardTitle>
+                    <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+                        <Users className="w-5 h-5" />
+                    </div>
+                    <CardTitle className="font-bold">Estado de Alumnos</CardTitle>
 
                     <div className="flex gap-2 mt-1 items-center">
                         <Select value={selectedMes} onValueChange={setSelectedMes}>
@@ -198,21 +200,21 @@ export const MembersStatusActivosInactivos = ({ estado }: MembersStatusChartProp
                             </PopoverTrigger>
                             <PopoverContent className="w-72 text-sm space-y-3 p-4">
                                 <div className="flex gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#FFB74D] mt-1.5 flex-shrink-0" />
+                                    <span className="w-2 h-2 rounded-full bg-[#ff6a00] mt-1.5 flex-shrink-0" />
                                     <div>
                                         <p className="font-semibold">Activos</p>
                                         <p className="text-muted-foreground text-xs">Alumnos que realizaron al menos un pago en el mes seleccionado.</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#FFA726] mt-1.5 flex-shrink-0" />
+                                    <span className="w-2 h-2 rounded-full bg-[#ffa170] mt-1.5 flex-shrink-0" />
                                     <div>
                                         <p className="font-semibold">Abandonos</p>
                                         <p className="text-muted-foreground text-xs">Alumnos cuya fecha de vencimiento cayó dentro del mes seleccionado y no renovaron.</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#FF9800] mt-1.5 flex-shrink-0" />
+                                    <span className="w-2 h-2 rounded-full bg-[#f04b00] mt-1.5 flex-shrink-0" />
                                     <div>
                                         <p className="font-semibold">Vencidos</p>
                                         <p className="text-muted-foreground text-xs">Alumnos con vencimiento en los últimos 30 días que aún no renovaron.</p>
@@ -325,7 +327,7 @@ function GroupedMemberList({ alumnos, accentColor, onClickMember, getSubtitle }:
     const otro = alumnos.filter(a => a.tipo !== "GIMNASIO" && a.tipo !== "CLASE")
 
     const GROUP_STYLES: Record<string, { bg: string; label: string; dot: string }> = {
-        Gimnasio: { bg: "bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/40", label: "text-orange-700 dark:text-orange-400", dot: "bg-orange-500" },
+        Gimnasio: { bg: "bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-900/40", label: "text-brand-700 dark:text-brand-300", dot: "bg-brand-500" },
         Clase:    { bg: "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40", label: "text-amber-700 dark:text-amber-400", dot: "bg-amber-500" },
         Otro:     { bg: "bg-muted/40 border border-border", label: "text-muted-foreground", dot: "bg-muted-foreground" },
     }
@@ -448,7 +450,7 @@ function MemberRow({ nombre, dni, subtitle, accentColor, onClick }: {
 function DetalleAlumno({ alumno, loading }: { alumno: AlumnoDetalle | null; loading: boolean }) {
     if (loading) return (
         <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
-            <div className="w-8 h-8 rounded-full border-2 border-orange-400 border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
             <p className="text-sm">Cargando...</p>
         </div>
     )
@@ -461,7 +463,7 @@ function DetalleAlumno({ alumno, loading }: { alumno: AlumnoDetalle | null; load
         <div className="space-y-5">
             {/* Hero */}
             <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center text-lg font-bold text-orange-600">
+                <div className="w-14 h-14 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-lg font-bold text-brand-600 dark:text-brand-300">
                     {initials}
                 </div>
                 <div>
@@ -549,18 +551,18 @@ function CustomTooltip({ active, payload, label, breakdowns, porVencer }: any) {
     const color = BAR_COLORS[idx]?.bg ?? "#888"
     const bd = breakdowns?.[label]
     return (
-        <div className="rounded-xl border bg-background px-6 py-4 shadow-lg min-w-[220px]">
+        <div className="bg-card rounded-xl border border-border/60 shadow-floating px-6 py-4 text-sm font-medium min-w-[220px]">
             <p className="text-base font-bold mb-1" style={{ color }}>{label}</p>
             <p className="text-sm text-muted-foreground mb-3">{ESTADO_DESCRIPCION[label]}</p>
-            <p className="text-3xl font-bold mb-3">{payload[0].value}</p>
+            <p className="text-3xl font-bold tracking-tighter mb-3">{payload[0].value}</p>
             {label === "Abandonos" && porVencer > 0 && (
                 <p className="text-sm text-muted-foreground mb-3 -mt-2">Faltan vencer: <span className="font-bold text-foreground">{porVencer}</span></p>
             )}
             {bd && (bd.gimnasio > 0 || bd.clase > 0) && (
-                <div className="space-y-2 border-t pt-3">
+                <div className="space-y-2 border-t border-border/60 pt-3">
                     {bd.gimnasio > 0 && (
                         <div className="flex justify-between gap-6 text-sm">
-                            <span className="text-orange-600 font-medium">Gimnasio</span>
+                            <span className="text-brand-600 font-medium">Gimnasio</span>
                             <span className="font-bold">{bd.gimnasio}</span>
                         </div>
                     )}

@@ -151,50 +151,51 @@ export default function PlansSection() {
 
     return (
         <>
-            <Card>
-                <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
+            <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
+                <CardHeader className="bg-brand-50/60 dark:bg-card rounded-t-2xl border-b border-border/60 mb-4">
                     <div className="flex justify-between">
                         <div>
-                            <CardTitle>Planes</CardTitle>
-                            <CardDescription className="hidden md:block">Gestiona tus planes y productos.</CardDescription>
+                            <CardTitle className="font-bold">Planes</CardTitle>
+                            <CardDescription className="hidden md:block text-xs text-muted-foreground font-medium">Gestiona tus planes y productos.</CardDescription>
                         </div>
-                        <Button variant="orange" onClick={() => setShowCreateDialog(true)}>
+                        <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowCreateDialog(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Agregar plan
                         </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col max-w-sm mb-4">
-                        <Label htmlFor="search">Buscar por nombre o tipo</Label>
+                        <Label htmlFor="search" className="font-bold">Buscar por nombre o tipo</Label>
                         <Input
                             id="search"
                             type="text"
                             placeholder="Ej: personalizado, gimnasio, clase..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
+                            className="rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                         />
                     </div>
 
-                    <div className="hidden md:block rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
+                    <div className="hidden md:block rounded-xl border border-border/60 overflow-auto max-w-[calc(100vw-2rem)]">
                         <div className="min-w-[800px]">
                             <Table>
-                                <TableHeader>
-                                    <TableRow className="grid grid-cols-7">
-                                        <TableHead className="flex items-center justify-center">Tipo</TableHead>
-                                        <TableHead className="flex items-center justify-center col-span-2">Plan</TableHead>
-                                        <TableHead className="flex items-center justify-center">Precio</TableHead>
-                                        <TableHead className="flex items-center justify-center">Clases</TableHead>
-                                        <TableHead className="flex items-center justify-center">Coins</TableHead>
-                                        <TableHead className="flex items-center justify-center">Acciones</TableHead>
+                                <TableHeader className="bg-muted/50">
+                                    <TableRow className="grid grid-cols-7 border-b">
+                                        <TableHead className="flex items-center justify-center text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Tipo</TableHead>
+                                        <TableHead className="flex items-center justify-center col-span-2 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Plan</TableHead>
+                                        <TableHead className="flex items-center justify-center text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Precio</TableHead>
+                                        <TableHead className="flex items-center justify-center text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Clases</TableHead>
+                                        <TableHead className="flex items-center justify-center text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Coins</TableHead>
+                                        <TableHead className="flex items-center justify-center text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
 
-                                <TableBody>
+                                <TableBody className="divide-y divide-border/60">
                                     {paginatedPlanes.length > 0 ? (
                                         paginatedPlanes.map((plan, i) => (
-                                            <TableRow key={i} className="grid grid-cols-7 hover:bg-accent">
+                                            <TableRow key={i} className="grid grid-cols-7 hover:bg-muted/40 transition-colors">
                                                 <TableCell className="flex items-center justify-center">{plan.Tipo}</TableCell>
-                                                <TableCell className="flex items-center justify-center col-span-2">{plan['Plan o Producto']}</TableCell>
+                                                <TableCell className="flex items-center justify-center col-span-2 font-medium">{plan['Plan o Producto']}</TableCell>
                                                 <TableCell className="flex items-center justify-center">{plan.Precio}</TableCell>
                                                 <TableCell className="flex items-center justify-center">{plan.numero_Clases}</TableCell>
                                                 <TableCell className="flex items-center justify-center">{plan.Coins}</TableCell>
@@ -279,15 +280,15 @@ export default function PlansSection() {
 
                     <div className="block md:hidden space-y-4 mb-6">
                         {paginatedPlanes.map((plan, idx) => (
-                            <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
+                            <Card key={idx} className="bg-card shadow-soft rounded-2xl border border-border/60 overflow-hidden">
                                 {/* Header */}
-                                <div className="bg-white dark:bg-zinc-900 px-4 py-3 flex justify-between items-center border-b">
-                                    <h3 className="font-semibold text-base">{plan['Plan o Producto']}</h3>
-                                    <span className="text-sm text-gray-500">{plan.Tipo}</span>
+                                <div className="bg-card px-4 py-3 flex justify-between items-center border-b border-border/60">
+                                    <h3 className="font-bold text-base">{plan['Plan o Producto']}</h3>
+                                    <span className="text-sm text-muted-foreground font-medium">{plan.Tipo}</span>
                                 </div>
 
                                 {/* Cuerpo: grid 2 columnas */}
-                                <CardContent className="bg-gray-50 dark:bg-zinc-900  px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <CardContent className="bg-muted/40 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                     <div>
                                         <p className="font-medium text-foreground">Precio</p>
                                         <p className="text-muted-foreground">${plan.Precio}</p>
@@ -310,7 +311,7 @@ export default function PlansSection() {
                                     <Button
                                         size="sm"
                                         variant="orange"
-                                        className="w-full p-0 m-0"
+                                        className="w-full p-0 m-0 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl"
                                         onClick={() => {
                                             setEditingPlan(plan)
                                             setEditForm({

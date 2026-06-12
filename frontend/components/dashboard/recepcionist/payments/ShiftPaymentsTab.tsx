@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -122,14 +122,14 @@ export function ShiftPaymentsTab({
 
   return (
     <>
-      <Card>
-        <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
+      <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
+        <CardHeader className="border-b border-border/60 rounded-t-2xl mb-4">
           <div className="flex justify-between">
             <div>
-              <CardTitle>Pagos</CardTitle>
-              <CardDescription className="hidden md:block">Visualiza y gestiona los pagos del turno actual.</CardDescription>
+              <CardTitle className="font-bold">Pagos</CardTitle>
+              <CardDescription className="hidden md:block text-xs text-muted-foreground font-medium">Visualiza y gestiona los pagos del turno actual.</CardDescription>
             </div>
-            <Button variant="orange" onClick={() => setShowAddPayment(true)}>
+            <Button variant="orange" onClick={() => setShowAddPayment(true)} className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press">
               <PlusCircle className="mr-2 h-4 w-4" />
               Añadir Pago
             </Button>
@@ -148,6 +148,7 @@ export function ShiftPaymentsTab({
                       id="search"
                       type="text"
                       placeholder="Alumno o plan"
+                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -155,7 +156,7 @@ export function ShiftPaymentsTab({
                   <div className="w-full md:w-36">
                     <Label>Tipo</Label>
                     <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
-                      <SelectTrigger>
+                      <SelectTrigger className="rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:ring-offset-0">
                         <SelectValue placeholder="Todos" />
                       </SelectTrigger>
                       <SelectContent>
@@ -172,6 +173,7 @@ export function ShiftPaymentsTab({
                     <Label>Día</Label>
                     <Input
                       type="number"
+                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
                       min={1}
                       max={31}
                       value={selectedDay ?? ""}
@@ -186,6 +188,7 @@ export function ShiftPaymentsTab({
                     <Label>Mes</Label>
                     <Input
                       type="number"
+                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
                       min={1}
                       max={12}
                       value={selectedMonth ?? ""}
@@ -200,6 +203,7 @@ export function ShiftPaymentsTab({
                     <Label>Año</Label>
                     <Input
                       type="number"
+                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
                       min={2000}
                       max={2100}
                       value={selectedYear ?? ""}
@@ -211,6 +215,7 @@ export function ShiftPaymentsTab({
                   </div>
                   <div className="flex items-end">
                     <Button
+                      className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press"
                       onClick={() => {
                         const today = new Date()
                         refreshPayments({
@@ -236,7 +241,7 @@ export function ShiftPaymentsTab({
                   onValueChange={setSelectedShift}
                   disabled={cashOpen}
                 >
-                  <SelectTrigger className={selectedShift === 'todos' ? 'animate-blink border-orange-500' : ''}>
+                  <SelectTrigger className={`rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:ring-offset-0 ${selectedShift === 'todos' ? 'animate-blink border-brand-500' : ''}`}>
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
                   <SelectContent>
@@ -250,26 +255,30 @@ export function ShiftPaymentsTab({
 
           )}
 
-          <div className="hidden md:block rounded-md border overflow-auto max-w-[calc(100vw-2rem)] mb-6">
-            <div className="min-w-[800px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-center w-32">Miembro</TableHead>
-                    <TableHead className="text-center w-32">Hora</TableHead>
-                    <TableHead className="text-center w-32">Monto</TableHead>
-                    <TableHead className="text-center w-32">Método</TableHead>
-                    <TableHead className="text-center w-32">Fecha de pago</TableHead>
-                    <TableHead className="text-center w-32">Fecha de venc.</TableHead>
-                    <TableHead className="text-center w-32">Tipo</TableHead>
-                    <TableHead className="text-center w-32">Turno</TableHead>
-                    <TableHead className="text-center w-32">Plan Pagado</TableHead>
-                    <TableHead className="text-center w-32">Registrado Por</TableHead>
-                    <TableHead className="text-center w-32">Acciones</TableHead>
+          <div className="hidden md:block rounded-2xl border border-border/60 overflow-auto max-w-[calc(100vw-2rem)] mb-6">
+            <div>
+              <Table className="w-full">
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="border-b">
+                    {[
+                      { label: "Miembro", cls: "" },
+                      { label: "Hora", cls: "hidden lg:table-cell" },
+                      { label: "Monto", cls: "" },
+                      { label: "Método", cls: "" },
+                      { label: "Fecha de pago", cls: "" },
+                      { label: "Fecha de venc.", cls: "hidden xl:table-cell" },
+                      { label: "Tipo", cls: "" },
+                      { label: "Turno", cls: "hidden lg:table-cell" },
+                      { label: "Plan Pagado", cls: "hidden xl:table-cell" },
+                      { label: "Registrado Por", cls: "hidden 2xl:table-cell" },
+                      { label: "Acciones", cls: "" },
+                    ].map((head, i) => (
+                      <TableHead key={i} className={`text-center px-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground ${head.cls}`}>{head.label}</TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
 
-                <TableBody>
+                <TableBody className="divide-y divide-border/60">
                   {paginatedPayments.length > 0 ? (
                     paginatedPayments.map((payment, idx) => (
                       <motion.tr
@@ -277,20 +286,22 @@ export function ShiftPaymentsTab({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: idx * 0.05 }}
-                        className="hover:bg-accent"
+                        className="hover:bg-muted/40 transition-colors"
                       >
-                        <TableCell className="text-center font-medium">{payment.Nombre}</TableCell>
-                        <TableCell className="text-center">{payment.Hora || "—"}</TableCell>
-                        <TableCell className="text-center text-green-600 font-medium">
+                        <TableCell className="text-center px-3 font-medium">{payment.Nombre}</TableCell>
+                        <TableCell className="text-center px-3 whitespace-nowrap hidden lg:table-cell">{payment.Hora || "—"}</TableCell>
+                        <TableCell className="text-center px-3 whitespace-nowrap text-emerald-600 dark:text-emerald-400 font-bold">
                           ${payment.Monto}
                         </TableCell>
-                        <TableCell className="text-center">{payment.Metodo_de_Pago}</TableCell>
-                        <TableCell className="text-center">{payment.Fecha_de_Pago}</TableCell>
-                        <TableCell className="text-center">{payment.Fecha_de_Vencimiento}</TableCell>
-                        <TableCell className="text-center">{payment.Tipo}</TableCell>
-                        <TableCell className="text-center">{payment.Turno}</TableCell>
-                        <TableCell className="text-center">{payment.Ultimo_Plan || "—"}</TableCell>
-                        <TableCell className="text-center">{payment.Responsable}</TableCell>
+                        <TableCell className="text-center px-3">{payment.Metodo_de_Pago}</TableCell>
+                        <TableCell className="text-center px-3 whitespace-nowrap">{payment.Fecha_de_Pago}</TableCell>
+                        <TableCell className="text-center px-3 whitespace-nowrap hidden xl:table-cell">{payment.Fecha_de_Vencimiento}</TableCell>
+                        <TableCell className="text-center px-3">{payment.Tipo}</TableCell>
+                        <TableCell className="text-center px-3 hidden lg:table-cell">{payment.Turno}</TableCell>
+                        <TableCell className="text-center px-3 hidden xl:table-cell">
+                          <div className="max-w-[120px] mx-auto whitespace-nowrap overflow-hidden text-ellipsis" title={payment.Ultimo_Plan || undefined}>{payment.Ultimo_Plan || "—"}</div>
+                        </TableCell>
+                        <TableCell className="text-center px-3 hidden 2xl:table-cell">{payment.Responsable}</TableCell>
                         <TableCell className="text-center">
                           <Button
                             size="icon"
@@ -319,57 +330,57 @@ export function ShiftPaymentsTab({
 
           <div className="block md:hidden space-y-4 mb-6">
             {paginatedPayments.map((p, idx) => (
-              <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
+              <Card key={idx} className="bg-card shadow-soft rounded-2xl border border-border/60 overflow-hidden">
                 {/* Header */}
-                <CardHeader className="dark:bg-zinc-900 px-4 py-3 flex border-b">
+                <CardHeader className="bg-muted/40 px-4 py-3 flex border-b border-border/60">
                   <div className="flex items-end justify-between">
-                    <CardTitle className="text-base font-semibold">{p.Nombre}</CardTitle>
-                    <p className="text-sm text-gray-500">{p.Hora || "—"} hs</p>
+                    <CardTitle className="text-base font-bold">{p.Nombre}</CardTitle>
+                    <p className="text-sm text-muted-foreground font-medium">{p.Hora || "—"} hs</p>
                   </div>
 
                 </CardHeader>
 
                 {/* Content: grid dos columnas */}
-                <CardContent className="dark:bg-zinc-900 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <CardContent className="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <div>
-                    <p className="font-bold text-gray-600">Monto</p>
-                    <p className="text-green-600 font-medium">${p.Monto}</p>
+                    <p className="font-bold text-foreground">Monto</p>
+                    <p className="text-emerald-600 dark:text-emerald-400 font-bold">${p.Monto}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600">Método</p>
-                    <p>{p.Metodo_de_Pago}</p>
+                    <p className="font-bold text-foreground">Método</p>
+                    <p className="text-muted-foreground font-medium">{p.Metodo_de_Pago}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600">Fecha Pago</p>
-                    <p>{p.Fecha_de_Pago}</p>
+                    <p className="font-bold text-foreground">Fecha Pago</p>
+                    <p className="text-muted-foreground font-medium">{p.Fecha_de_Pago}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600">Vencimiento</p>
-                    <p>{p.Fecha_de_Vencimiento}</p>
+                    <p className="font-bold text-foreground">Vencimiento</p>
+                    <p className="text-muted-foreground font-medium">{p.Fecha_de_Vencimiento}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600">Tipo</p>
-                    <p>{p.Tipo}</p>
+                    <p className="font-bold text-foreground">Tipo</p>
+                    <p className="text-muted-foreground font-medium">{p.Tipo}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600">Turno</p>
-                    <p>{p.Turno}</p>
+                    <p className="font-bold text-foreground">Turno</p>
+                    <p className="text-muted-foreground font-medium">{p.Turno}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600">Plan Pagado</p>
-                    <p>{p.Ultimo_Plan || "—"}</p>
+                    <p className="font-bold text-foreground">Plan Pagado</p>
+                    <p className="text-muted-foreground font-medium">{p.Ultimo_Plan || "—"}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600">Registrado Por</p>
-                    <p>{p.Responsable}</p>
+                    <p className="font-bold text-foreground">Registrado Por</p>
+                    <p className="text-muted-foreground font-medium">{p.Responsable}</p>
                   </div>
                 </CardContent>
 
-                <CardFooter className="dark:bg-zinc-900 px-4 py-3 space-y-2">
+                <CardFooter className="px-4 py-3 space-y-2">
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="w-full justify-center"
+                    className="w-full justify-center font-bold rounded-xl"
                     onClick={() => {
                       setSelectedPaymentToDelete(p)
                       setShowDeletePaymentDialog(true)
@@ -387,16 +398,18 @@ export function ShiftPaymentsTab({
             <div className="flex justify-center gap-2 my-4">
               <Button
                 variant="outline"
+                className="bg-card border border-border rounded-xl font-bold hover:bg-muted"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               >
                 Anterior
               </Button>
-              <span className="flex items-center px-2 text-sm">
+              <span className="flex items-center px-2 text-sm font-medium">
                 Página {currentPage} de {Math.ceil(filteredPayments.length / itemsPerPage)}
               </span>
               <Button
                 variant="outline"
+                className="bg-card border border-border rounded-xl font-bold hover:bg-muted"
                 onClick={() =>
                   setCurrentPage((prev) =>
                     prev < Math.ceil(filteredPayments.length / itemsPerPage) ? prev + 1 : prev
@@ -409,20 +422,20 @@ export function ShiftPaymentsTab({
             </div>
           )}
 
-          <div className="bg-orange-50 dark:bg-zinc-900 rounded-2xl shadow-lg border border-orange-200 dark:border-zinc-700 p-6 space-y-6">
-            <div className="border-b border-orange-200 dark:border-zinc-700 pb-4">
-              <h2 className="text-3xl font-bold text-orange-900 dark:text-orange-100 flex items-center gap-2">
+          <div className="bg-card rounded-2xl shadow-soft border border-border/60 p-6 space-y-6">
+            <div className="border-b border-border/60 pb-4">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                 Totales del turno {selectedShift !== 'todos' && ` ${selectedShift}`}
               </h2>
-              <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+              <div className="mt-2 text-xs text-muted-foreground font-medium flex items-center gap-2">
                 <span className="inline-flex items-center gap-1">
-                  <span className="font-semibold">{selectedDay}/{selectedMonth}/{selectedYear}</span>
+                  <span className="font-bold">{selectedDay}/{selectedMonth}/{selectedYear}</span>
                 </span>
                 {selectedShift !== 'todos' && (
                   <>
-                    <span className="text-orange-500">•</span>
+                    <span className="text-brand-500">•</span>
                     <span className="inline-flex items-center gap-1">
-                      🕐 Turno: <span className="font-semibold capitalize">{selectedShift}</span>
+                      Turno: <span className="font-bold capitalize">{selectedShift}</span>
                     </span>
                   </>
                 )}
@@ -430,41 +443,39 @@ export function ShiftPaymentsTab({
             </div>
             
             {Object.keys(resumenPorTipo).length > 0 ? (
-              <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
+              <div className="flex flex-nowrap gap-6 overflow-x-auto pb-2">
                 {Object.entries(resumenAgrupado).map(([tipo, { metodos, deuda }]) => {
                   const totalPorTipo = Object.values(metodos).reduce((sum, val) => sum + val, 0)
                   return (
-                    <div 
-                      key={tipo} 
-                      className="bg-white dark:bg-zinc-900 rounded-xl p-6 border-2 dark:border-1 border-orange-200 dark:border-zinc-700 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+                    <div
+                      key={tipo}
+                      className="flex-1 min-w-[180px] shrink-0 aspect-square bg-card rounded-2xl p-4 lg:p-5 border border-border/60 shadow-soft flex flex-col justify-between overflow-hidden"
                     >
-                      <div>
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="flex-1">
-                            <h4 className="font-bold text-xl text-orange-900 dark:text-orange-100">
-                              {tipo}
-                            </h4>
-                            {deuda > 0 && (
-                              <span className="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">
-                                Incluye ${deuda.toLocaleString("es-AR")} de deuda
-                              </span>
-                            )}
-                          </div>
+                      <div className="min-h-0 flex-1 flex flex-col">
+                        <div className="mb-3">
+                          <h4 className="font-bold text-sm lg:text-lg text-foreground truncate" title={tipo}>
+                            {tipo}
+                          </h4>
+                          {deuda > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 px-2 py-0.5 rounded-full mt-1">
+                              Incluye ${deuda.toLocaleString("es-AR")} de deuda
+                            </span>
+                          )}
                         </div>
-                        <ul className="space-y-2">
+                        <ul className="space-y-1.5 overflow-y-auto custom-scrollbar min-h-0">
                           {Object.entries(metodos).map(([metodo, total]) => (
-                            <li key={metodo} className="flex justify-between items-center bg-orange-50 dark:bg-zinc-800 px-3 py-2 rounded-lg">
-                              <span className="text-sm text-gray-700 dark:text-gray-300">{metodo}</span>
-                              <span className="font-bold text-orange-600 dark:text-orange-400">
+                            <li key={metodo} className="flex justify-between items-center gap-2 bg-muted/40 px-2.5 py-1.5 rounded-lg">
+                              <span className="text-xs lg:text-sm text-muted-foreground font-medium truncate">{metodo}</span>
+                              <span className="text-xs lg:text-sm font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap">
                                 ${total.toLocaleString("es-AR")}
                               </span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="flex justify-between items-center border-t-2 border-orange-300 dark:border-zinc-600 pt-4 mt-4">
-                        <span className="font-bold text-gray-700 dark:text-gray-300">Total {tipo}</span>
-                        <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      <div className="flex justify-between items-center gap-2 border-t border-border/60 pt-3 mt-3">
+                        <span className="text-xs lg:text-sm font-bold text-foreground truncate">Total {tipo}</span>
+                        <span className="text-base lg:text-xl font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap">
                           ${totalPorTipo.toLocaleString("es-AR")}
                         </span>
                       </div>
@@ -472,29 +483,29 @@ export function ShiftPaymentsTab({
                   )
                 })}
                 
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 rounded-xl p-6 border-2 border-orange-400 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between text-white">
-                  <div>
-                    <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
-                      💳 Métodos de Pago
+                <div className="flex-1 min-w-[180px] shrink-0 aspect-square bg-gradient-to-br from-brand-500 to-brand-600 dark:from-brand-600 dark:to-brand-700 rounded-2xl p-4 lg:p-5 border border-brand-400 shadow-brand-btn flex flex-col justify-between text-white overflow-hidden">
+                  <div className="min-h-0 flex-1 flex flex-col">
+                    <h4 className="font-bold text-sm lg:text-lg mb-3">
+                      Métodos de Pago
                     </h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg">
-                        <span className="font-medium">💳 Tarjeta</span>
-                        <span className="font-bold text-lg">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center gap-2 bg-white/20 backdrop-blur-sm px-2.5 py-1.5 rounded-lg">
+                        <span className="text-xs lg:text-sm font-medium">Tarjeta</span>
+                        <span className="text-xs lg:text-sm font-bold whitespace-nowrap">
                           ${totalesPorMetodo.tarjeta.toLocaleString("es-AR")}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg">
-                        <span className="font-medium">💵 Efectivo</span>
-                        <span className="font-bold text-lg">
+                      <div className="flex justify-between items-center gap-2 bg-white/20 backdrop-blur-sm px-2.5 py-1.5 rounded-lg">
+                        <span className="text-xs lg:text-sm font-medium">Efectivo</span>
+                        <span className="text-xs lg:text-sm font-bold whitespace-nowrap">
                           ${totalesPorMetodo.efectivo.toLocaleString("es-AR")}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center border-t-2 border-white/30 pt-4 mt-4">
-                    <span className="font-bold text-lg">Total General</span>
-                    <span className="text-2xl font-bold">
+                  <div className="flex justify-between items-center gap-2 border-t-2 border-white/30 pt-3 mt-3">
+                    <span className="text-xs lg:text-sm font-bold">Total General</span>
+                    <span className="text-base lg:text-xl font-bold whitespace-nowrap">
                       ${currentShiftPayments
                         .reduce((sum, p) => sum + parseFloat(p.Monto || "0"), 0)
                         .toLocaleString("es-AR")}

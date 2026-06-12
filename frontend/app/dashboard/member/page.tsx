@@ -51,9 +51,9 @@ const createAppTheme = (isDark: boolean) => createTheme({
   palette: {
     mode: isDark ? 'dark' : 'light',
     primary: {
-      main: '#ea580c',
-      light: '#fb923c',
-      dark: '#c2410c',
+      main: '#ff6a00',
+      light: '#ff7033',
+      dark: '#f04b00',
     },
     success: {
       main: '#16a34a',
@@ -82,6 +82,7 @@ const createAppTheme = (isDark: boolean) => createTheme({
         root: {
           borderRadius: 16,
           backgroundColor: isDark ? '#27272a' : '#ffffff',
+          boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08)',
         },
       },
     },
@@ -393,7 +394,7 @@ export default function MemberDashboard() {
 
   return (
     <ThemeProvider theme={theme}>
-      <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-zinc-900">
+      <div className="flex min-h-screen flex-col bg-background">
 
         {/* Modal de Banner */}
         <Modal
@@ -420,7 +421,7 @@ export default function MemberDashboard() {
               <Chip
                 label="VIERNES 20 — 17:00 HS"
                 sx={{
-                  bgcolor: 'rgba(234, 88, 12, 0.1)',
+                  bgcolor: 'rgba(255, 106, 0, 0.1)',
                   color: 'primary.main',
                   fontWeight: 600,
                   mb: 2,
@@ -438,7 +439,7 @@ export default function MemberDashboard() {
               </Typography>
               <button
                 onClick={() => setShowBanner(false)}
-                className="px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition"
+                className="px-6 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-bold shadow-brand-btn btn-press transition-colors"
               >
                 ¡Nos vemos allí!
               </button>
@@ -494,7 +495,7 @@ export default function MemberDashboard() {
               </Typography>
               <button
                 onClick={() => setShowFeedback(false)}
-                className="w-full py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition"
+                className="w-full py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-bold shadow-brand-btn btn-press transition-colors"
               >
                 Cerrar
               </button>
@@ -510,7 +511,7 @@ export default function MemberDashboard() {
             <Paper
               elevation={0}
               sx={{
-                background: 'linear-gradient(135deg, #ea580c 0%, #fb923c 50%, #ea580c 100%)',
+                background: 'linear-gradient(135deg, #ff6a00 0%, #ff7033 50%, #f04b00 100%)',
                 borderRadius: 4,
                 p: 3,
                 mb: 3,
@@ -564,8 +565,8 @@ export default function MemberDashboard() {
                   height: '100%',
                   background: isDarkMode
                     ? 'linear-gradient(135deg, #27272a 0%, #3f3f46 100%)'
-                    : 'linear-gradient(135deg, #fff 0%, #fef3ed 100%)',
-                  border: '1px solid rgba(234, 88, 12, 0.2)',
+                    : 'linear-gradient(135deg, #fff 0%, #fff4ed 100%)',
+                  border: '1px solid rgba(255, 106, 0, 0.2)',
                   '&:hover': { transform: 'translateY(-4px)', transition: 'transform 0.3s ease' },
                 }}
               >
@@ -579,7 +580,7 @@ export default function MemberDashboard() {
                         width: 40,
                         height: 40,
                         borderRadius: 2,
-                        bgcolor: 'rgba(234, 88, 12, 0.1)',
+                        bgcolor: 'rgba(255, 106, 0, 0.1)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -788,7 +789,7 @@ export default function MemberDashboard() {
             <MuiCard elevation={4} sx={{ mb: 3 }}>
               <Box
                 sx={{
-                  background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                  background: 'linear-gradient(135deg, #ff6a00, #f04b00)',
                   p: 3,
                   borderRadius: '16px 16px 0 0',
                 }}
@@ -1099,7 +1100,7 @@ export default function MemberDashboard() {
               <MuiCard elevation={4} sx={{ mb: 3 }}>
                 <Box
                   sx={{
-                    background: 'linear-gradient(135deg, #ea580c, #f97316)',
+                    background: 'linear-gradient(135deg, #ff6a00, #ff7033)',
                     p: 3,
                     borderRadius: '16px 16px 0 0',
                   }}
@@ -1223,7 +1224,7 @@ export default function MemberDashboard() {
                                       px: 0,
                                       borderRadius: 3,
                                       overflow: 'hidden',
-                                      border: estaInscripto ? '2px solid #ea580c' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                                      border: estaInscripto ? '2px solid #ff6a00' : isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
                                       transition: 'all 0.3s ease',
                                       minWidth: { xs: 280, sm: 300 },
                                       maxWidth: { xs: 280, sm: 300 },
@@ -1238,7 +1239,7 @@ export default function MemberDashboard() {
                                     <Box
                                       sx={{
                                         background: estaInscripto
-                                          ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                                          ? 'linear-gradient(135deg, #ff6a00, #ff7033)'
                                           : isDarkMode ? 'linear-gradient(135deg, #2a2a2e, #35353a)' : 'linear-gradient(135deg, #f5f5f5, #fff)',
                                         p: 2.5,
                                         borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
@@ -1281,7 +1282,7 @@ export default function MemberDashboard() {
                                             width: 36,
                                             height: 36,
                                             borderRadius: 2,
-                                            bgcolor: 'rgba(234, 88, 12, 0.1)',
+                                            bgcolor: 'rgba(255, 106, 0, 0.1)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -1323,11 +1324,11 @@ export default function MemberDashboard() {
                                           puedeActuar && handleSubscribe(clase.ID, estado === "Desuscribirse")
                                         }
                                         disabled={!puedeActuar || loadingClaseId === clase.ID}
-                                        className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${puedeActuar
+                                        className={`w-full py-3 rounded-xl font-bold btn-press transition-all duration-200 ${puedeActuar
                                           ? estado === "Desuscribirse"
-                                            ? "bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg"
-                                            : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-lg"
-                                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            ? "bg-rose-500 text-white hover:bg-rose-600 shadow-md hover:shadow-lg"
+                                            : "bg-brand-500 hover:bg-brand-600 text-white shadow-brand-btn"
+                                          : "bg-muted text-muted-foreground cursor-not-allowed"
                                           }`}
                                       >
                                         {loadingClaseId === clase.ID ? (

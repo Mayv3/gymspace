@@ -17,6 +17,7 @@ import { CalendarCheck } from "lucide-react";
 import {
   Bar,
   BarChart,
+  CartesianGrid,
   Cell,
   ResponsiveContainer,
   XAxis,
@@ -108,11 +109,13 @@ export const AverageAssits = () => {
   }, [tipo, periodo]);
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
+    <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow col-span-1 md:col-span-2 xl:col-span-1">
       <CardContent>
         <CardHeader className="flex flex-col items-center gap-2 pb-6">
-          <CalendarCheck className="text-orange-500" />
-          <CardTitle className="text-center">
+          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+            <CalendarCheck className="w-5 h-5" />
+          </div>
+          <CardTitle className="text-center font-bold">
             Promedio de asistencias
           </CardTitle>
 
@@ -142,20 +145,21 @@ export const AverageAssits = () => {
             </Select>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center mt-1">
+          <p className="text-xs text-muted-foreground font-medium text-center mt-1">
             Promedio diario de asistencias por franja horaria
           </p>
         </CardHeader>
 
         {loading ? (
           <div className="flex justify-center items-center h-[260px]">
-            <CircularProgress size={32} sx={{ color: "#f97316" }} />
+            <CircularProgress size={32} sx={{ color: "#ff6a00" }} />
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={promedios}>
-              <XAxis dataKey="rango" hide={isMobile} />
-              <YAxis allowDecimals={false} hide={isMobile} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
+              <XAxis dataKey="rango" hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
               <Tooltip
                 content={<CustomTooltipAverageAssists />}
                 offset={30}
@@ -172,7 +176,7 @@ export const AverageAssits = () => {
         {periodo === "anual" && (
           <div className="flex w-full justify-center">
             <button
-              className="text-md text-white bg-orange-400 w-[50%] mt-4 rounded-md py-1 hover:bg-orange-500 transition"
+              className="text-sm bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press w-[50%] mt-4 py-1.5 transition"
               onClick={() => setOpenCalendar(true)}
             >
               Ver calendario anual

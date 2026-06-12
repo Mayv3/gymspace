@@ -40,21 +40,21 @@ export function DeletePaymentDialog({ open, onOpenChange, payment, onDelete }: D
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[500px]">
+      <DialogContent className="w-[95vw] max-w-[500px] rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
+          <DialogTitle className="flex items-center font-bold">
             <Trash className="mr-2 h-5 w-5 text-destructive" />
             Eliminar Pago
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground font-medium">
             ¿Estás seguro de eliminar el pago registrado para <strong>{payment?.Nombre}</strong>? Esta acción no se puede deshacer.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" className="bg-card border border-border rounded-xl font-bold hover:bg-muted" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button variant="destructive" disabled={isSubmitting} onClick={() => {
+          <Button variant="destructive" className="font-bold rounded-xl" disabled={isSubmitting} onClick={() => {
             handleDelete();
           }}>
             {isSubmitting ? "Eliminando..." : "Eliminar pago"}

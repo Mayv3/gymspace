@@ -1,4 +1,5 @@
 import { TooltipProps } from "recharts";
+import { Calendar, Banknote, TrendingDown, TrendingUp, Briefcase, ShoppingCart } from "lucide-react";
 type BillingView = "gimnasio" | "clase" | "servicio" | "producto"
 
 interface Props extends TooltipProps<number, string> {
@@ -28,37 +29,37 @@ export const CustomTooltipFacturacion: React.FC<Props> = ({
     const producto = data.producto ?? 0
 
     return (
-        <div className="p-2 rounded-md shadow text-sm border w-max bg-white dark:bg-gray-800 dark:text-white">
-            <p className="font-semibold mb-1">📅 {mes}</p>
+        <div className="bg-card text-foreground rounded-xl border border-border/60 shadow-floating px-3 py-2 text-sm font-medium w-max">
+            <p className="font-bold mb-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-sky-500" /> {mes}</p>
             {billingView === "gimnasio" && (
                 <>
-                    <p className="font-semibold">💵 Ingreso Gimnasio: ${format(gimnasio)}</p>
-                    <p>📉 Egreso Gimnasio: ${format(egGim)}</p>
-                    <p className="text-green-500 font-semibold">
-                        📈 Neto Gimnasio: ${format(gimnasio - egGim)}
+                    <p className="font-bold flex items-center gap-1.5"><Banknote className="w-3.5 h-3.5 text-emerald-500" /> Ingreso Gimnasio: ${format(gimnasio)}</p>
+                    <p className="flex items-center gap-1.5"><TrendingDown className="w-3.5 h-3.5 text-rose-500" /> Egreso Gimnasio: ${format(egGim)}</p>
+                    <p className="text-emerald-600 font-bold flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Neto Gimnasio: ${format(gimnasio - egGim)}
                     </p>
                 </>
             )}
 
             {billingView === "clase" && (
                 <>
-                    <p className="font-semibold">💵 Ingreso Clases: ${format(clase)}</p>
-                    <p>📉 Egreso Clases: ${format(egClase)}</p>
-                    <p className="text-green-500 font-semibold">
-                        📈 Neto Clases: ${format(clase - egClase)}
+                    <p className="font-bold flex items-center gap-1.5"><Banknote className="w-3.5 h-3.5 text-emerald-500" /> Ingreso Clases: ${format(clase)}</p>
+                    <p className="flex items-center gap-1.5"><TrendingDown className="w-3.5 h-3.5 text-rose-500" /> Egreso Clases: ${format(egClase)}</p>
+                    <p className="text-emerald-600 font-bold flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Neto Clases: ${format(clase - egClase)}
                     </p>
                 </>
             )}
 
             {billingView === "servicio" && (
-                <p className="font-semibold">
-                    💼 Ingreso Servicios: ${format(servicio)}
+                <p className="font-bold flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-indigo-500" /> Ingreso Servicios: ${format(servicio)}
                 </p>
             )}
 
             {billingView === "producto" && (
-                <p className="font-semibold">
-                    🛒 Ingreso Productos: ${format(producto)}
+                <p className="font-bold flex items-center gap-1.5">
+                    <ShoppingCart className="w-3.5 h-3.5 text-orange-500" /> Ingreso Productos: ${format(producto)}
                 </p>
             )}
         </div>

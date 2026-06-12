@@ -130,13 +130,13 @@ export default function EgresosSection() {
     }, [selectedDate, selectedType])
 
     return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between bg-orange-50 mb-4 dark:bg-zinc-900 rounded-t-lg">
+        <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
+            <CardHeader className="flex flex-row items-center justify-between bg-brand-50/60 mb-4 dark:bg-card rounded-t-2xl border-b border-border/60">
                 <div>
-                    <CardTitle>Egresos</CardTitle>
-                    <CardDescription className="hidden md:block">Listado de egresos filtrado por fecha y tipo</CardDescription>
+                    <CardTitle className="font-bold">Egresos</CardTitle>
+                    <CardDescription className="hidden md:block text-xs text-muted-foreground font-medium">Listado de egresos filtrado por fecha y tipo</CardDescription>
                 </div>
-                <Button onClick={() => setShowCreateDialog(true)}>
+                <Button className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowCreateDialog(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Añadir Egreso
                 </Button>
@@ -165,24 +165,24 @@ export default function EgresosSection() {
                     </div>
                 </div>
 
-                <div className="rounded-md md:border overflow-auto max-w-[calc(100vw-2rem)]">
+                <div className="rounded-xl md:border md:border-border/60 overflow-auto max-w-[calc(100vw-2rem)]">
                     <div className="hidden md:block">
                         <div className="min-w-[800px] overflow-x-auto">
                             <Table className="table-fixed w-full">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="text-center w-1/6">Fecha</TableHead>
-                                        <TableHead className="text-center w-1/6">Motivo</TableHead>
-                                        <TableHead className="text-center w-1/6">Monto</TableHead>
-                                        <TableHead className="text-center w-1/6">Responsable</TableHead>
-                                        <TableHead className="text-center w-1/6">Tipo</TableHead>
-                                        <TableHead className="text-center w-1/6">Acciones</TableHead>
+                                <TableHeader className="bg-muted/50">
+                                    <TableRow className="border-b">
+                                        <TableHead className="text-center w-1/6 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Fecha</TableHead>
+                                        <TableHead className="text-center w-1/6 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Motivo</TableHead>
+                                        <TableHead className="text-center w-1/6 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Monto</TableHead>
+                                        <TableHead className="text-center w-1/6 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Responsable</TableHead>
+                                        <TableHead className="text-center w-1/6 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Tipo</TableHead>
+                                        <TableHead className="text-center w-1/6 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody>
+                                <TableBody className="divide-y divide-border/60">
                                     {egresos.length > 0 ? (
                                         paginatedShifts.map((e, i) => (
-                                            <TableRow key={i}>
+                                            <TableRow key={i} className="hover:bg-muted/40 transition-colors">
                                                 <TableCell className="text-center">{e.Fecha}</TableCell>
                                                 <TableCell className="text-center">
                                                     <div className="truncate overflow-hidden whitespace-nowrap max-w-[160px] mx-auto">
@@ -223,7 +223,7 @@ export default function EgresosSection() {
                             paginatedShifts.map((e, i) => (
                                 <div
                                     key={i}
-                                    className="rounded-lg border bg-white dark:bg-zinc-900 p-4 shadow-sm transition hover:shadow-md"
+                                    className="rounded-2xl border border-border/60 bg-card p-4 shadow-soft transition hover:shadow-floating"
                                 >
                                     <div className="flex justify-between items-center mb-3">
                                         <div>
@@ -250,7 +250,7 @@ export default function EgresosSection() {
                                                 setEgresoAEliminar(e)
                                                 setShowDeleteDialog(true)
                                             }}
-                                            className="text-destructive flex items-center justify-center gap-1 w-full bg-red-500 p-2 rounded-lg text-white"
+                                            className="flex items-center justify-center gap-1 w-full bg-rose-500 hover:bg-rose-600 p-2 rounded-xl text-white font-bold transition-colors"
                                         >
                                             <Trash className="w-4 h-4" />
                                             Eliminar
@@ -303,7 +303,7 @@ export default function EgresosSection() {
                     onConfirm={handleDeleteEgreso}
                 >
                     {egresoAEliminar && (
-                        <div className="dark:bg-zinc-900 space-y-2 text-lg md:text-sm p-4 bg-gray-100 rounded text-orange-600">
+                        <div className="space-y-2 text-lg md:text-sm p-4 bg-muted/50 rounded-xl text-brand-600 dark:text-brand-300">
                             <p><strong>Fecha:</strong> {egresoAEliminar.Fecha}</p>
                             <p className="max-w-xs overflow-hidden text-ellipsis break-words line-clamp-3">
                                 <strong>Motivo:</strong> {egresoAEliminar.Motivo}
@@ -327,7 +327,7 @@ export default function EgresosSection() {
                             <div className="flex flex-col">
                                 <Label>Responsable</Label>
                                 <Input
-                                    className="border border-input bg-background text-foreground px-2 py-1 rounded cursor-disabled"
+                                    className="border border-input bg-background text-foreground px-2 py-1 rounded-xl cursor-disabled"
                                     value={user?.nombre}
                                     disabled
                                     onChange={(e) => setForm(prev => ({ ...prev, Responsable: e.target.value }))}
@@ -357,7 +357,7 @@ export default function EgresosSection() {
                                 <Input
                                     capitalizeFirst
                                     required
-                                    className="border border-input bg-background text-foreground px-2 py-1 rounded"
+                                    className="border border-input bg-background text-foreground px-2 py-1 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                                     value={form.Motivo}
                                     onChange={(e) => setForm(prev => ({ ...prev, Motivo: e.target.value }))}
                                     placeholder="Motivo por el egreso"
@@ -367,7 +367,7 @@ export default function EgresosSection() {
                                 <Label>Monto</Label>
                                 <Input
                                     type="number"
-                                    className="border border-input bg-background text-foreground px-2 py-1 rounded"
+                                    className="border border-input bg-background text-foreground px-2 py-1 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                                     value={form.Monto}
                                     onChange={(e) => setForm(prev => ({ ...prev, Monto: e.target.value }))}
                                     placeholder="Ej: 20000"

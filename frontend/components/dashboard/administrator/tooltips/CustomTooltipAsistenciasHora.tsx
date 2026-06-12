@@ -1,4 +1,5 @@
 import { TooltipProps } from "recharts";
+import { Clock, Tag, Users } from "lucide-react";
 
 interface Props extends TooltipProps<number, string> {
   tipo: "gimnasio" | "clase";
@@ -19,10 +20,10 @@ export const CustomTooltipAsistenciasHora: React.FC<Props> = ({
   const formatTipo = tipo === "gimnasio" ? "Gimnasio" : "Clase";
 
   return (
-    <div className="p-2 rounded-md shadow text-sm border bg-white dark:bg-gray-800 dark:text-white min-w-[160px]">
-      <p className="font-semibold mb-1">🕒 {data.hora}</p>
-      <p className="text-xs mb-1">🏷️ {formatTipo}</p>
-      <p className="font-semibold">👥 Asistencias: {data.cantidad}</p>
+    <div className="bg-card text-foreground rounded-xl border border-border/60 shadow-floating px-3 py-2 text-sm font-medium min-w-[160px]">
+      <p className="font-bold mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-sky-500" /> {data.hora}</p>
+      <p className="text-xs mb-1 flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-amber-500" /> {formatTipo}</p>
+      <p className="font-bold flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-violet-500" /> Asistencias: {data.cantidad}</p>
     </div>
   );
 };

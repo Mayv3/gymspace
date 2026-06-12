@@ -31,7 +31,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { CustomTooltipAltasBajas } from "../tooltips/CustomTooltipAltasBajas";
 
-const COLORS = ["#f97316", "#ef4444"];
+const COLORS = ["#ff6a00", "#ef4444"];
 
 type TipoPlan = "gimnasio" | "clase";
 type TipoSlice = "altas" | "bajas";
@@ -159,10 +159,12 @@ export const MembersStatus = () => {
 
   return (
     <>
-      <Card className="shadow-lg hover:shadow-xl transition-all">
+      <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow">
         <CardHeader className="flex flex-col items-center gap-2">
-          <Users className="text-orange-500" />
-          <CardTitle>Altas vs Bajas</CardTitle>
+          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+            <Users className="w-5 h-5" />
+          </div>
+          <CardTitle className="font-bold">Altas vs Bajas</CardTitle>
         </CardHeader>
 
         <div className="flex justify-center gap-2 px-4 mb-2 flex-wrap">
@@ -281,8 +283,8 @@ export const MembersStatus = () => {
               {selectedSlice && (
                 <span
                   className={`text-xs md:text-sm px-2 md:px-3 py-1 rounded-full font-bold ${selectedSlice === "altas"
-                    ? "bg-orange-100 text-orange-900"
-                    : "bg-red-100 text-red-700"
+                    ? "bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300"
+                    : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
                     }`}
                 >
                   {cantidad}{" "}
@@ -337,9 +339,9 @@ export const MembersStatus = () => {
                   Seleccioná una porción del gráfico para ver los alumnos
                 </div>
               ) : (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="px-4 py-3 border-b bg-background dark:bg-gray-900 z-10">
-                    <h2 className="mb-2">
+                <div className="border border-border/60 rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border/60 bg-card z-10">
+                    <h2 className="mb-2 font-bold">
                       Filtrar por profesor:
                     </h2>
                     <input
@@ -349,11 +351,9 @@ export const MembersStatus = () => {
                       value={filtroProfesor}
                       onChange={(e) => setFiltroProfesor(e.target.value)}
                       className="
-                  w-full rounded-md border px-3 py-2 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-orange-500
-                  bg-gray-100 border-gray-300 text-gray-900
-                  dark:bg-gray-800 dark:border-gray-600 dark:text-white
-                  border-none
+                  w-full rounded-lg px-3 py-2 text-sm font-medium
+                  focus:outline-none focus:ring-2 focus:ring-brand-500
+                  bg-muted text-foreground border-none
                 "
                     />
                   </div>
@@ -366,7 +366,7 @@ export const MembersStatus = () => {
                           setFiltroProfesor("");
                           inputProfesorRef.current?.focus();
                         }}
-                        className="text-orange-600 text-xs underline"
+                        className="text-brand-600 text-xs font-bold underline"
                       >
                         Limpiar filtro
                       </button>

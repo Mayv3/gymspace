@@ -15,6 +15,7 @@ import { Users } from "lucide-react"
 import {
   BarChart,
   Bar,
+  CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
@@ -63,15 +64,17 @@ export const MembersYearsOld = ({ edades }: MembersYearsOldProps) => {
   const data = normalizeData(edades?.[tipo])
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
+    <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow col-span-1 md:col-span-2 xl:col-span-2">
       <CardHeader className="flex flex-col gap-3">
         <div className="flex flex-col items-center gap-2">
-          <Users className="text-orange-500" />
+          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+            <Users className="w-5 h-5" />
+          </div>
 
           <div>
 
           </div>
-          <CardTitle className="text-center">
+          <CardTitle className="text-center font-bold">
             Distribución por Edad
           </CardTitle>
         </div>
@@ -98,15 +101,22 @@ export const MembersYearsOld = ({ edades }: MembersYearsOldProps) => {
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
               <XAxis
                 dataKey="edad"
                 stroke="hsl(var(--muted-foreground))"
                 hide={isMobile}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 12 }}
               />
 
               <YAxis
                 stroke="hsl(var(--muted-foreground))"
                 hide={isMobile}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 12 }}
               />
               <Tooltip
                 content={<CustomTooltipEdades />}

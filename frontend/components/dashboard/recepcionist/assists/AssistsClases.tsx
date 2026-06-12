@@ -79,13 +79,13 @@ export default function AssistsSection() {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-col md:flex-row gap-2 items-center justify-between bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
+      <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
+        <CardHeader className="flex flex-col md:flex-row gap-2 items-center justify-between bg-brand-50/60 dark:bg-card rounded-t-2xl border-b border-border/60 mb-4">
           <div>
-            <CardTitle>Asistencias</CardTitle>
-            <CardDescription className="hidden md:block">Controla las asistencias registradas en el sistema.</CardDescription>
+            <CardTitle className="font-bold">Asistencias</CardTitle>
+            <CardDescription className="hidden md:block text-xs text-muted-foreground font-medium">Controla las asistencias registradas en el sistema.</CardDescription>
           </div>
-          <Button variant="orange" onClick={() => setShowAddDialog(true)}>
+          <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowAddDialog(true)}>
             <PlusCircle className="mr-2 h-4 w-4" /> Registrar presentes
           </Button>
         </CardHeader>
@@ -119,19 +119,19 @@ export default function AssistsSection() {
             </div>
           </div>
 
-          <div className="rounded-md border overflow-auto max-w-[calc(100vw-2rem)]">
+          <div className="rounded-xl border border-border/60 overflow-auto max-w-[calc(100vw-2rem)]">
             <div className="min-w-[800px]">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-center w-1/5">Tipo de Clase</TableHead>
-                    <TableHead className="text-center w-1/5">Fecha</TableHead>
-                    <TableHead className="text-center w-1/5">Presentes</TableHead>
-                    <TableHead className="text-center w-1/5">Responsable</TableHead>
-                    <TableHead className="text-center w-1/5">Acciones</TableHead>
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="border-b">
+                    <TableHead className="text-center w-1/5 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Tipo de Clase</TableHead>
+                    <TableHead className="text-center w-1/5 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Fecha</TableHead>
+                    <TableHead className="text-center w-1/5 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Presentes</TableHead>
+                    <TableHead className="text-center w-1/5 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Responsable</TableHead>
+                    <TableHead className="text-center w-1/5 px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="divide-y divide-border/60">
                   {paginatedAssists.length > 0 ? (
                     paginatedAssists.map((asistencia, index) => (
                       <motion.tr
@@ -139,9 +139,9 @@ export default function AssistsSection() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: index * 0.05 }}
-                        className="hover:bg-accent"
+                        className="hover:bg-muted/40 transition-colors"
                       >
-                        <TableCell className="text-center w-1/5">{asistencia["Tipo de Clase"]}</TableCell>
+                        <TableCell className="text-center w-1/5 px-4 py-3 font-medium">{asistencia["Tipo de Clase"]}</TableCell>
                         <TableCell className="text-center w-1/5">
                           {asistencia.Fecha}
                         </TableCell>

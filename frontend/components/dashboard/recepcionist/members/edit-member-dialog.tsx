@@ -144,10 +144,10 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-y-auto max-h-[90vh]">
+      <DialogContent className="overflow-y-auto max-h-[90vh] rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Editar Miembro</DialogTitle>
-          <DialogDescription>Modifica la información del socio.</DialogDescription>
+          <DialogTitle className="font-bold">Editar Miembro</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground font-medium">Modifica la información del socio.</DialogDescription>
         </DialogHeader>
 
         <FormEnterToTab onSubmit={(e) => {
@@ -290,7 +290,7 @@ export function EditMemberDialog({ open, onOpenChange, member, onSave }: any) {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" variant="orange" disabled={isSubmitting}>
+              <Button type="submit" variant="orange" disabled={isSubmitting} className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press">
                 {isSubmitting ? "Guardando cambios..." : "Guardar cambios"}
               </Button>
             </div>

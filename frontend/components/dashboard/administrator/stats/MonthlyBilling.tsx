@@ -6,7 +6,7 @@ import {
     CardHeader
 } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CustomTooltipFacturacion } from "../tooltips/CustomTooltipFacturacion";
 import { COLORS } from "./colors";
 import { Factura } from "@/models/stats/factura";
@@ -27,12 +27,12 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
 
 
     return (
-        <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-3">
+        <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow col-span-1 md:col-span-2 xl:col-span-3">
             <CardContent>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-5">
                     <CardHeader className="flex flex-row items-center gap-2 justify-center">
                         <div className="flex flex-col gap-5 justify-center items-center">
-                            <CardTitle className="text-center">Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
+                            <CardTitle className="text-center font-bold">Facturación Mensual: Ingresos, Egresos y Neto</CardTitle>
                             <div className="flex gap-2">
                                 <Select
                                     value={selectedYearFacturacion.toString()}
@@ -80,8 +80,9 @@ export const MonthlyBilling = ({ facturacionData, selectedYearFacturacion, setSe
                     <ResponsiveContainer width="100%" height={350}>
                         <BarChart data={facturacionNormalizada}
                             margin={{ top: 0, right: 0, left: 20, bottom: 10 }}>
-                            <XAxis dataKey="mes" hide={isMobile} />
-                            <YAxis hide={isMobile} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
+                            <XAxis dataKey="mes" hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+                            <YAxis hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
                             <Tooltip content={<CustomTooltipFacturacion billingView={billingView} />} />
 
                             {billingView === "gimnasio" && (

@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/select";
 import { Users } from "lucide-react";
 import {
-    LineChart,
-    Line,
+    AreaChart,
+    Area,
+    CartesianGrid,
     ResponsiveContainer,
     XAxis,
     YAxis,
@@ -95,11 +96,13 @@ export const Assits = () => {
     }, [rawData, tipo]);
 
     return (
-        <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
+        <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow col-span-1 md:col-span-2 xl:col-span-2">
             <CardContent className="p-0 md:px-0">
                 <CardHeader className="flex flex-col gap-3 items-center pb-4">
-                    <Users className="text-orange-500" />
-                    <CardTitle>Asistencias por hora ({tipo})</CardTitle>
+                    <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+                        <Users className="w-5 h-5" />
+                    </div>
+                    <CardTitle className="font-bold">Asistencias por hora ({tipo})</CardTitle>
 
                     <div className="flex gap-2 justify-center w-full flex-wrap">
                         <Select value={tipo} onValueChange={(v) => setTipo(v as TipoPlan)}>
@@ -120,27 +123,34 @@ export const Assits = () => {
 
                 {loading ? (
                     <div className="flex justify-center items-center h-[300px]">
-                        <CircularProgress sx={{ color: "#f97316" }} size={36} />
+                        <CircularProgress sx={{ color: "#ff6a00" }} size={36} />
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height={290} style={{ padding: "0 24px" }}>
-                        <LineChart data={asistencias}>
-
-                            <XAxis dataKey="hora" />
-                            <YAxis hide={isMobile} />
+                        <AreaChart data={asistencias}>
+                            <defs>
+                                <linearGradient id="assitsGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#ff6a00" stopOpacity={0.3} />
+                                    <stop offset="100%" stopColor="#ff6a00" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
+                            <XAxis dataKey="hora" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+                            <YAxis hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
                             <Tooltip
                                 content={<CustomTooltipAsistenciasHora tipo={tipo} />}
                                 offset={30}
                                 allowEscapeViewBox={{ x: false, y: false }}
                             />
-                            <Line
+                            <Area
                                 type="monotone"
                                 dataKey="cantidad"
                                 stroke={COLORS[0]}
                                 strokeWidth={2}
-                                dot={{ r: 4 }}
+                                fill="url(#assitsGradient)"
+                                dot={{ r: 4, fill: COLORS[0], strokeWidth: 0 }}
                             />
-                        </LineChart>
+                        </AreaChart>
                     </ResponsiveContainer>
                 )}
             </CardContent>

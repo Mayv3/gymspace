@@ -26,6 +26,18 @@ const config = {
         xs: "475px",
       },
       colors: {
+        brand: {
+          50: "#fff4ed",
+          100: "#ffe5d4",
+          200: "#ffc8a8",
+          300: "#ffa170",
+          400: "#ff7033",
+          500: "#ff6a00",
+          600: "#f04b00",
+          700: "#c83400",
+          800: "#9f2908",
+          900: "#7f250b",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -65,6 +77,12 @@ const config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        soft: "0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 0 3px rgba(0, 0, 0, 0.02)",
+        floating: "0 10px 40px -10px rgba(0, 0, 0, 0.08)",
+        glow: "0 0 20px rgba(255, 106, 0, 0.4)",
+        "brand-btn": "0 8px 20px -8px rgba(255, 106, 0, 0.6)",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -93,7 +111,7 @@ const config = {
         },
         blink: {
           "0%, 100%": { backgroundColor: "transparent" },
-          "50%": { backgroundColor: "#f97316" },
+          "50%": { backgroundColor: "#ff6a00" },
         },
       },
       animation: {

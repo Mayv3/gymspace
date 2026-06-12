@@ -37,17 +37,17 @@ export function DatePicker({ date, setDate, disabled = false }: DatePickerProps)
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
+          className={cn("w-full justify-start text-left font-medium rounded-xl border-border/60", !selectedDate && "text-muted-foreground")}
           disabled={disabled}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+          <CalendarIcon className="mr-2 h-4 w-4 text-brand-500" />
           {isValidDate
             ? format(selectedDate, "dd/MM/yyyy", { locale: es })
             : <span>Seleccionar fecha</span>
           }
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 rounded-xl border-border/60 shadow-floating" align="start">
         <Calendar
           mode="single"
           selected={selectedDate}

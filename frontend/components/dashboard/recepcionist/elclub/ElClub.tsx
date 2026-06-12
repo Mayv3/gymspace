@@ -42,23 +42,23 @@ function ClaseCard({
 
     return (
         <div
-            className="border border-orange-200 dark:border-zinc-700 rounded-lg px-3 py-4 bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-between gap-2 cursor-pointer hover:bg-orange-50 dark:hover:bg-zinc-800 transition-colors"
+            className="border border-border/60 rounded-xl px-3 py-4 bg-card shadow-soft flex items-center justify-between gap-2 cursor-pointer hover:bg-brand-50/60 dark:hover:bg-muted/40 transition-colors"
             onClick={() => onVerInscriptos(clase)}
         >
             <div className="flex flex-col min-w-0">
-                <span className="font-semibold text-sm leading-tight truncate">{clase['Nombre de clase']}</span>
-                <span className="text-xs text-muted-foreground">{clase.Hora} hs · {clase.ProximaFecha}</span>
+                <span className="font-bold text-sm leading-tight truncate">{clase['Nombre de clase']}</span>
+                <span className="text-xs text-muted-foreground font-medium">{clase.Hora} hs · {clase.ProximaFecha}</span>
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
                 <Badge
                     variant="outline"
-                    className={`text-xs font-semibold ${
+                    className={`text-xs font-bold rounded-full ${
                         lleno
-                            ? 'border-red-400 text-red-600 bg-red-50 dark:bg-red-900/20'
+                            ? 'border-rose-100 text-rose-700 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900'
                             : inscriptos.length > 0
-                                ? 'border-green-400 text-green-700 bg-green-50 dark:bg-green-900/20'
-                                : 'border-gray-300 text-muted-foreground bg-gray-50 dark:bg-zinc-800'
+                                ? 'border-emerald-100 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900'
+                                : 'border-border/60 text-muted-foreground bg-muted/50'
                     }`}
                 >
                     {inscriptos.length}/{clase['Cupo maximo']}
@@ -187,14 +187,14 @@ export const ElClub = () => {
 
     return (
         <>
-            <Card className="shadow-md">
-                <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg">
+            <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
+                <CardHeader className="bg-brand-50/60 dark:bg-card rounded-t-2xl border-b border-border/60">
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="text-xl">Clases</CardTitle>
-                            <CardDescription className="text-sm">Gestioná el cronograma · Tocá una clase para ver sus inscriptos.</CardDescription>
+                            <CardTitle className="text-xl font-bold">Clases</CardTitle>
+                            <CardDescription className="text-xs text-muted-foreground font-medium">Gestioná el cronograma · Tocá una clase para ver sus inscriptos.</CardDescription>
                         </div>
-                        <Button variant="orange" onClick={() => setShowCreateDialog(true)}>
+                        <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowCreateDialog(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Agregar clase
                         </Button>
                     </div>
@@ -205,7 +205,7 @@ export const ElClub = () => {
                             placeholder="Buscar clase..."
                             value={search}
                             onChange={e => { setSearch(e.target.value); setCurrentSlide(0) }}
-                            className="max-w-xs"
+                            className="max-w-xs rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                         />
                     </div>
                     {loading ? (
@@ -222,7 +222,7 @@ export const ElClub = () => {
                                         .sort((a, b) => a.Hora.localeCompare(b.Hora))
                                     return (
                                         <div key={dia} className="min-w-[175px] flex-1">
-                                            <h3 className="text-sm font-bold text-center text-primary mb-2 pb-1 border-b border-orange-200 dark:border-zinc-700">
+                                            <h3 className="text-sm font-bold text-center text-brand-500 mb-2 pb-1 border-b border-border/60">
                                                 {dia}
                                             </h3>
                                             <div className="space-y-2">
@@ -260,7 +260,7 @@ export const ElClub = () => {
                                                 .sort((a, b) => a.Hora.localeCompare(b.Hora))
                                             return (
                                                 <div key={dia} className="snap-start shrink-0 w-full px-1">
-                                                    <h3 className="text-sm font-bold text-center text-primary mb-3 pb-1 border-b border-orange-200 dark:border-zinc-700">
+                                                    <h3 className="text-sm font-bold text-center text-brand-500 mb-3 pb-1 border-b border-border/60">
                                                         {dia}
                                                     </h3>
                                                     {clasesDelDia.length === 0 ? (
@@ -301,7 +301,7 @@ export const ElClub = () => {
                                                 <button
                                                     key={i}
                                                     onClick={() => scrollToSlide(i)}
-                                                    className={`h-2 rounded-full transition-all ${i === currentSlide ? 'w-4 bg-orange-500' : 'w-2 bg-gray-300 dark:bg-zinc-600'}`}
+                                                    className={`h-2 rounded-full transition-all ${i === currentSlide ? 'w-4 bg-brand-500' : 'w-2 bg-muted-foreground/30'}`}
                                                 />
                                             ))}
                                         </div>
@@ -325,25 +325,25 @@ export const ElClub = () => {
 
             {/* Modal inscriptos */}
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-                <DialogContent className="rounded-lg max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-                    <DialogHeader className="border-b pb-4">
+                <DialogContent className="rounded-2xl border border-border/60 shadow-floating max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                    <DialogHeader className="border-b border-border/60 pb-4">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <DialogTitle className="text-2xl font-bold text-primary">{nombreClase}</DialogTitle>
-                            <Badge variant="outline" className="text-sm px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 w-fit">
+                            <DialogTitle className="text-2xl font-bold text-brand-500">{nombreClase}</DialogTitle>
+                            <Badge variant="outline" className="text-sm px-3 py-1.5 rounded-full font-bold bg-brand-50 dark:bg-brand-900/30 border-brand-100 dark:border-brand-900 text-brand-700 dark:text-brand-300 w-fit">
                                 {classDateTime}
                             </Badge>
                         </div>
                     </DialogHeader>
                     <div className="flex items-center gap-2 mt-4 mb-2">
-                        <Users className="h-5 w-5 text-orange-600" />
-                        <h3 className="text-sm font-semibold text-muted-foreground">Inscriptos ({dniList.length})</h3>
+                        <Users className="h-5 w-5 text-brand-500" />
+                        <h3 className="text-sm font-bold text-muted-foreground">Inscriptos ({dniList.length})</h3>
                     </div>
                     <div className="overflow-y-auto flex-1 pr-2">
                         {dniList.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {dniList.map((nombre, index) => (
-                                    <div key={index} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-zinc-800/50">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-200 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 font-semibold text-sm">
+                                    <div key={index} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/40">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/50 text-brand-500 dark:text-brand-300 font-bold text-sm">
                                             {index + 1}
                                         </div>
                                         <span className="text-sm font-medium">{nombre}</span>

@@ -30,18 +30,18 @@ export function DeleteMemberDialog({ open, onOpenChange, member, onDelete }: Del
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Confirmar Eliminación</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="font-bold">Confirmar Eliminación</DialogTitle>
+          <DialogDescription className="text-muted-foreground font-medium">
             ¿Está seguro de que desea eliminar este usuario? Esta acción es permanente.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" className="bg-card border border-border rounded-xl font-bold hover:bg-muted" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button variant="destructive" disabled={isSubmitting} onClick={handleDelete}>
+          <Button variant="destructive" className="font-bold rounded-xl" disabled={isSubmitting} onClick={handleDelete}>
              {isSubmitting ? "Eliminando..." : "Eliminar"}
           </Button>
         </DialogFooter>

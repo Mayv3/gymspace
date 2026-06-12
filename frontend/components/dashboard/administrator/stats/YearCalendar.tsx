@@ -9,7 +9,7 @@ export const YearCalendar = ({ isActiveDay }: Props) => {
     const year = dayjs().year();
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {Array.from({ length: 12 }).map((_, monthIndex) => (
                 <MonthCalendar
                     key={monthIndex}

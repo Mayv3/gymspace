@@ -139,10 +139,13 @@ export default function EmailBroadcast() {
 
     return (
         <>
-            <Card className="shadow-lg border rounded-2xl">
+            <Card className="bg-card shadow-soft border border-border/60 rounded-2xl">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                        <Mail className="h-5 w-5" /> Difusión de Emails
+                    <CardTitle className="flex items-center gap-2 text-lg font-bold">
+                        <span className="w-10 h-10 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center dark:bg-brand-900/30">
+                            <Mail className="h-5 w-5" />
+                        </span>
+                        Difusión de Emails
                     </CardTitle>
                 </CardHeader>
 
@@ -151,7 +154,7 @@ export default function EmailBroadcast() {
                         {/* Columna izquierda */}
                         <div className="space-y-6">
                             <div className="space-y-1">
-                                <label className="text-sm font-medium">Tipo de difusión</label>
+                                <label className="text-sm font-bold">Tipo de difusión</label>
                                 <Select value={tipo} onValueChange={(v: any) => setTipo(v)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Seleccioná tipo" />
@@ -166,7 +169,7 @@ export default function EmailBroadcast() {
 
                             {tipo === 'PARTICULAR' && (
                                 <div className="space-y-1">
-                                    <label className="text-sm font-medium">Email destinatario</label>
+                                    <label className="text-sm font-bold">Email destinatario</label>
                                     <Input
                                         value={emailParticular}
                                         onChange={e => setEmailParticular(e.target.value)}
@@ -176,7 +179,7 @@ export default function EmailBroadcast() {
                             )}
 
                             <div className="space-y-1">
-                                <label className="text-sm font-medium">Asunto</label>
+                                <label className="text-sm font-bold">Asunto</label>
                                 <Input
                                     value={subject}
                                     onChange={e => setSubject(e.target.value)}
@@ -185,7 +188,7 @@ export default function EmailBroadcast() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Insertar campos</label>
+                                <label className="text-sm font-bold">Insertar campos</label>
                                 <div className="flex flex-wrap gap-2">
                                     {placeholders.map(p => (
                                         <Button
@@ -206,7 +209,7 @@ export default function EmailBroadcast() {
                                                 type="button"
                                                 size="sm"
                                                 variant="ghost"
-                                                className="border border-orange-400 text-orange-500 hover:bg-orange-50 rounded-full px-3"
+                                                className="border border-brand-300 text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-full px-3 font-bold"
                                             >
                                                 Insertar emoji 😀
                                             </Button>
@@ -228,13 +231,13 @@ export default function EmailBroadcast() {
 
                         <div className="flex flex-col space-y-4">
                             <div className="space-y-1">
-                                <label className="text-sm font-medium">Mensaje</label>
+                                <label className="text-sm font-bold">Mensaje</label>
                                 <Textarea
                                     rows={10}
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
                                     placeholder="Escribí el mensaje..."
-                                    className="resize-none"
+                                    className="resize-none rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                                 />
                             </div>
 
@@ -243,7 +246,7 @@ export default function EmailBroadcast() {
                                     disabled={loading || cooldown || !isFormValid()}
                                     onClick={() => handleSend(true)}
                                     variant="outline"
-                                    className="flex-1"
+                                    className="flex-1 bg-card border border-border rounded-xl font-bold hover:bg-muted"
                                 >
                                     {loading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
                                     Vista previa
@@ -252,7 +255,7 @@ export default function EmailBroadcast() {
                                 <Button
                                     disabled={loading || cooldown || !isFormValid()}
                                     onClick={() => handleSend(false)}
-                                    className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                    className="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press"
                                 >
                                     {loading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
                                     Enviar
@@ -274,16 +277,16 @@ export default function EmailBroadcast() {
                         </DialogDescription>
                     </DialogHeader>
                     {preview && (
-                        <div className="space-y-3 p-3 border rounded bg-gray-50">
+                        <div className="space-y-3 p-3 border border-border/60 rounded-xl bg-muted/50">
                             <div>
-                                <b>{preview.Nombre}</b> <span className="text-gray-500">({preview.Email})</span>
+                                <b>{preview.Nombre}</b> <span className="text-muted-foreground">({preview.Email})</span>
                             </div>
-                            <div className="text-sm text-gray-600">Plan: {preview.Plan} — {preview.PlanTipo}</div>
-                            <div className="border-t pt-2 whitespace-pre-line">{preview.Texto}</div>
+                            <div className="text-sm text-muted-foreground font-medium">Plan: {preview.Plan} — {preview.PlanTipo}</div>
+                            <div className="border-t border-border/60 pt-2 whitespace-pre-line">{preview.Texto}</div>
                         </div>
                     )}
                     <DialogFooter>
-                        <Button onClick={() => setOpenPreview(false)}>Cerrar</Button>
+                        <Button className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl" onClick={() => setOpenPreview(false)}>Cerrar</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

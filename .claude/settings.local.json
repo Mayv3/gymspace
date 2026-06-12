@@ -10,7 +10,17 @@
       "mcp__supabase-fitflow__list_tables",
       "Read(//c/c/Users/nicop/OneDrive/Desktop/Proyectos/gymspace/**)",
       "Read(//c/c/Users/nicop/OneDrive/Desktop/Proyectos/gymspace/backend/**)",
-      "mcp__supabase-fitflow__execute_sql"
+      "mcp__supabase-fitflow__execute_sql",
+      "PowerShell(Get-ChildItem frontend\\\\components -Recurse -File | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\('C:\\\\Users\\\\nicop\\\\OneDrive\\\\Desktop\\\\Pruebas_aiDesigner\\\\gymspace\\\\frontend\\\\components\\\\',''\\) })",
+      "mcp__aidesigner__whoami",
+      "mcp__aidesigner__get_credit_status",
+      "mcp__aidesigner__generate_design",
+      "PowerShell(npx -y @aidesigner/agent-skills capture --html-file .aidesigner/mcp-latest.html --prompt \"Modern GYMSPACE gym management dashboard, Quicksand font, signature orange #FF6A00, soft SaaS surfaces, slim dock sidebar, KPI cards, chart, members table\" --transport mcp --remote-run-id \"2e3cbc70-7df5-4dfc-bb1c-6fc8283d9938\")",
+      "PowerShell(npx -y @aidesigner/agent-skills adopt --id 2026-06-12T22-04-42-643Z-modern-gymspace-gym-management-dashb)",
+      "PowerShell(git *)",
+      "Bash(perl -pi -e 's/<TableHead className=\"py-2 text-center\">/<TableHead className=\"py-2 text-center font-bold text-\\\\[11px\\\\] uppercase tracking-wider text-muted-foreground\">/g' components/dashboard/recepcionist/deudas/Deudas.tsx)",
+      "PowerShell(Set-Content *)",
+      "PowerShell(Remove-Item *)"
     ]
   },
   "enableAllProjectMcpServers": true,

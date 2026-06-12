@@ -1,12 +1,10 @@
-import Skeleton from "@mui/material/Skeleton";
-
 export function DashboardSkeleton() {
     const CardSkeleton = () => (
-        <Skeleton variant="rounded" width='100%' height={300} />
+        <div className="w-full h-[300px] rounded-2xl border border-border/60 bg-muted/60" />
     );
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 animate-pulse">
             <CardSkeleton />
             <CardSkeleton />
             <CardSkeleton />

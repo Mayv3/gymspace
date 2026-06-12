@@ -78,9 +78,9 @@ export const AnnualCalendarModal = ({ open, onClose, tipo }: Props) => {
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-5xl h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl h-[80vh] overflow-y-auto rounded-2xl">
                 <DialogHeader>
-                    <DialogTitle>
+                    <DialogTitle className="font-bold">
                         Calendario anual de asistencias – {tipo}
                     </DialogTitle>
                 </DialogHeader>
@@ -100,7 +100,7 @@ export const AnnualCalendarModal = ({ open, onClose, tipo }: Props) => {
                 </div>
 
                 {loading ? (
-                    <CircularProgress sx={{ color: "#f97316" }} size={36} />
+                    <CircularProgress sx={{ color: "#ff6a00" }} size={36} />
                 ) : (
                     <YearCalendar isActiveDay={isActiveDay} />
                 )}

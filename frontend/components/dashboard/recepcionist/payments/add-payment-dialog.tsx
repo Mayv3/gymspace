@@ -242,13 +242,13 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[500px] overflow-y-auto max-h-[90vh]">
+      <DialogContent className="w-[95vw] max-w-[500px] overflow-y-auto max-h-[90vh] rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <CreditCard className="mr-2 h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center font-bold">
+            <CreditCard className="mr-2 h-5 w-5 text-brand-500" />
             Registrar Nuevo Pago
           </DialogTitle>
-          <DialogDescription>Completa el formulario para registrar un nuevo pago en el sistema.</DialogDescription>
+          <DialogDescription className="text-xs text-muted-foreground font-medium">Completa el formulario para registrar un nuevo pago en el sistema.</DialogDescription>
         </DialogHeader>
         <FormEnterToTab onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -263,7 +263,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
                 onBlur={handleDniBlur}
                 required
               />
-              {dniError && <p className="text-sm text-red-600">{dniError}</p>}
+              {dniError && <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{dniError}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -358,11 +358,11 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" className="bg-card border border-border rounded-xl font-bold hover:bg-muted" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="orange" disabled={isSubmitting} type="submit">
+              <Button variant="orange" disabled={isSubmitting} type="submit" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press">
                 {isSubmitting ? "Registrando pago..." : 'Registrar pago'}
               </Button>
             </motion.div>

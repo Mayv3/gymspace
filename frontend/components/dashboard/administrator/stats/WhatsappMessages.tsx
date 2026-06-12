@@ -17,8 +17,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import CircularProgress from "@mui/material/CircularProgress"
-
 dayjs.locale("es")
 
 interface WhatsappMensaje {
@@ -52,16 +50,18 @@ export const WhatsappMessages = () => {
 
     return (
         <>
-            <Card className="shadow-lg hover:shadow-xl transition-all">
+            <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow">
                 <CardHeader className="flex flex-col items-center gap-2">
-                    <MessageCircle className="text-green-500" />
-                    <CardTitle>Últimos mensajes de WhatsApp</CardTitle>
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center">
+                        <MessageCircle className="w-5 h-5" />
+                    </div>
+                    <CardTitle className="font-bold">Últimos mensajes de WhatsApp</CardTitle>
                 </CardHeader>
 
                 <CardContent>
                     {loading ? (
                         <div className="flex justify-center mt-8">
-                            <CircularProgress sx={{ color: "#22c55e" }} size={36} />
+                            <div className="w-9 h-9 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" />
                         </div>
                     ) : data.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center mt-8">
@@ -73,11 +73,11 @@ export const WhatsappMessages = () => {
                                 <li
                                     key={m.id}
                                     onClick={() => setSelected(m)}
-                                    className="px-2 py-3 hover:bg-muted/40 transition cursor-pointer"
+                                    className="px-2 py-3 rounded-lg hover:bg-muted/40 transition cursor-pointer"
                                 >
                                     <div className="flex justify-between items-start gap-2">
                                         <div className="flex flex-col min-w-0">
-                                            <span className="font-medium text-sm truncate">
+                                            <span className="font-bold text-sm truncate">
                                                 {m.nombre || m.telefono}
                                             </span>
                                             <span className="text-xs text-muted-foreground truncate">
@@ -100,10 +100,10 @@ export const WhatsappMessages = () => {
             </Card>
 
             <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-                <DialogContent data-lenis-prevent className="max-w-lg max-h-[85vh] overflow-y-auto">
+                <DialogContent data-lenis-prevent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <MessageCircle className="text-green-500" size={18} />
+                        <DialogTitle className="flex items-center gap-2 font-bold">
+                            <MessageCircle className="text-emerald-500" size={18} />
                             {selected?.nombre || selected?.telefono}
                         </DialogTitle>
                     </DialogHeader>
@@ -115,7 +115,7 @@ export const WhatsappMessages = () => {
                                 {selected.vencimiento && <span>Vencimiento: {selected.vencimiento}</span>}
                                 <span>Enviado: {dayjs(selected.enviado_at).format("DD/MM/YYYY HH:mm")}</span>
                             </div>
-                            <div data-lenis-prevent className="border rounded-md p-3 bg-muted/30 whitespace-pre-wrap text-sm max-h-[50vh] overflow-y-auto">
+                            <div data-lenis-prevent className="border border-border/60 rounded-xl p-3 bg-muted/30 whitespace-pre-wrap text-sm font-medium max-h-[50vh] overflow-y-auto">
                                 {selected.mensaje}
                             </div>
                         </div>

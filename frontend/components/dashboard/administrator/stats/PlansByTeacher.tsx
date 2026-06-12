@@ -9,7 +9,7 @@ import { Tooltip as TooltipUI, TooltipTrigger, TooltipContent, TooltipProvider }
 import dayjs from 'dayjs'
 import 'dayjs/locale/es'
 import { CalendarCheck, Info } from 'lucide-react'
-import { BarChart, Bar, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
+import { BarChart, Bar, CartesianGrid, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 import { COLORS } from './colors'
 import { CustomTooltipProfesores } from '../tooltips/CustomTooltipProfesores';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,12 +38,14 @@ export const PlansByTeacher = ({
     const data = Array.isArray(planesPorProfesor) ? planesPorProfesor : [];
     const isMobile = useIsMobile();
     return (
-        <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-1">
+        <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow col-span-1 md:col-span-2 xl:col-span-1">
             <CardContent>
                 <div className='flex flex-col'>
-                    <CardHeader className="flex items-center flex-col pb-4">
-                        <CalendarCheck className="text-orange-500" />
-                        <CardTitle>Planes Personalizados por Profesor</CardTitle>
+                    <CardHeader className="flex items-center flex-col gap-2 pb-4">
+                        <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+                            <CalendarCheck className="w-5 h-5" />
+                        </div>
+                        <CardTitle className="font-bold">Planes Personalizados por Profesor</CardTitle>
                     </CardHeader>
                     <div className="flex justify-end gap-4 w-full items-center">
                         <div className="w-[170px] flex items-center gap-2">
@@ -106,8 +108,9 @@ export const PlansByTeacher = ({
                 ) : (
                     <ResponsiveContainer width="100%" height={360}>
                         <BarChart data={data}>
-                            <XAxis dataKey="profesor" hide={isMobile} />
-                            <YAxis hide={isMobile} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
+                            <XAxis dataKey="profesor" hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+                            <YAxis hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
                             <Tooltip content={<CustomTooltipProfesores />} allowEscapeViewBox={{ x: false, y: false }}
                             />
                             <Bar dataKey="cantidad" radius={[10, 10, 0, 0]}>

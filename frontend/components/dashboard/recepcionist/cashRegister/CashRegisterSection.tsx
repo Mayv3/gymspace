@@ -62,7 +62,11 @@ function HoldButton({
     <Button
       variant={variant}
       disabled={disabled || executing}
-      className={isOrange ? "animate-pulse-scale select-none" : "select-none"}
+      className={
+        isOrange
+          ? "animate-pulse-scale select-none bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn"
+          : "select-none font-bold rounded-xl"
+      }
       onMouseDown={startHold}
       onMouseUp={cancelHold}
       onMouseLeave={cancelHold}
@@ -129,7 +133,7 @@ export default function CashRegisterSection({
           .
         </h1>
         {errorMessage && (
-          <div className="text-sm text-red-600 font-medium mt-2">
+          <div className="text-sm text-rose-600 dark:text-rose-400 font-medium mt-2">
             {errorMessage}
           </div>
         )}
@@ -153,7 +157,7 @@ export default function CashRegisterSection({
 
       {selectedShift === "todos" && (
         <div className="flex justify-center">
-          <p className="text-lg text-red-600">
+          <p className="text-lg text-rose-600 dark:text-rose-400 font-medium">
             Por favor selecciona un turno (mañana o tarde) para abrir la caja en PAGOS.
           </p>
         </div>

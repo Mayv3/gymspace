@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<!--
+  aesthetic_dna: Modern SaaS Dashboard, "Soft UI", High-Data Density wrapped in generous whitespace.
+  ui_paradigm: Slim-Dock Desktop Structure, Bento-inspired Data Panes, Modular Card Architecture.
+  palette_choice: Zinc-50 Base, Pure White Surfaces, Signature Gym Orange (#FF6A00) High-Contrast Accent.
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GYMSPACE - Panel de Administración</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Quicksand Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration & Custom Styles -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff4ed',
+                            100: '#ffe5d4',
+                            200: '#ffc8a8',
+                            300: '#ffa170',
+                            400: '#ff7033',
+                            500: '#ff6a00', // Signature Gym Orange
+                            600: '#f04b00',
+                            700: '#c83400',
+                            800: '#9f2908',
+                            900: '#7f250b',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 0 3px rgba(0,0,0,0.02)',
+                        'floating': '0 10px 40px -10px rgba(0, 0, 0, 0.08)',
+                        'glow': '0 0 20px rgba(255, 106, 0, 0.4)',
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'draw-line': 'drawLine 2s cubic-bezier(0.8, 0, 0.2, 1) forwards',
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        drawLine: {
+                            '0%': { strokeDasharray: '0 1000' },
+                            '100%': { strokeDasharray: '1000 0' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.6' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Core System Resets */
+        body {
+            background-color: #fafafa; /* Very light zinc equivalent */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: "tnum"; /* Tabular numbers globally for alignment */
+            overflow-x: hidden;
+        }
+
+        /* Accent Selection */
+        ::selection {
+            background-color: rgba(255, 106, 0, 0.2);
+            color: #c83400;
+        }
+
+        /* Staggered Animation Logic using CSS Variables */
+        .stagger-1 { animation-delay: 100ms; opacity: 0; }
+        .stagger-2 { animation-delay: 200ms; opacity: 0; }
+        .stagger-3 { animation-delay: 300ms; opacity: 0; }
+        .stagger-4 { animation-delay: 400ms; opacity: 0; }
+        .stagger-5 { animation-delay: 500ms; opacity: 0; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e4e4e7; /* zinc-200 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4d4d8; /* zinc-300 */
+        }
+
+        /* Liquid Glass Card Effects */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(244, 244, 245, 0.8); /* zinc-100 */
+            box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Micro-interactions */
+        .btn-press {
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-press:active {
+            transform: scale(0.96) translateY(1px);
+        }
+
+        .nav-item-active::before {
+            content: '';
+            position: absolute;
+            left: -1px; /* Align with border */
+            top: 15%;
+            height: 70%;
+            width: 4px;
+            background-color: #ff6a00;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Focus Rings */
+        *:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.3);
+        }
+
+        /* Chart SVG Styling */
+        .chart-line {
+            fill: none;
+            stroke: #ff6a00;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0px 8px 8px rgba(255,106,0,0.2));
+            animation: draw-line 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .chart-area {
+            fill: url(#orangeGradient);
+            opacity: 0;
+            animation: fade-in 1s 1.5s forwards;
+        }
+    </style>
+</head>
+<body class="text-zinc-800 min-h-[100dvh] flex flex-col md:flex-row relative">
+
+    <!-- Mobile Navigation (Bottom Dock) -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-zinc-200 z-50 flex justify-around p-3 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+        <a href="#" class="flex flex-col items-center text-brand-500 font-medium">
+            <i class="ph-fill ph-squares-four text-2xl mb-1"></i>
+            <span class="text-[10px]">Inicio</span>
+        </a>
+        <a href="#" class="flex flex-col items-center text-zinc-400 hover:text-zinc-800 transition-colors">
+            <i class="ph ph-users text-2xl mb-1"></i>
+            <span class="text-[10px]">Socios</span>
+        </a>
+        <button class="bg-brand-500 text-white rounded-full p-3 -mt-6 shadow-glow border-4 border-[#fafafa] btn-press">
+            <i class="ph-bold ph-plus text-xl"></i>
+        </button>
+        <a href="#" class="flex flex-col items-center text-zinc-400 hover:text-zinc-800 transition-colors">
+            <i class="ph ph-calendar-check text-2xl mb-1"></i>
+            <span class="text-[10px]">Clases</span>
+        </a>
+        <a href="#" class="flex flex-col items-center text-zinc-400 hover:text-zinc-800 transition-colors">
+            <i class="ph ph-wallet text-2xl mb-1"></i>
+            <span class="text-[10px]">Pagos</span>
+        </a>
+    </nav>
+
+    <!-- Desktop Sidebar (Slim Dock Paradigm) -->
+    <aside class="hidden md:flex flex-col w-20 xl:w-24 bg-white border-r border-zinc-200/80 fixed h-[100dvh] z-40 items-center py-6 shadow-[2px_0_20px_rgba(0,0,0,0.02)]">
+
+        <!-- Logo -->
+        <div class="mb-12 relative group cursor-pointer">
+            <div class="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-white shadow-md transform transition-transform group-hover:scale-105">
+                <i class="ph-bold ph-barbell text-2xl text-brand-500"></i>
+            </div>
+            <!-- Tooltip -->
+            <div class="absolute left-16 top-3 bg-zinc-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-floating">
+                GYMSPACE
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex flex-col gap-6 w-full relative">
+
+            <a href="#" class="w-full flex justify-center py-3 relative nav-item-active group">
+                <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center transition-colors">
+                    <i class="ph-fill ph-squares-four text-2xl"></i>
+                </div>
+            </a>
+
+            <a href="#" class="w-full flex justify-center py-3 group relative">
+                <div class="w-12 h-12 rounded-xl text-zinc-400 hover:bg-zinc-50 hover:text-zinc-800 flex items-center justify-center transition-all">
+                    <i class="ph ph-users text-2xl transform group-hover:-translate-y-1 transition-transform"></i>
+                </div>
+                <div class="absolute left-[85%] top-4 bg-zinc-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-2 transition-all whitespace-nowrap z-50">Socios</div>
+            </a>
+
+            <a href="#" class="w-full flex justify-center py-3 group relative">
+                <div class="w-12 h-12 rounded-xl text-zinc-400 hover:bg-zinc-50 hover:text-zinc-800 flex items-center justify-center transition-all">
+                    <i class="ph ph-wallet text-2xl transform group-hover:-translate-y-1 transition-transform"></i>
+                </div>
+                <div class="absolute left-[85%] top-4 bg-zinc-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-2 transition-all whitespace-nowrap z-50">Pagos</div>
+            </a>
+
+            <a href="#" class="w-full flex justify-center py-3 group relative">
+                <div class="w-12 h-12 rounded-xl text-zinc-400 hover:bg-zinc-50 hover:text-zinc-800 flex items-center justify-center transition-all relative">
+                    <i class="ph ph-calendar-check text-2xl transform group-hover:-translate-y-1 transition-transform"></i>
+                    <!-- Notification Dot -->
+                    <span class="absolute top-2 right-2.5 w-2.5 h-2.5 bg-brand-500 rounded-full border-2 border-white animate-pulse-glow"></span>
+                </div>
+                <div class="absolute left-[85%] top-4 bg-zinc-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-2 transition-all whitespace-nowrap z-50">Clases (2 act)</div>
+            </a>
+
+            <a href="#" class="w-full flex justify-center py-3 group relative">
+                <div class="w-12 h-12 rounded-xl text-zinc-400 hover:bg-zinc-50 hover:text-zinc-800 flex items-center justify-center transition-all">
+                    <i class="ph ph-chart-line-up text-2xl transform group-hover:-translate-y-1 transition-transform"></i>
+                </div>
+                <div class="absolute left-[85%] top-4 bg-zinc-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-2 transition-all whitespace-nowrap z-50">Reportes</div>
+            </a>
+        </nav>
+
+        <!-- Bottom Actions -->
+        <div class="mt-auto flex flex-col gap-4 w-full">
+            <a href="#" class="w-full flex justify-center py-3 group relative">
+                <div class="w-12 h-12 rounded-xl text-zinc-400 hover:bg-zinc-50 hover:text-zinc-800 flex items-center justify-center transition-all">
+                    <i class="ph ph-gear text-2xl transform group-hover:rotate-45 transition-transform duration-300"></i>
+                </div>
+                <div class="absolute left-[85%] top-4 bg-zinc-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-2 transition-all whitespace-nowrap z-50">Ajustes</div>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 md:ml-20 xl:ml-24 w-full md:w-[calc(100%-5rem)] xl:w-[calc(100%-6rem)] pb-24 md:pb-0">
+
+        <!-- Sticky Header Context -->
+        <header class="sticky top-0 z-30 bg-[#fafafa]/80 backdrop-blur-xl border-b border-zinc-200/60 px-4 md:px-8 py-4 flex justify-between items-center h-20 shadow-sm transition-all duration-300">
+
+            <div class="flex items-center gap-4 flex-1">
+                <div class="hidden md:block">
+                    <h1 class="text-xl font-bold tracking-tight text-zinc-900 leading-none">Visión General</h1>
+                    <p class="text-xs text-zinc-500 font-medium mt-1">Sede Central Palermo · Hoy, 14 Oct</p>
+                </div>
+
+                <!-- Global Search -->
+                <div class="w-full md:w-auto relative group md:ml-8">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="ph ph-magnifying-glass text-zinc-400 group-focus-within:text-brand-500 transition-colors"></i>
+                    </div>
+                    <input type="text" placeholder="Buscar socio, DNI o pago..." class="block w-full md:w-80 pl-10 pr-4 py-2.5 bg-white border border-zinc-200/80 rounded-full text-sm placeholder-zinc-400 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 shadow-sm transition-all outline-none font-medium text-zinc-700">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none hidden md:flex">
+                        <span class="text-[10px] bg-zinc-100 text-zinc-500 font-bold px-2 py-0.5 rounded border border-zinc-200">⌘K</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 md:gap-5 ml-4">
+                <!-- Utilities -->
+                <button class="w-10 h-10 rounded-full bg-white border border-zinc-200 text-zinc-500 flex items-center justify-center hover:text-zinc-900 hover:border-zinc-300 transition-colors shadow-sm hidden md:flex btn-press">
+                    <i class="ph ph-moon text-lg"></i>
+                </button>
+                <button class="relative w-10 h-10 rounded-full bg-white border border-zinc-200 text-zinc-500 flex items-center justify-center hover:text-zinc-900 hover:border-zinc-300 transition-colors shadow-sm btn-press">
+                    <i class="ph ph-bell text-lg"></i>
+                    <span class="absolute top-2.5 right-2 w-2 h-2 bg-brand-500 rounded-full border border-white"></span>
+                </button>
+
+                <!-- Profile Anchor -->
+                <div class="h-8 w-px bg-zinc-200 mx-1 hidden md:block"></div>
+
+                <div class="flex items-center gap-3 cursor-pointer group rounded-full md:pr-4 hover:bg-zinc-100 transition-colors py-1 pl-1">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80" alt="Recepcionista Mariana" class="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-white shadow-sm filter saturate-[0.8] group-hover:saturate-100 transition-all">
+                    </div>
+                    <div class="hidden md:flex flex-col">
+                        <span class="text-sm font-bold text-zinc-800 leading-none">Mariana V.</span>
+                        <span class="text-[10px] font-bold text-brand-500 uppercase tracking-wider mt-1">Recepción</span>
+                    </div>
+                    <i class="ph ph-caret-down text-zinc-400 hidden md:block group-hover:text-zinc-800 transition-colors"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Canvas -->
+        <div class="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1600px] mx-auto">
+
+            <!-- Welcome Bar & Main CTA (Meso-Architecture) -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-slide-up stagger-1">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">Buen día, Mariana 👋</h2>
+                    <p class="text-zinc-500 font-medium mt-1">El gimnasio operando al 68% de capacidad actual.</p>
+                </div>
+                <div class="flex gap-3 w-full md:w-auto">
+                    <button class="flex-1 md:flex-none justify-center px-4 py-2.5 bg-white border border-zinc-200 text-zinc-700 font-bold rounded-xl hover:bg-zinc-50 shadow-sm flex items-center gap-2 transition-all btn-press">
+                        <i class="ph ph-qr-code text-lg"></i>
+                        Ingreso Manual
+                    </button>
+                    <button class="flex-1 md:flex-none justify-center px-5 py-2.5 bg-brand-500 text-white font-bold rounded-xl hover:bg-brand-600 shadow-[0_8px_20px_-8px_rgba(255,106,0,0.6)] flex items-center gap-2 transition-all btn-press">
+                        <i class="ph-bold ph-user-plus text-lg"></i>
+                        Nuevo Socio
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Engine -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+                <!-- Card 1 -->
+                <div class="glass-panel rounded-[1.25rem] p-5 relative overflow-hidden group hover:shadow-floating transition-all duration-300 animate-slide-up stagger-2 cursor-default">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Socios Activos</p>
+                            <h3 class="text-3xl font-bold text-zinc-900 tracking-tighter">1.240</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                            <i class="ph-fill ph-users-three text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                            <i class="ph-bold ph-trend-up"></i> +5.2%
+                        </span>
+                        <span class="text-xs text-zinc-400 font-medium">vs. mes anterior</span>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-panel rounded-[1.25rem] p-5 relative overflow-hidden group hover:shadow-floating transition-all duration-300 animate-slide-up stagger-3 cursor-default">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Ingresos (Oct)</p>
+                            <h3 class="text-3xl font-bold text-zinc-900 tracking-tighter">$3.45M</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center transform group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
+                            <i class="ph-fill ph-money text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                            <i class="ph-bold ph-trend-up"></i> +2.1%
+                        </span>
+                        <span class="text-xs text-zinc-400 font-medium">AR$ Proyectado</span>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel rounded-[1.25rem] p-5 relative overflow-hidden group hover:shadow-floating transition-all duration-300 animate-slide-up stagger-4 cursor-default">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Asistencias Hoy</p>
+                            <div class="flex items-baseline gap-2">
+                                <h3 class="text-3xl font-bold text-zinc-900 tracking-tighter">342</h3>
+                                <span class="text-sm font-semibold text-brand-500">accesos</span>
+                            </div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                            <i class="ph-fill ph-fingerprint text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-2 w-full">
+                        <div class="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-brand-500 rounded-full w-[68%]"></div>
+                        </div>
+                        <span class="text-xs text-zinc-400 font-bold">68%</span>
+                    </div>
+                </div>
+
+                <!-- Card 4 (Alert State Bias correction) -->
+                <div class="glass-panel rounded-[1.25rem] p-5 relative overflow-hidden group hover:shadow-floating transition-all duration-300 animate-slide-up stagger-5 cursor-default border-amber-200/50">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                    <div class="flex justify-between items-start relative z-10">
+                        <div>
+                            <p class="text-xs font-bold text-amber-600/70 uppercase tracking-widest mb-1">Por Vencer (7 días)</p>
+                            <h3 class="text-3xl font-bold text-zinc-900 tracking-tighter">28</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                            <i class="ph-fill ph-warning-circle text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-2 relative z-10">
+                        <button class="text-xs font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1 rounded-md transition-colors w-full flex justify-between items-center">
+                            Ver listado y renovar
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meso Grid: Chart & Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up" style="animation-delay: 600ms;">
+
+                <!-- Chart Area: Occupies 2 cols -->
+                <div class="lg:col-span-2 glass-panel rounded-[1.5rem] p-6 flex flex-col h-[380px]">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-zinc-900 leading-none">Flujo de Asistencia Horaria</h3>
+                            <p class="text-xs text-zinc-500 font-medium mt-1">Comparativa de afluencia: Hoy vs Promedio</p>
+                        </div>
+                        <div class="flex bg-zinc-100 p-1 rounded-lg">
+                            <button class="px-3 py-1 text-xs font-bold rounded bg-white shadow-sm text-zinc-900">Hoy</button>
+                            <button class="px-3 py-1 text-xs font-bold rounded text-zinc-500 hover:text-zinc-900 transition-colors">Semana</button>
+                        </div>
+                    </div>
+
+                    <!-- Simulated CSS/SVG Premium Line Chart -->
+                    <div class="flex-1 w-full relative mt-4">
+                        <!-- Grid lines -->
+                        <div class="absolute inset-0 flex flex-col justify-between pb-8">
+                            <div class="w-full border-b border-dashed border-zinc-200 h-0"></div>
+                            <div class="w-full border-b border-dashed border-zinc-200 h-0"></div>
+                            <div class="w-full border-b border-dashed border-zinc-200 h-0"></div>
+                            <div class="w-full border-b border-solid border-zinc-200 h-0"></div>
+                        </div>
+                        <!-- Axis Labels Y -->
+                        <div class="absolute left-0 top-0 bottom-8 flex flex-col justify-between pt-1 -ml-2 text-[10px] font-bold text-zinc-400">
+                            <span>150</span>
+                            <span>100</span>
+                            <span>50</span>
+                        </div>
+
+                        <!-- SVG Data Line -->
+                        <div class="w-full h-[calc(100%-2rem)] absolute left-0 bottom-8 ml-6 pr-6">
+                            <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 1000 300" class="overflow-visible">
+                                <defs>
+                                    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#ff6a00" stop-opacity="0.3" />
+                                        <stop offset="100%" stop-color="#ff6a00" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Area fill -->
+                                <path d="M0,280 L0,220 C100,220 150,80 250,50 C350,20 400,120 500,150 C600,180 650,280 750,250 C850,220 950,90 1000,60 L1000,300 L0,300 Z" class="chart-area" />
+                                <!-- The Line -->
+                                <path d="M0,220 C100,220 150,80 250,50 C350,20 400,120 500,150 C600,180 650,280 750,250 C850,220 950,90 1000,60" class="chart-line" />
+
+                                <!-- Data points (Pulse) -->
+                                <circle cx="250" cy="50" r="6" fill="#fff" stroke="#ff6a00" stroke-width="3" class="opacity-0 pb-delay filter drop-shadow-md" style="animation: fadeIn 0.3s 2.2s forwards;" />
+                                <circle cx="500" cy="150" r="6" fill="#fff" stroke="#ff6a00" stroke-width="3" class="opacity-0 filter drop-shadow-md" style="animation: fadeIn 0.3s 2.3s forwards;" />
+                                <circle cx="1000" cy="60" r="6" fill="#fff" stroke="#ff6a00" stroke-width="3" class="opacity-0 filter drop-shadow-md" style="animation: fadeIn 0.3s 2.5s forwards;" />
+                            </svg>
+                        </div>
+
+                        <!-- Axis Labels X -->
+                        <div class="absolute bottom-0 left-6 right-6 flex justify-between text-[11px] font-bold text-zinc-400 pt-2">
+                            <span>08:00</span>
+                            <span>12:00</span>
+                            <span>16:00</span>
+                            <span>20:00</span>
+                            <span>23:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Stream / Actions -->
+                <div class="glass-panel rounded-[1.5rem] flex flex-col overflow-hidden h-[380px]">
+                    <div class="p-5 border-b border-zinc-100 flex justify-between items-center bg-white/50">
+                        <h3 class="text-sm font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Check-in en Vivo
+                        </h3>
+                        <i class="ph ph-dots-three text-xl text-zinc-400 cursor-pointer hover:text-zinc-900"></i>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-2 space-y-1">
+                        <!-- Stream Items -->
+                        <div class="flex items-center gap-3 p-3 hover:bg-zinc-50 rounded-xl transition-colors cursor-default">
+                            <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=100&q=80" alt="Socio" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-zinc-900 truncate">Facundo R.</p>
+                                <p class="text-xs text-zinc-500 font-medium">Plan Musculación</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-zinc-900">Hace 2 min</p>
+                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Acceso OK</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-3 hover:bg-zinc-50 rounded-xl transition-colors cursor-default">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="Socio" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-zinc-900 truncate">Valentina M.</p>
+                                <p class="text-xs text-zinc-500 font-medium">Plan Pase Libre</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-zinc-900">Hace 5 min</p>
+                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Acceso OK</span>
+                            </div>
+                        </div>
+
+                        <!-- Debt Alert Injection -->
+                        <div class="flex items-center gap-3 p-3 bg-rose-50/50 rounded-xl transition-colors cursor-default border border-rose-100">
+                            <div class="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-500 font-bold border border-white shrink-0">LM</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-zinc-900 truncate">Lautaro M.</p>
+                                <p class="text-xs text-rose-600 font-medium">Deuda mes pasado</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-zinc-900">Hace 12 min</p>
+                                <span class="text-[10px] font-bold text-white bg-rose-500 px-2 py-0.5 rounded uppercase shadow-sm">Bloqueado</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-3 hover:bg-zinc-50 rounded-xl transition-colors cursor-default">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" alt="Socio" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-zinc-900 truncate">Tomás E.</p>
+                                <p class="text-xs text-zinc-500 font-medium">Crossfit M</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-zinc-900">Hace 18 min</p>
+                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Acceso OK</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Data Grid (Micro-Architecture) -->
+            <div class="glass-panel rounded-[1.5rem] overflow-hidden animate-slide-up flex flex-col" style="animation-delay: 700ms;">
+
+                <!-- Table Header Options -->
+                <div class="p-5 border-b border-zinc-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/40">
+                    <div>
+                        <h3 class="text-lg font-bold text-zinc-900">Gestión de Socios</h3>
+                        <p class="text-xs text-zinc-500 font-medium mt-1">Directorio principal de base de datos</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="px-3 py-2 bg-white border border-zinc-200 rounded-lg text-xs font-bold text-zinc-700 hover:bg-zinc-50 flex items-center gap-2 transition-colors">
+                            <i class="ph ph-funnel text-sm"></i> Filtrar
+                        </button>
+                        <button class="px-3 py-2 bg-white border border-zinc-200 rounded-lg text-xs font-bold text-zinc-700 hover:bg-zinc-50 flex items-center gap-2 transition-colors">
+                            <i class="ph ph-export text-sm"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Responsive Table Wrapper -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-zinc-50/50 text-[11px] uppercase tracking-wider font-bold text-zinc-500 border-b border-zinc-100">
+                                <th class="px-6 py-4 font-bold">Socio</th>
+                                <th class="px-6 py-4 font-bold">Plan Suscrito</th>
+                                <th class="px-6 py-4 font-bold">Estado</th>
+                                <th class="px-6 py-4 font-bold">Próximo Vencimiento</th>
+                                <th class="px-6 py-4 font-bold">Última Asistencia</th>
+                                <th class="px-6 py-4 text-right font-bold">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-zinc-100">
+
+                            <!-- Row 1: Active -->
+                            <tr class="hover:bg-zinc-50/60 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-xs shrink-0 border border-white shadow-sm">
+                                            MR
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-zinc-900 leading-tight">Martín Rodríguez</p>
+                                            <p class="text-xs text-zinc-400 font-medium font-mono">ID: #4092</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-zinc-700">Pase Libre Anual</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Activo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-zinc-600">12 Feb 2024</td>
+                                <td class="px-6 py-4 font-medium text-zinc-600">Hoy, 10:45hs</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1.5 text-zinc-400 hover:text-brand-500 hover:bg-brand-50 rounded transition-colors" title="Ver perfil">
+                                            <i class="ph-bold ph-eye text-lg"></i>
+                                        </button>
+                                        <button class="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition-colors" title="Editar">
+                                            <i class="ph-bold ph-pencil-simple text-lg"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2: Warning (Due soon) -->
+                            <tr class="hover:bg-zinc-50/60 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80" alt="Sofía" class="w-9 h-9 rounded-full object-cover shrink-0 border border-white shadow-sm">
+                                        <div>
+                                            <p class="font-bold text-zinc-900 leading-tight">Sofía Biondi</p>
+                                            <p class="text-xs text-zinc-400 font-medium font-mono">ID: #3881</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-zinc-700">Musculación Mensual</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Por Vencer
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-amber-600">Mañana</td>
+                                <td class="px-6 py-4 font-medium text-zinc-600">Ayer, 18:30hs</td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="px-3 py-1.5 bg-brand-50 text-brand-600 font-bold text-xs rounded-md hover:bg-brand-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100">
+                                        Renovar
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3: Debt/Inactive -->
+                            <tr class="hover:bg-zinc-50/60 transition-colors group bg-zinc-50/30">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-zinc-200 text-zinc-500 flex items-center justify-center font-bold text-xs shrink-0 border border-white shadow-sm">
+                                            CD
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-zinc-900 leading-tight">Carlos Domínguez</p>
+                                            <p class="text-xs text-zinc-400 font-medium font-mono">ID: #2105</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-zinc-500">Crossfit 3x Semana</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Impago
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-zinc-500 line-through decoration-rose-300">01 Oct 2023</td>
+                                <td class="px-6 py-4 font-medium text-zinc-400">Hace 14 días</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Enviar Recordatorio">
+                                            <i class="ph-bold ph-paper-plane-tilt text-lg"></i>
+                                        </button>
+                                        <button class="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition-colors" title="Opciones">
+                                            <i class="ph-bold ph-dots-three text-lg"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 4: Normal -->
+                            <tr class="hover:bg-zinc-50/60 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Ailen" class="w-9 h-9 rounded-full object-cover shrink-0 border border-white shadow-sm filter grayscale-[30%]">
+                                        <div>
+                                            <p class="font-bold text-zinc-900 leading-tight">Ailen Costa</p>
+                                            <p class="text-xs text-zinc-400 font-medium font-mono">ID: #4122</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-zinc-700">Pase Libre Mensual</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Activo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-zinc-600">22 Oct 2023</td>
+                                <td class="px-6 py-4 font-medium text-zinc-600">Hoy, 08:15hs</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1.5 text-zinc-400 hover:text-brand-500 hover:bg-brand-50 rounded transition-colors" title="Ver perfil">
+                                            <i class="ph-bold ph-eye text-lg"></i>
+                                        </button>
+                                        <button class="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition-colors" title="Editar">
+                                            <i class="ph-bold ph-pencil-simple text-lg"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="p-4 border-t border-zinc-100 bg-zinc-50/50 flex justify-between items-center text-xs font-bold text-zinc-500">
+                    <span>Mostrando 4 de 1.240 socios</span>
+                    <div class="flex items-center gap-1">
+                        <button class="w-8 h-8 rounded border border-zinc-200 flex items-center justify-center bg-white text-zinc-300 cursor-not-allowed">
+                            <i class="ph-bold ph-caret-left"></i>
+                        </button>
+                        <button class="w-8 h-8 rounded border border-brand-500 flex items-center justify-center bg-brand-50 text-brand-600">1</button>
+                        <button class="w-8 h-8 rounded border border-zinc-200 flex items-center justify-center bg-white hover:bg-zinc-50 text-zinc-700 transition-colors">2</button>
+                        <button class="w-8 h-8 rounded border border-zinc-200 flex items-center justify-center bg-white hover:bg-zinc-50 text-zinc-700 transition-colors">3</button>
+                        <span class="px-2">...</span>
+                        <button class="w-8 h-8 rounded border border-zinc-200 flex items-center justify-center bg-white hover:bg-zinc-50 text-zinc-700 transition-colors">
+                            <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- UI/UX Enhancement Script -->
+    <script>
+        // Simple Interaction Mockups for a livelier feel
+        document.addEventListener('DOMContentLoaded', () => {
+            // Dark Mode Toggle Mock interaction (UI feedback only per requirements)
+            const darkModeBtn = document.querySelector('.ph-moon').parentElement;
+            darkModeBtn.addEventListener('click', function() {
+                this.classList.add('scale-90');
+                setTimeout(() => {
+                    this.classList.remove('scale-90');
+                    // Add a tiny toast or ripple effect to acknowledge click
+                    const icon = this.querySelector('i');
+                    if(icon.classList.contains('ph-moon')) {
+                        icon.classList.replace('ph-moon', 'ph-sun');
+                        icon.classList.add('text-brand-500');
+                    } else {
+                        icon.classList.replace('ph-sun', 'ph-moon');
+                        icon.classList.remove('text-brand-500');
+                    }
+                }, 150);
+            });
+
+            // Re-trigger SVG animation on scroll into view for dramatic effect (basic implementation)
+            const chartArea = document.querySelector('.chart-line');
+            if(chartArea) {
+                // Remove animation initially to trigger it later
+                chartArea.style.animation = 'none';
+                setTimeout(() => {
+                    chartArea.style.animation = 'draw-line 2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

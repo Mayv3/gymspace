@@ -217,14 +217,14 @@ export default function ShiftsSection() {
 
     return (
         <>
-            <Card>
-                <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
+            <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
+                <CardHeader className="bg-brand-50/60 dark:bg-card rounded-t-2xl border-b border-border/60 mb-4">
                     <div className="flex justify-between">
                         <div>
-                            <CardTitle>Turnos</CardTitle>
-                            <CardDescription className="hidden md:block">Gestiona los turnos agendados.</CardDescription>
+                            <CardTitle className="font-bold">Turnos</CardTitle>
+                            <CardDescription className="hidden md:block text-xs text-muted-foreground font-medium">Gestiona los turnos agendados.</CardDescription>
                         </div>
-                        <Button variant="orange" onClick={() => setShowCreateDialog(true)}>
+                        <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowCreateDialog(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Agregar turno
                         </Button>
                     </div>
@@ -258,20 +258,20 @@ export default function ShiftsSection() {
                         </div>
                     </div>
 
-                    <div className="overflow-auto md:border rounded-md max-w-[calc(100vw-2rem)]">
+                    <div className="overflow-auto md:border md:border-border/60 rounded-xl max-w-[calc(100vw-2rem)]">
                         <div className="min-w-[900px] hidden md:block">
                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="text-center">Tipo</TableHead>
-                                        <TableHead className="text-center">Fecha</TableHead>
-                                        <TableHead className="text-center">Profesional</TableHead>
-                                        <TableHead className="text-center">Horario</TableHead>
-                                        <TableHead className="text-center">Responsable</TableHead>
-                                        <TableHead className="text-center">Acciones</TableHead>
+                                <TableHeader className="bg-muted/50">
+                                    <TableRow className="border-b">
+                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Tipo</TableHead>
+                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Fecha</TableHead>
+                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Profesional</TableHead>
+                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Horario</TableHead>
+                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Responsable</TableHead>
+                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody>
+                                <TableBody className="divide-y divide-border/60">
                                     {paginatedShifts.length ? (
                                         paginatedShifts.map((turno, i) => {
                                             const esHoy = dayjs(turno.Fecha_turno, "D/M/YYYY").isSame(dayjs(), "day")
@@ -282,7 +282,7 @@ export default function ShiftsSection() {
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: i * 0.05 }}
-                                                    className={`hover:bg-accent ${esHoy ? "bg-yellow-100 dark:bg-yellow-900/40" : ""
+                                                    className={`hover:bg-muted/40 transition-colors ${esHoy ? "bg-amber-50 dark:bg-amber-950/40" : ""
                                                         }`}
                                                 >
                                                     <TableCell className="text-center">{turno.Tipo}</TableCell>
@@ -348,7 +348,7 @@ export default function ShiftsSection() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
-                                        className="rounded-lg border bg-white dark:bg-zinc-900 shadow-sm p-4 space-y-2"
+                                        className="rounded-2xl border border-border/60 bg-card shadow-soft p-4 space-y-2"
                                     >
                                         <div className="flex justify-between items-center">
                                             <div>
@@ -372,7 +372,7 @@ export default function ShiftsSection() {
                                             <Button
                                                 size="icon"
                                                 variant="ghost"
-                                                className="sm: w-full bg-orange-200"
+                                                className="sm: w-full bg-brand-100 hover:bg-brand-200 rounded-xl dark:bg-brand-900/30"
                                                 onClick={() => {
                                                     setEditingTurno(turno)
                                                     setEditForm({
@@ -390,7 +390,7 @@ export default function ShiftsSection() {
                                             <Button
                                                 size="icon"
                                                 variant="ghost"
-                                                className="sm: w-full bg-red-200"
+                                                className="sm: w-full bg-rose-100 hover:bg-rose-200 rounded-xl dark:bg-rose-950/40"
                                                 onClick={() => {
                                                     setSelectedTurno(turno)
                                                     setShowDeleteDialog(true)
@@ -497,7 +497,7 @@ export default function ShiftsSection() {
                                 }
                             />
                             {fechaError && (
-                                <span className="text-red-500 text-sm">
+                                <span className="text-rose-500 text-sm font-medium">
                                     La fecha del turno es obligatoria.
                                 </span>
                             )}

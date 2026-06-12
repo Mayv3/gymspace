@@ -17,6 +17,7 @@ import { DollarSign } from "lucide-react";
 import {
     LineChart,
     Line,
+    CartesianGrid,
     ResponsiveContainer,
     XAxis,
     YAxis,
@@ -114,11 +115,13 @@ export const BillingBoxes = () => {
     }, [selectedMonth, selectedYear]);
 
     return (
-        <Card className="shadow-lg hover:shadow-xl transition-all col-span-1 md:col-span-2 xl:col-span-2">
+        <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow col-span-1 md:col-span-2 xl:col-span-2">
             <CardContent>
                 <CardHeader className="flex flex-col items-center gap-2">
-                    <DollarSign className="text-orange-500" />
-                    <CardTitle>Cajas del mes</CardTitle>
+                    <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+                        <DollarSign className="w-5 h-5" />
+                    </div>
+                    <CardTitle className="font-bold">Cajas del mes</CardTitle>
 
                     <div className="flex gap-3 mt-2">
                         <Select
@@ -155,14 +158,14 @@ export const BillingBoxes = () => {
                         </Select>
                     </div>
 
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-xs text-muted-foreground font-medium text-center">
                         Ingresos diarios separados por turno
                     </p>
                 </CardHeader>
 
                 {loading ? (
                     <div className="flex justify-center items-center h-[300px]">
-                        <CircularProgress sx={{ color: "#f97316" }} size={36} />
+                        <CircularProgress sx={{ color: "#ff6a00" }} size={36} />
                     </div>
                 ) : data.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center mt-8">
@@ -171,6 +174,7 @@ export const BillingBoxes = () => {
                 ) : (
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={data}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
                             <XAxis
                                 dataKey="fecha"
                                 tickFormatter={(val) => {
@@ -180,6 +184,9 @@ export const BillingBoxes = () => {
                                         : val;
                                 }}
                                 hide={isMobile}
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fontSize: 12 }}
                             />
                             <YAxis
                                 tickFormatter={(val) =>
@@ -187,6 +194,9 @@ export const BillingBoxes = () => {
                                 }
                                 width={80}
                                 hide={isMobile}
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fontSize: 12 }}
                             />
                             <Tooltip
                                 content={<CustomTooltipCajas />}

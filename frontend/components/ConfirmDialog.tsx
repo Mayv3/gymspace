@@ -31,17 +31,26 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-lg ">
+      <DialogContent className="max-w-sm rounded-2xl border border-border/60 bg-card shadow-floating">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
+          <DialogTitle className="font-bold">{title}</DialogTitle>
+          {description && (
+            <DialogDescription className="font-medium text-muted-foreground">
+              {description}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
-        {children && <div className="py-4 text-sm">{children}</div>}
+        {children && <div className="py-4 text-sm font-medium">{children}</div>}
 
         <DialogFooter>
           {cancelText ? (
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            <Button
+              variant="outline"
+              className="rounded-xl border-border bg-card font-bold hover:bg-muted"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
               {cancelText}
             </Button>
           ) : (
@@ -49,6 +58,11 @@ export function ConfirmDialog({
           )}
           <Button
             variant={destructive ? "destructive" : "default"}
+            className={
+              destructive
+                ? "rounded-xl font-bold btn-press"
+                : "rounded-xl bg-brand-500 font-bold text-white shadow-brand-btn btn-press hover:bg-brand-600"
+            }
             onClick={onConfirm}
             disabled={loading}
           >

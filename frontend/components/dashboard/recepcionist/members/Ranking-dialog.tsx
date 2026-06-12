@@ -23,7 +23,7 @@ function Confetti() {
     left: Math.random() * 100,
     delay: Math.random() * 2,
     duration: 2 + Math.random() * 2,
-    color: ['#f97316', '#facc15', '#ef4444', '#ec4899', '#a855f7', '#3b82f6', '#22c55e'][Math.floor(Math.random() * 7)]
+    color: ['#ff6a00', '#facc15', '#ef4444', '#ec4899', '#a855f7', '#3b82f6', '#22c55e'][Math.floor(Math.random() * 7)]
   }))
 
   return (
@@ -73,9 +73,9 @@ function RouletteWheel({
   const segmentAngle = 360 / numParticipants
   
   const colors = [
-    '#f97316', '#facc15', '#ef4444', '#ec4899', 
+    '#ff6a00', '#facc15', '#ef4444', '#ec4899',
     '#a855f7', '#3b82f6', '#22c55e', '#14b8a6',
-    '#6366f1', '#fb923c'
+    '#6366f1', '#ff7033'
   ]
 
   return (
@@ -86,7 +86,7 @@ function RouletteWheel({
       {/* Glow effect cuando hay ganador */}
       {showWinner && (
         <div className="absolute inset-0 rounded-full animate-pulse" style={{
-          boxShadow: '0 0 60px 20px rgba(249, 115, 22, 0.5), 0 0 100px 40px rgba(250, 204, 21, 0.3)'
+          boxShadow: '0 0 60px 20px rgba(255, 106, 0, 0.5), 0 0 100px 40px rgba(250, 204, 21, 0.3)'
         }} />
       )}
       
@@ -105,11 +105,11 @@ function RouletteWheel({
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: spinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
-          filter: showWinner ? 'drop-shadow(0 0 20px rgba(249, 115, 22, 0.6))' : 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
+          filter: showWinner ? 'drop-shadow(0 0 20px rgba(255, 106, 0, 0.6))' : 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
         }}
       >
         {/* Borde exterior decorativo */}
-        <circle cx="100" cy="100" r="98" fill="none" stroke="#f97316" strokeWidth="3" />
+        <circle cx="100" cy="100" r="98" fill="none" stroke="#ff6a00" strokeWidth="3" />
         
         {participants.map((participant, i) => {
           const startAngle = i * segmentAngle - 90
@@ -157,8 +157,8 @@ function RouletteWheel({
         })}
         
         {/* Centro de la ruleta */}
-        <circle cx="100" cy="100" r="22" fill="white" stroke="#f97316" strokeWidth="4" />
-        <circle cx="100" cy="100" r="14" fill="#f97316" />
+        <circle cx="100" cy="100" r="22" fill="white" stroke="#ff6a00" strokeWidth="4" />
+        <circle cx="100" cy="100" r="14" fill="#ff6a00" />
         <text x="100" y="100" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">🎰</text>
       </svg>
       
@@ -283,19 +283,19 @@ export function RankingDialog({
       {list.map((alum, i) => (
         <li
           key={`${alum.Nombre}-${i}`}
-          className="flex items-center justify-between bg-orange-50  dark:bg-zinc-900 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-100 transition"
+          className="flex items-center justify-between bg-muted/40 border border-border/60 rounded-xl px-3 py-2 shadow-soft hover:bg-muted transition-colors"
         >
-          <div className="flex items-center gap-3 dark:text-white">
+          <div className="flex items-center gap-3 text-foreground">
             <span
               className={`flex items-center justify-center w-7 h-7 rounded-full text-white text-sm font-bold
-                ${i === 0 ? "bg-yellow-500" : i === 1 ? "bg-gray-400" : i === 2 ? "bg-amber-700" : "bg-orange-400"}
+                ${i === 0 ? "bg-yellow-500" : i === 1 ? "bg-gray-400" : i === 2 ? "bg-amber-700" : "bg-brand-400"}
               `}
             >
               {i + 1}
             </span>
             <span className="font-medium">{alum[labelKey]}</span>
           </div>
-          <span className="text-sm font-semibold text-orange-600">
+          <span className="text-sm font-bold text-brand-600">
             {alum[valueKey]}
           </span>
         </li>
@@ -306,7 +306,7 @@ export function RankingDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg justify-center font-bold">
               <Trophy className="w-5 h-5 text-yellow-500" />
@@ -317,16 +317,16 @@ export function RankingDialog({
           {/* GRID: dos columnas en desktop, una en mobile */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <section>
-              <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2 dark:text-white">
-                <Star className="w-4 h-4 text-orange-500 " />
+              <h3 className="font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+                <Star className="w-4 h-4 text-brand-500" />
                 Top 10 Clases
               </h3>
               {renderList(top10Clases, "Nombre", "GymCoins")}
             </section>
 
             <section>
-              <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2 dark:text-white">
-                <Star className="w-4 h-4 text-orange-500" />
+              <h3 className="font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+                <Star className="w-4 h-4 text-brand-500" />
                 Top 10 Gimnasio
               </h3>
               {renderList(top10Gimnasio, "Nombre", "GymCoins")}
@@ -335,9 +335,9 @@ export function RankingDialog({
 
           <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-2">
             <div className="flex items-center gap-2 flex-1">
-              <span className="text-sm font-medium whitespace-nowrap dark:text-white">Sorteo para:</span>
+              <span className="text-sm font-bold whitespace-nowrap text-foreground">Sorteo para:</span>
               <Select value={sorteoType} onValueChange={(value: 'clases' | 'gimnasio') => setSorteoType(value)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:ring-offset-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -347,11 +347,11 @@ export function RankingDialog({
               </Select>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={startRoulette} className="flex items-center gap-2">
+              <Button variant="outline" onClick={startRoulette} className="flex items-center gap-2 bg-card border border-border rounded-xl font-bold hover:bg-muted">
                 <Gift className="w-4 h-4" />
                 Sorteo
               </Button>
-              <Button variant="orange" onClick={() => onOpenChange(false)}>
+              <Button variant="orange" onClick={() => onOpenChange(false)} className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press">
                 Cerrar
               </Button>
             </div>
@@ -361,10 +361,10 @@ export function RankingDialog({
 
       {/* Modal de Ruleta */}
       <Dialog open={showRoulette} onOpenChange={closeRoulette}>
-        <DialogContent className="max-w-xl sm:max-w-2xl overflow-hidden">
+        <DialogContent className="max-w-xl sm:max-w-2xl overflow-hidden rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl justify-center font-bold">
-              <Gift className="w-6 h-6 text-orange-500" />
+              <Gift className="w-6 h-6 text-brand-500" />
               Sorteo - Top 10 {sorteoType === 'clases' ? 'Clases' : 'Gimnasio'}
             </DialogTitle>
           </DialogHeader>
@@ -382,9 +382,9 @@ export function RankingDialog({
               <div className="mt-8 text-center">
                 <div className="relative inline-block">
                   {/* Resplandor de fondo */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl blur-lg opacity-75 animate-pulse" />
-                  
-                  <div className="relative bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white px-10 py-6 rounded-2xl shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-brand-500 rounded-2xl blur-lg opacity-75 animate-pulse" />
+
+                  <div className="relative bg-gradient-to-r from-brand-400 via-brand-500 to-brand-600 text-white px-10 py-6 rounded-2xl shadow-floating">
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <span className="text-4xl">🏆</span>
                     </div>
@@ -405,7 +405,7 @@ export function RankingDialog({
 
             {spinning && (
               <div className="mt-8 text-center">
-                <p className="text-xl font-semibold text-gray-600 dark:text-gray-300 animate-pulse flex items-center justify-center gap-2">
+                <p className="text-xl font-bold text-muted-foreground animate-pulse flex items-center justify-center gap-2">
                   Girando...
                 </p>
               </div>
@@ -414,13 +414,13 @@ export function RankingDialog({
 
           <DialogFooter className="flex gap-2 sm:gap-2">
             {!spinning && winner && (
-              <Button variant="outline" onClick={spinAgain} className="flex items-center gap-2">
+              <Button variant="outline" onClick={spinAgain} className="flex items-center gap-2 bg-card border border-border rounded-xl font-bold hover:bg-muted">
                 <Gift className="w-4 h-4" />
                 Girar de nuevo
               </Button>
             )}
             {!spinning && (
-              <Button variant="orange" onClick={closeRoulette}>
+              <Button variant="orange" onClick={closeRoulette} className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press">
                 Cerrar
               </Button>
             )}

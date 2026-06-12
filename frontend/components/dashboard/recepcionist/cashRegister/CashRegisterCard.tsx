@@ -46,38 +46,40 @@ export function CashRegisterCard({
 
   return (
     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <Card className="mb-4 border-primary/50 shadow-lg">
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="flex items-center">
-            <DollarSign className="mr-2 h-5 w-5 text-primary" />
+      <Card className="mb-4 bg-card rounded-2xl border border-border/60 shadow-soft">
+        <CardHeader className="bg-brand-50/60 dark:bg-card rounded-t-2xl border-b border-border/60">
+          <CardTitle className="flex items-center font-bold">
+            <span className="mr-2 w-10 h-10 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center dark:bg-brand-900/30">
+              <DollarSign className="h-5 w-5" />
+            </span>
             Caja Registradora
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs text-muted-foreground font-medium">
             Turno actual: {selectedShift.charAt(0).toUpperCase() + selectedShift.slice(1)} - Recepcionista: {user?.nombre}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="initialAmount">Monto Inicial</Label>
+              <Label htmlFor="initialAmount" className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Monto Inicial</Label>
               <Input
                 id="initialAmount"
                 value={initialAmount}
                 onChange={(e) => setInitialAmount(e.target.value)}
                 type="number"
                 min="0"
-                className="border-primary/50 focus:border-primary"
+                className="rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
               />
             </div>
             <div className="space-y-2">
-              <Label>Total Recaudado</Label>
-              <div className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm font-semibold text-green-600">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Recaudado</Label>
+              <div className="h-10 px-3 py-2 rounded-xl border border-emerald-100 bg-emerald-50 text-sm font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900">
                 ${total.toLocaleString("es-AR")}
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Balance Final</Label>
-              <div className="h-10 px-3 py-2 rounded-md border border-primary bg-primary/5 text-sm font-bold">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Balance Final</Label>
+              <div className="h-10 px-3 py-2 rounded-xl border border-brand-100 bg-brand-50 text-sm font-bold text-brand-700 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-900">
                 ${balance.toLocaleString("es-AR")}
               </div>
             </div>

@@ -182,14 +182,14 @@ export default function DebtsSection() {
     }, [selectedDate])
     return (
         <>
-            <Card>
-                <CardHeader className="bg-orange-50 dark:bg-zinc-900 rounded-t-lg mb-4">
+            <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
+                <CardHeader className="bg-brand-50/60 dark:bg-card rounded-t-2xl border-b border-border/60 mb-4">
                     <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle>Deudas</CardTitle>
-                            <CardDescription className="hidden md:block">Gestión de deudas registradas</CardDescription>
+                            <CardTitle className="font-bold">Deudas</CardTitle>
+                            <CardDescription className="hidden md:block text-xs text-muted-foreground font-medium">Gestión de deudas registradas</CardDescription>
                         </div>
-                        <Button variant="orange" onClick={() => setShowCreateDialog(true)}>
+                        <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowCreateDialog(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" /> Agregar deuda
                         </Button>
                     </div>
@@ -201,36 +201,36 @@ export default function DebtsSection() {
                                 placeholder="Nombre o DNI..."
                                 value={searchTerm}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className="max-w-sm mb-2"
+                                className="max-w-sm mb-2 rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
                             />
                             <DatePicker date={selectedDate} setDate={setSelectedDate} />
                         </div>
 
                         <div className="text-center text-sm font-medium h-full">
-                            <p className={`${totalMes === 0 ? 'bg-green-200' : 'md:bg-red-100'} h-full rounded p-2 text-lg dark:bg-zinc-900`}>Total adeudado del mes:{' '}
-                                <span className={`font-bold ${totalMes === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <p className={`${totalMes === 0 ? 'bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900' : 'md:bg-rose-50 md:border md:border-rose-100 dark:bg-rose-950/40 dark:border-rose-900'} h-full rounded-xl p-2 text-lg`}>Total adeudado del mes:{' '}
+                                <span className={`font-bold ${totalMes === 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                                     ${totalMes}
                                 </span>
                             </p>
                         </div>
                     </div>
 
-                    <div className="hidden md:block overflow-auto border rounded-md">
+                    <div className="hidden md:block overflow-auto border border-border/60 rounded-xl">
                         <Table className="w-full">
-                            <TableHeader>
-                                <TableRow className="grid grid-cols-9 text-sm pt-3">
-                                    <TableHead className="py-2 text-center">DNI</TableHead>
-                                    <TableHead className="py-2 text-center">Nombre</TableHead>
-                                    <TableHead className="py-2 text-center">Tipo</TableHead>
-                                    <TableHead className="py-2 text-center">Monto</TableHead>
-                                    <TableHead className="py-2 text-center">Motivo</TableHead>
-                                    <TableHead className="py-2 text-center">Fecha</TableHead>
-                                    <TableHead className="py-2 text-center">Responsable</TableHead>
-                                    <TableHead className="py-2 text-center">Pago</TableHead>
-                                    <TableHead className="py-2 text-center">Acciones</TableHead>
+                            <TableHeader className="bg-muted/50">
+                                <TableRow className="grid grid-cols-9 text-[11px] uppercase tracking-wider font-bold text-muted-foreground border-b pt-3">
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">DNI</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Nombre</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Tipo</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Monto</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Motivo</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Fecha</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Responsable</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Pago</TableHead>
+                                    <TableHead className="py-2 text-center font-bold text-[11px] uppercase tracking-wider text-muted-foreground">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody className="divide-y divide-border/60">
                                 {paginatedDeudas.length ? (
                                     paginatedDeudas.map((deuda, i) => (
                                         <motion.tr
@@ -238,19 +238,20 @@ export default function DebtsSection() {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className="grid grid-cols-9 items-center border-b py-2 text-center"
+                                            className="grid grid-cols-9 items-center border-b border-border/60 py-2 text-center hover:bg-muted/40 transition-colors"
                                         >
                                             <TableCell>{deuda.DNI}</TableCell>
-                                            <TableCell>{deuda.Nombre}</TableCell>
-                                            <TableCell><span className={`font-semibold px-2 dark:bg-zinc-900 py-1 rounded ${deuda.Tipo === "El alumno le debe al gimnasio" ? "bg-red-200" : "bg-orange-300"}`}>
+                                            <TableCell className="font-medium">{deuda.Nombre}</TableCell>
+                                            <TableCell><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[13px] font-bold border ${deuda.Tipo === "El alumno le debe al gimnasio" ? "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900" : "bg-brand-50 text-brand-700 border-brand-100 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-900"}`}>
                                                 {deuda.Tipo}
                                             </span></TableCell>
-                                            <TableCell>${deuda.Monto}</TableCell>
+                                            <TableCell className="font-medium">${deuda.Monto}</TableCell>
                                             <TableCell>{deuda.Motivo}</TableCell>
                                             <TableCell>{deuda.Fecha}</TableCell>
                                             <TableCell>{deuda.Responsable}</TableCell>
                                             <TableCell>
-                                                <span className={`font-semibold px-2 dark:bg-zinc-900 py-1 rounded ${deuda.Estado === "Pagado" ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}>
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[13px] font-bold border ${deuda.Estado === "Pagado" ? "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900" : "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900"}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${deuda.Estado === "Pagado" ? "bg-emerald-500" : "bg-rose-500"}`} />
                                                     {deuda.Estado}
                                                 </span>
                                             </TableCell>
@@ -327,21 +328,22 @@ export default function DebtsSection() {
 
                     <div className="block md:hidden space-y-4">
                         {paginatedDeudas.map((deuda, idx) => (
-                            <Card key={idx} className="shadow-sm rounded-lg overflow-hidden">
+                            <Card key={idx} className="bg-card shadow-soft rounded-2xl border border-border/60 overflow-hidden">
                                 {/* Header: Nombre y Estado */}
-                                <div className="bg-white dark:bg-zinc-900 px-4 py-3 flex justify-between items-center border-b">
-                                    <h3 className="font-semibold text-base">{deuda.Nombre}</h3>
+                                <div className="bg-card px-4 py-3 flex justify-between items-center border-b border-border/60">
+                                    <h3 className="font-bold text-base">{deuda.Nombre}</h3>
                                     <span
-                                        className={`text-sm font-semibold px-2 py-1 rounded ${deuda.Estado === "Pagado"
-                                            ? "bg-green-100 text-green-600"
-                                            : "bg-red-100 text-red-600"
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${deuda.Estado === "Pagado"
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900"
+                                            : "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900"
                                             }`}
                                     >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${deuda.Estado === "Pagado" ? "bg-emerald-500" : "bg-rose-500"}`} />
                                         {deuda.Estado}
                                     </span>
                                 </div>
 
-                                <CardContent className="bg-gray-50 dark:bg-zinc-900 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <CardContent className="bg-muted/40 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                     <div>
                                         <p className="font-medium text-foreground">DNI</p>
                                         <p className="text-muted-foreground">{deuda.DNI}</p>
@@ -368,11 +370,11 @@ export default function DebtsSection() {
                                     </div>
                                 </CardContent>
 
-                                <CardFooter className="bg-white dark:bg-zinc-900 flex items-end gap-2 px-4 py-3 space-y-2">
+                                <CardFooter className="bg-card flex items-end gap-2 px-4 py-3 space-y-2">
                                     <Button
                                         size="sm"
                                         variant="orange"
-                                        className="w-full"
+                                        className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl"
                                         onClick={() => {
                                             setEditingDeuda(deuda)
                                             setEditForm({

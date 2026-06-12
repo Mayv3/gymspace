@@ -1,0 +1,19 @@
+{
+  "id": "2026-06-12T22-04-42-643Z-modern-gymspace-gym-management-dashb",
+  "createdAt": "2026-06-12T22:04:42.650Z",
+  "prompt": "Modern GYMSPACE gym management dashboard, Quicksand font, signature orange #FF6A00, soft SaaS surfaces, slim dock sidebar, KPI cards, chart, members table",
+  "mode": null,
+  "url": null,
+  "viewport": "desktop",
+  "repoRoot": "C:\\Users\\nicop\\OneDrive\\Desktop\\Pruebas_aiDesigner\\gymspace",
+  "cwd": "C:\\Users\\nicop\\OneDrive\\Desktop\\Pruebas_aiDesigner\\gymspace",
+  "requestPath": "C:\\Users\\nicop\\OneDrive\\Desktop\\Pruebas_aiDesigner\\gymspace\\.aidesigner\\runs\\2026-06-12T22-04-42-643Z-modern-gymspace-gym-management-dashb\\request.json",
+  "repoContextPath": "C:\\Users\\nicop\\OneDrive\\Desktop\\Pruebas_aiDesigner\\gymspace\\.aidesigner\\runs\\2026-06-12T22-04-42-643Z-modern-gymspace-gym-management-dashb\\repo-context.json",
+  "designHtmlPath": "C:\\Users\\nicop\\OneDrive\\Desktop\\Pruebas_aiDesigner\\gymspace\\.aidesigner\\runs\\2026-06-12T22-04-42-643Z-modern-gymspace-gym-management-dashb\\design.html",
+  "previewPath": null,
+  "previewError": "Preview rendering requires puppeteer. Install it in the repo or alongside @aidesigner/agent-skills.",
+  "parentRunId": null,
+  "usage": null,
+  "transport": "mcp",
+  "remoteRunId": "2e3cbc70-7df5-4dfc-bb1c-6fc8283d9938"
+}

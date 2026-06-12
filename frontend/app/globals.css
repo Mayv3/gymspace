@@ -2,58 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "tnum";
+}
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 0 0% 98%; /* Fondo zinc suave */
+    --foreground: 240 6% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 240 6% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 24 100% 50%;
-    /* Naranja */
-    --primary-foreground: 0 0% 98%;
+    --popover-foreground: 240 6% 10%;
+    --primary: 25 100% 50%; /* Naranja GYMSPACE #ff6a00 */
+    --primary-foreground: 0 0% 100%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 24 100% 95%;
-    /* Naranja claro */
-    --accent-foreground: 24 100% 30%;
-    /* Naranja oscuro */
+    --accent: 24 100% 96%; /* Naranja claro (brand-50) */
+    --accent-foreground: 21 90% 40%; /* Naranja oscuro */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 24 100% 50%;
-    /* Naranja */
-    --radius: 0.5rem;
+    --ring: 25 100% 50%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 24 100% 50%;
-    /* Naranja */
-    --primary-foreground: 0 0% 98%;
+    --background: 240 6% 10%;
+    --foreground: 0 0% 93%;
+    --card: 240 5% 13%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 5% 13%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 25 100% 58%;
+    --primary-foreground: 0 0% 8%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 24 100% 15%;
-    /* Naranja oscuro */
-    --accent-foreground: 24 100% 90%;
-    /* Naranja claro */
-    --destructive: 0 62.8% 30.6%;
+    --accent: 21 70% 16%; /* Naranja oscuro */
+    --accent-foreground: 25 100% 70%; /* Naranja claro */
+    --destructive: 0 62.8% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 24 100% 50%;
-    /* Naranja */
+    --border: 240 4% 20%;
+    --input: 240 4% 20%;
+    --ring: 25 100% 58%;
   }
 }
 
@@ -65,6 +63,29 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  ::selection {
+    background-color: rgba(255, 106, 0, 0.2);
+    color: #c83400;
+  }
+}
+
+/* ===== Design system GYMSPACE ===== */
+
+.glass-panel {
+  background: hsl(var(--card) / 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.6);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 0 3px rgba(0, 0, 0, 0.02);
+}
+
+.btn-press {
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-press:active {
+  transform: scale(0.96) translateY(1px);
 }
 
 .card-hover-effect {
@@ -72,8 +93,8 @@
 }
 
 .card-hover-effect:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
 }
 
 .icon-spin {
@@ -110,24 +131,24 @@
   background: linear-gradient(90deg, #ff8a00, #ff5e00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: #ff6b00;
+  color: #ff6a00;
   /* Fallback para navegadores que no soportan gradient text */
 }
 
 .text-orange {
-  color: #ff6b00 !important;
+  color: #ff6a00 !important;
 }
 
 .bg-orange {
-  background-color: #ff6b00 !important;
+  background-color: #ff6a00 !important;
 }
 
 .border-orange {
-  border-color: #ff6b00 !important;
+  border-color: #ff6a00 !important;
 }
 
 .hover-orange:hover {
-  color: #ff6b00 !important;
+  color: #ff6a00 !important;
 }
 
 input::-webkit-outer-spin-button,
@@ -141,41 +162,46 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-/* (Opcional) Asegurás el mismo estilo en todos */
 input[type=number] {
   appearance: textfield;
 }
 
-/* ===== LIGHT MODE (por defecto) ===== */
-:root {
-  --sb-track-color: #f1f1f1;
-  /* fondo clarito */
-  --sb-thumb-color: #f57c00;
-  /* naranja */
-  --sb-size: 5px;
-}
-
-/* ===== DARK MODE ===== */
-.dark {
-  --sb-track-color: #232323;
-  /* oscuro */
-  --sb-thumb-color: #f57c00;
-  /* mismo naranja */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
 }
 
 /* ===== Scrollbar ===== */
+:root {
+  --sb-track-color: transparent;
+  --sb-thumb-color: #e4e4e7;
+  --sb-size: 8px;
+}
+
+.dark {
+  --sb-track-color: transparent;
+  --sb-thumb-color: #3f3f46;
+}
+
 *::-webkit-scrollbar {
   width: var(--sb-size);
+  height: var(--sb-size);
 }
 
 *::-webkit-scrollbar-track {
   background: var(--sb-track-color);
-  border-radius: 5px;
 }
 
 *::-webkit-scrollbar-thumb {
   background: var(--sb-thumb-color);
-  border-radius: 5px;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #d4d4d8;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
 }
 
 @supports not selector(::-webkit-scrollbar) {
@@ -184,3 +210,17 @@ input[type=number] {
   }
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb-color);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb-color) transparent;
+}

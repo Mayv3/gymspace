@@ -10,6 +10,7 @@ import {
 import {
     BarChart,
     Bar,
+    CartesianGrid,
     XAxis,
     YAxis,
     Tooltip,
@@ -46,7 +47,7 @@ const REFERENCIAS_KEYS = [
 
 const REFERENCIAS_COLORS: Record<string, string> = {
     instagram: "#E1306C",
-    amigos_familiares: "#f97316",
+    amigos_familiares: "#ff6a00",
     google: "#4285F4",
     otro: "#8b5cf6",
 }
@@ -121,10 +122,12 @@ export const ReferencesStats = () => {
     }, [anio, mes])
 
     return (
-        <Card className="shadow-lg hover:shadow-xl transition-all">
+        <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-floating transition-shadow">
             <CardHeader className="flex flex-col items-center gap-2">
-                <BarChart3Icon className="text-orange-500" />
-                <CardTitle>Altas por referencia</CardTitle>
+                <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-500 flex items-center justify-center">
+                    <BarChart3Icon className="w-5 h-5" />
+                </div>
+                <CardTitle className="font-bold">Altas por referencia</CardTitle>
             </CardHeader>
 
             <CardContent>
@@ -158,7 +161,7 @@ export const ReferencesStats = () => {
 
                 {loading ? (
                     <p className="text-sm text-muted-foreground text-center mt-8">
-                        <CircularProgress sx={{ color: "#f97316" }} size={36} />
+                        <CircularProgress sx={{ color: "#ff6a00" }} size={36} />
                     </p>
                 ) : data.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center mt-8">
@@ -171,8 +174,9 @@ export const ReferencesStats = () => {
                             barGap={8}
                             barCategoryGap={24}
                         >
-                            <XAxis dataKey="mes" hide={isMobile} />
-                            <YAxis hide={isMobile} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
+                            <XAxis dataKey="mes" hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+                            <YAxis hide={isMobile} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
                             <Tooltip
                                 shared
                                 cursor={{ fill: "rgba(0,0,0,0.04)" }}
@@ -209,8 +213,8 @@ const CustomTooltipReferencia = ({
     const mesNombre = MESES_LABEL[label]
 
     return (
-        <div className="rounded-lg border bg-background p-3 shadow-md text-sm">
-            <p className="font-semibold mb-2">
+        <div className="bg-card rounded-xl border border-border/60 shadow-floating px-3 py-2 text-sm font-medium">
+            <p className="font-bold mb-2">
                 {mesNombre} de {anio}
             </p>
 
