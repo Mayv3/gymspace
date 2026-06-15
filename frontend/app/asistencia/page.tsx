@@ -196,7 +196,7 @@ export default function AsistenciaPage() {
                         label={`${data.clasesRealizadas}/${data.clasesPagadas}`}
                         size="small"
                         color="primary"
-                        sx={{ fontWeight: 600 }}
+                        sx={{ fontWeight: 600, color: 'white' }}
                       />
                     </Box>
                     <LinearProgress
@@ -274,7 +274,7 @@ export default function AsistenciaPage() {
                     </Box>
                   </Box>
 
-                  <Button fullWidth variant="contained" onClick={closeModal} sx={{ mt: 3, py: 1.5 }}>
+                  <Button fullWidth variant="contained" onClick={closeModal} sx={{ mt: 3, py: 1.5, color: 'white' }}>
                     ¡A entrenar!
                   </Button>
                 </Box>
