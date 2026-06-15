@@ -20,7 +20,12 @@
       "PowerShell(git *)",
       "Bash(perl -pi -e 's/<TableHead className=\"py-2 text-center\">/<TableHead className=\"py-2 text-center font-bold text-\\\\[11px\\\\] uppercase tracking-wider text-muted-foreground\">/g' components/dashboard/recepcionist/deudas/Deudas.tsx)",
       "PowerShell(Set-Content *)",
-      "PowerShell(Remove-Item *)"
+      "PowerShell(Remove-Item *)",
+      "Bash(git checkout *)",
+      "Bash(findstr /R \"\\\\\"dev\\\\\" \\\\\"start\\\\\" \\\\\"build\\\\\"\")",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(GIT_EDITOR=true git rebase --continue)"
     ]
   },
   "enableAllProjectMcpServers": true,
