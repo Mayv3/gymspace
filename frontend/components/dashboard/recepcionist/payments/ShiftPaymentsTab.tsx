@@ -449,7 +449,7 @@ export function ShiftPaymentsTab({
                   return (
                     <div
                       key={tipo}
-                      className="flex-1 min-w-[180px] shrink-0 aspect-square bg-card rounded-2xl p-4 lg:p-5 border border-border/60 shadow-soft flex flex-col justify-between overflow-hidden"
+                      className="flex-1 min-w-[180px] shrink-0 min-h-[220px] bg-card rounded-2xl p-4 lg:p-5 border border-border/60 shadow-soft flex flex-col justify-between overflow-hidden"
                     >
                       <div className="min-h-0 flex-1 flex flex-col">
                         <div className="mb-3">
@@ -483,7 +483,7 @@ export function ShiftPaymentsTab({
                   )
                 })}
                 
-                <div className="flex-1 min-w-[180px] shrink-0 aspect-square bg-gradient-to-br from-brand-500 to-brand-600 dark:from-brand-600 dark:to-brand-700 rounded-2xl p-4 lg:p-5 border border-brand-400 shadow-brand-btn flex flex-col justify-between text-white overflow-hidden">
+                <div className="flex-1 min-w-[180px] shrink-0 min-h-[220px] bg-gradient-to-br from-brand-500 to-brand-600 dark:from-brand-600 dark:to-brand-700 rounded-2xl p-4 lg:p-5 border border-brand-400 shadow-brand-btn flex flex-col justify-between text-white overflow-hidden">
                   <div className="min-h-0 flex-1 flex flex-col">
                     <h4 className="font-bold text-sm lg:text-lg mb-3">
                       Métodos de Pago
