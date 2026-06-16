@@ -66,6 +66,7 @@ const LoginPage = () => {
   const [dni, setDni] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false)
+  const [showPelado, setShowPelado] = useState(false)
   const router = useRouter();
   const { setUser } = useUser();
   const inputRef = useRef<HTMLInputElement>(null)
@@ -74,6 +75,16 @@ const LoginPage = () => {
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
+
+  const goToDashboard = (rol: string) => {
+    if (rol === "Administrador") {
+      router.push("/dashboard/administrator");
+    } else if (rol === "Recepcionista") {
+      router.push("/dashboard/receptionist");
+    } else {
+      router.push("/dashboard/member");
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,14 +105,15 @@ const LoginPage = () => {
 
       setUser(data);
 
-      if (data.rol === "Administrador") {
-        router.push("/dashboard/administrator");
-      } else if (data.rol === "Recepcionista") {
-        router.push("/dashboard/receptionist");
+      // Efecto falopa: mostrar al pelado solo si es Yamil Soler
+      if (String(data.dni).trim() === "44348466") {
+        setShowPelado(true)
+        setLoading(false)
+        setTimeout(() => goToDashboard(data.rol), 2800)
       } else {
-        router.push("/dashboard/member");
+        goToDashboard(data.rol)
+        setLoading(false)
       }
-      setLoading(false)
     } catch (error) {
       console.error("Error en login:", error);
       setErrorMessage("No se pudo encontrar un usuario con ese DNI.");
@@ -271,6 +283,115 @@ const LoginPage = () => {
             </form>
           </CardContent>
         </Card>
+
+        {/* Overlay falopa: EL PELADO TOPU */}
+        {showPelado && (
+          <Box
+            sx={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'radial-gradient(circle at center, rgba(20,8,0,0.85) 0%, rgba(0,0,0,0.97) 100%)',
+              backdropFilter: 'blur(8px)',
+              animation: 'fadeInOverlay 0.4s ease-out',
+              overflow: 'hidden',
+              '@keyframes fadeInOverlay': {
+                from: { opacity: 0 },
+                to: { opacity: 1 },
+              },
+              '@keyframes peladoEntrance': {
+                '0%': { transform: 'scale(0.2) rotate(-20deg)', opacity: 0 },
+                '60%': { transform: 'scale(1.15) rotate(8deg)', opacity: 1 },
+                '100%': { transform: 'scale(1) rotate(0deg)', opacity: 1 },
+              },
+              '@keyframes peladoGlow': {
+                '0%, 100%': { filter: 'drop-shadow(0 0 25px #ea580c) drop-shadow(0 0 60px #fb923c)' },
+                '50%': { filter: 'drop-shadow(0 0 50px #fb923c) drop-shadow(0 0 100px #ea580c)' },
+              },
+              '@keyframes spinRing': {
+                from: { transform: 'translate(-50%, -50%) rotate(0deg)' },
+                to: { transform: 'translate(-50%, -50%) rotate(360deg)' },
+              },
+              '@keyframes textPop': {
+                from: { transform: 'translateY(30px)', opacity: 0 },
+                to: { transform: 'translateY(0)', opacity: 1 },
+              },
+              '@keyframes neonPulse': {
+                '0%, 100%': { textShadow: '0 0 10px #fb923c, 0 0 20px #ea580c, 0 0 40px #ea580c' },
+                '50%': { textShadow: '0 0 20px #fff, 0 0 40px #fb923c, 0 0 80px #ea580c' },
+              },
+            }}
+          >
+            {/* Contenedor centrado: anillo + pelado comparten el mismo centro */}
+            <Box
+              sx={{
+                position: 'relative',
+                width: { xs: 360, sm: 480 },
+                height: { xs: 360, sm: 480 },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Anillo giratorio detrás del pelado */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  border: '4px dashed rgba(251,146,60,0.6)',
+                  animation: 'spinRing 8s linear infinite',
+                  pointerEvents: 'none',
+                }}
+              />
+
+              <Box
+                component="img"
+                src="/pelado.png"
+                alt="EL PELADO TOPU"
+                sx={{
+                  width: { xs: 300, sm: 400 },
+                  height: { xs: 300, sm: 400 },
+                  objectFit: 'cover',
+                  objectPosition: 'center top',
+                  borderRadius: '50%',
+                  // Máscara circular: bordes invisibles
+                  WebkitMaskImage: 'radial-gradient(circle at center, #000 60%, transparent 75%)',
+                  maskImage: 'radial-gradient(circle at center, #000 60%, transparent 75%)',
+                  animation: 'peladoEntrance 0.9s cubic-bezier(0.34,1.56,0.64,1), peladoGlow 2s ease-in-out 0.9s infinite',
+                  zIndex: 1,
+                }}
+              />
+            </Box>
+
+            <Typography
+              sx={{
+                mt: 4,
+                px: 2,
+                color: 'white',
+                fontWeight: 800,
+                fontSize: { xs: '1.4rem', sm: '2rem' },
+                textAlign: 'center',
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                animation: 'textPop 0.6s ease-out 0.7s both, neonPulse 2s ease-in-out 1.3s infinite',
+                zIndex: 1,
+              }}
+            >
+              Iniciaste sesión como
+              <Box component="span" sx={{ display: 'block', color: '#fb923c', fontSize: { xs: '1.8rem', sm: '2.6rem' } }}>
+                "EL PELADO TOPU"
+              </Box>
+            </Typography>
+          </Box>
+        )}
       </Box>
     </ThemeProvider>
   );
