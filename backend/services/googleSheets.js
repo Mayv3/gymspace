@@ -97,6 +97,42 @@ export async function getAlumnosFromSheet() {
   }));
 }
 
+// Obtener un alumno por DNI (1 sola fila, sin bajar toda la tabla)
+export async function getAlumnoByDNI(dni) {
+  const { data: alumno, error } = await supabase
+    .from('alumnos')
+    .select('*')
+    .eq('dni', dni)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!alumno) return null;
+
+  return {
+    ID: alumno.id,
+    DNI: alumno.dni,
+    Nombre: alumno.nombre,
+    Email: alumno.email,
+    Telefono: alumno.telefono,
+    Sexo: alumno.sexo,
+    Fecha_nacimiento: alumno.fecha_nacimiento
+      ? dayjs(alumno.fecha_nacimiento).format('DD/MM/YYYY')
+      : null,
+    Plan: alumno.plan,
+    Clases_pagadas: alumno.clases_pagadas,
+    Clases_realizadas: alumno.clases_realizadas,
+    Fecha_inicio: alumno.fecha_inicio
+      ? dayjs(alumno.fecha_inicio).format('DD/MM/YYYY')
+      : null,
+    Fecha_vencimiento: alumno.fecha_vencimiento
+      ? dayjs(alumno.fecha_vencimiento).format('DD/MM/YYYY')
+      : null,
+    Profesor_asignado: alumno.profesor_asignado,
+    GymCoins: alumno.gymcoins,
+  };
+}
+
 // Insertar alumno
 export async function appendAlumnoToSheet(alumno) {
   const { data: existing, error: checkError } = await supabase
@@ -967,15 +1003,18 @@ export async function appendAsistenciaToSheet(asistencia) {
     Responsable: asistencia.Responsable || "",
   }
 
-  await supabase.from("registro_puntos").insert([
-    {
-      dni: inserted.DNI,
-      nombre: inserted.Nombre,
-      puntos: 25,
-      motivo: "Asistencia registrada",
-      responsable: inserted.Responsable,
-    },
-  ])
+  // Regla: el alumno de prueba (dni 7777777) nunca acumula puntos.
+  if (String(inserted.DNI) !== "7777777") {
+    await supabase.from("registro_puntos").insert([
+      {
+        dni: inserted.DNI,
+        nombre: inserted.Nombre,
+        puntos: 25,
+        motivo: "Asistencia registrada",
+        responsable: inserted.Responsable,
+      },
+    ])
+  }
 
   return inserted
 }

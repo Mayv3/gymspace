@@ -135,79 +135,72 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
       return;
     }
 
-    setIsSubmitting(true)
-
     const fields = Object.values(formData)
     if (fields.some(f => f.trim() === "")) {
       alert("Todos los campos son obligatorios")
       return
     }
 
+    // Snapshot de los datos antes de resetear el form (UI optimista).
+    const dni = formData.dni
+    const planNombre = planSeleccionado?.["Plan o Producto"] || ""
+    const numClases = parseInt(planSeleccionado?.numero_Clases || "0")
+    const tipo = tipoSeleccionado
+    const esGymOClase = tipo === "GIMNASIO" || tipo === "CLASE"
+
+    const parsedDate = parse(formData.expirationDate, "yyyy-MM-dd", new Date())
+    const expirationDateFormatted = format(parsedDate, "dd/MM/yyyy")
+
+    // B) Un solo POST: el backend actualiza el alumno (plan/fecha/clases + coins).
+    const payload = {
+      "Socio DNI": dni,
+      "Nombre": formData.name,
+      "Monto": formData.amount,
+      "Método de Pago": formData.method,
+      "Fecha de Pago": formData.paymentDate,
+      "Fecha de Vencimiento": formData.expirationDate,
+      "Responsable": user?.nombre,
+      "Turno": formData.turno,
+      "Tipo": tipo,
+      "Ultimo_Plan": planNombre,
+      "Clases_pagadas": numClases,
+    }
+
+    // C) UI optimista: cerrar y confirmar al instante; el write va en background.
+    if (esGymOClase) {
+      onMemberUpdated(dni, expirationDateFormatted, planNombre, numClases)
+    }
+    notify.success("¡Pago cargado con éxito!")
+    setFormData({
+      dni: "",
+      name: "",
+      amount: "",
+      method: "",
+      concept: "",
+      paymentDate: format(new Date(), "yyyy-MM-dd"),
+      expirationDate: "",
+      responsable: user?.nombre || "",
+      turno: ""
+    })
+    setTipoSeleccionado("")
+    setPlanSeleccionado(null)
+    onOpenChange(false)
+
+    // Write en background. Si falla, avisamos (no se borró nada).
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pagos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          "Socio DNI": formData.dni,
-          "Nombre": formData.name,
-          "Monto": formData.amount,
-          "Método de Pago": formData.method,
-          "Fecha de Pago": formData.paymentDate,
-          "Fecha de Vencimiento": formData.expirationDate,
-          "Responsable": user?.nombre,
-          "Turno": formData.turno,
-          "Tipo": tipoSeleccionado,
-          "Ultimo_Plan": planSeleccionado?.["Plan o Producto"] || "",
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) throw new Error("Error al registrar el pago")
 
-      const parsedDate = parse(formData.expirationDate, "yyyy-MM-dd", new Date())
-      const expirationDateFormatted = format(parsedDate, "dd/MM/yyyy")
-
-      if (tipoSeleccionado === "GIMNASIO" || tipoSeleccionado === "CLASE") {
-        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${formData.dni}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            Fecha_vencimiento: expirationDateFormatted,
-            Plan: planSeleccionado?.["Plan o Producto"] || "",
-            Clases_pagadas: parseInt(planSeleccionado?.numero_Clases || "0"),
-            Clases_realizadas: "0"
-          })
-        })
-
-        onMemberUpdated(
-          formData.dni,
-          expirationDateFormatted,
-          planSeleccionado?.["Plan o Producto"] || "",
-          parseInt(planSeleccionado?.numero_Clases || "0")
-        )
-      }
-
       onPaymentAdded()
-      notify.success("¡Pago cargado con éxito!")
-      setFormData({
-        dni: "",
-        name: "",
-        amount: "",
-        method: "",
-        concept: "",
-        paymentDate: format(new Date(), "yyyy-MM-dd"),
-        expirationDate: "",
-        responsable: user?.nombre || "",
-        turno: ""
-      })
-      setTipoSeleccionado("")
-      setPlanSeleccionado(null)
-
     } catch (error) {
-      notify.error("¡Error al registrar el pago")
+      notify.error("¡Error al registrar el pago! Revisá e intentá de nuevo.")
       console.error("Error al enviar el pago:", error)
     }
-    setIsSubmitting(false)
-    onOpenChange(false)
   }
 
   useEffect(() => {

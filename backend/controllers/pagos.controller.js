@@ -4,6 +4,7 @@ import {
     updatePagoByID,
     deletePagoByID,
     getAlumnosFromSheet,
+    getAlumnoByDNI,
     getPlanesFromSheet,
     updateAlumnoByDNI,
     appendRegistroPuntoToSheet
@@ -15,6 +16,9 @@ import "dayjs/locale/es.js";
 
 dayjs.locale("es");
 dayjs.extend(customParseFormat);
+
+// Alumno de prueba: nunca se le suman puntos/coins. NO BORRAR (dni 7777777).
+const DNI_PRUEBA = "7777777";
 
 function formatFechaDB(dateStr) {
     if (!dateStr) return "";
@@ -438,24 +442,32 @@ export const addPago = async (req, res) => {
       return res.status(400).json({ message: "Faltan campos obligatorios" });
     }
 
-    const nuevoPago = await appendPagoToSheet(pago);
+    // A) Insertar pago + leer alumno (por DNI, no toda la tabla) + planes EN PARALELO
+    const [nuevoPago, alumno, coinsPorPlan] = await Promise.all([
+      appendPagoToSheet(pago),
+      getAlumnoByDNI(pago["Socio DNI"]),
+      obtenerCoinsPorPlan(),
+    ]);
 
-    const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find((a) => a.DNI === pago["Socio DNI"]);
     if (!alumno) {
-      return res
-        .status(404)
-        .json({ message: "Alumno no encontrado para actualizar coins" });
+      // El pago ya quedó guardado; solo no se pudieron actualizar coins/plan.
+      return res.status(201).json({
+        message: "Pago registrado. Alumno no encontrado para actualizar coins/plan.",
+        coinsSumados: 0,
+      });
     }
 
-    const coinsPorPlan = await obtenerCoinsPorPlan();
     const coinsDelPlan = coinsPorPlan[pago["Ultimo_Plan"]] ?? 0;
+    const esGymOClase =
+      pago.Tipo?.toUpperCase() === "GIMNASIO" ||
+      pago.Tipo?.toUpperCase() === "CLASE";
+    const esAlumnoPrueba = String(pago["Socio DNI"]) === DNI_PRUEBA;
 
     let coinsASumar = 0;
-    if (
-      pago.Tipo?.toUpperCase() === "GIMNASIO" ||
-      pago.Tipo?.toUpperCase() === "CLASE"
-    ) {
+    if (esAlumnoPrueba) {
+      // Regla: el alumno de prueba nunca acumula puntos.
+      coinsASumar = 0;
+    } else if (esGymOClase) {
       coinsASumar = calcularCoinsPorPago(alumno, pago, coinsPorPlan);
     } else {
       coinsASumar = Number(coinsDelPlan);
@@ -464,26 +476,44 @@ export const addPago = async (req, res) => {
     const gymCoinsActuales = parseInt(alumno["GymCoins"] || "0", 10);
     const gymCoinsNuevos = gymCoinsActuales + coinsASumar;
 
-    await updateAlumnoByDNI(alumno.DNI, {
-      gymcoins: gymCoinsNuevos,
+    // B) Un solo UPDATE del alumno: coins + (si aplica) plan/fecha/clases.
+    // Esto reemplaza el PUT /api/alumnos separado que hacía el frontend.
+    const alumnoPatch = { gymcoins: gymCoinsNuevos };
+    if (esGymOClase) {
+      alumnoPatch.Plan = pago["Ultimo_Plan"] || "";
+      if (pago["Fecha de Vencimiento"]) {
+        alumnoPatch.Fecha_vencimiento = pago["Fecha de Vencimiento"];
+      }
+      if (pago["Clases_pagadas"] !== undefined) {
+        alumnoPatch.Clases_pagadas = pago["Clases_pagadas"];
+      }
+      alumnoPatch.Clases_realizadas = 0;
+    }
+
+    await updateAlumnoByDNI(alumno.DNI, alumnoPatch);
+
+    // Responder ya. El registro de puntos es secundario.
+    res.status(201).json({
+      message: "Pago registrado correctamente y coins actualizados",
+      coinsSumados: coinsASumar,
+      coinsTotales: gymCoinsNuevos,
     });
 
+    // D) Registro de puntos en background (fire-and-forget). No bloquea la respuesta.
     if (coinsASumar > 0) {
-      await appendRegistroPuntoToSheet({
+      appendRegistroPuntoToSheet({
         DNI: pago["Socio DNI"],
         Nombre: pago.Nombre,
         Puntos: coinsASumar,
         Motivo: `Pago del plan ${pago["Ultimo_Plan"]}`,
         Responsable: pago.Responsable,
         PagoID: String(nuevoPago.id),
-      });
+      }).catch((err) =>
+        console.error("Error al registrar puntos (background):", err)
+      );
     }
 
-    res.status(201).json({
-      message: "Pago registrado correctamente y coins actualizados",
-      coinsSumados: coinsASumar,
-      coinsTotales: gymCoinsNuevos,
-    });
+    return;
   } catch (error) {
     console.error("Error al registrar pago:", error);
     res.status(500).json({ message: "Error al registrar el pago" });
