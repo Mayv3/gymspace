@@ -2,7 +2,12 @@ import express from 'express'
 import { getDashboardCompleto } from '../controllers/dashboard.controller.js'
 import { getAlumnosFromSheet, getClasesDiariasFromSheet, getEgresosByMesYAnio, getPlanesFromSheet, getTurnosFromSheet } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
 import supabase from '../db/supabase.js';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const router = express.Router()
 
@@ -478,6 +483,40 @@ router.get("/whatsapp-mensajes", async (req, res) => {
   } catch (e) {
     console.error("Error whatsapp-mensajes:", e);
     return res.status(500).json({ error: "No se pudieron obtener los mensajes de WhatsApp" });
+  }
+});
+
+// Mails enviados hoy (logueados en Supabase al enviarse vía Brevo)
+router.get("/emails-enviados", async (req, res) => {
+  try {
+    const ZONE = 'America/Argentina/Cordoba';
+    const inicioHoy = dayjs().tz(ZONE).startOf('day').toISOString();
+    const finHoy = dayjs().tz(ZONE).endOf('day').toISOString();
+    const limit = Math.min(Number(req.query.limit ?? 50), 100);
+
+    const { data, error } = await supabase
+      .from('emails_enviados')
+      .select('id, email, asunto, tipo, enviado_at')
+      .gte('enviado_at', inicioHoy)
+      .lte('enviado_at', finHoy)
+      .order('enviado_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    const emails = (data ?? []).map((e) => ({
+      id: String(e.id),
+      email: e.email || '',
+      subject: e.asunto || '(sin asunto)',
+      tipo: e.tipo || '',
+      date: e.enviado_at || null,
+    }));
+
+    res.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return res.json({ total: emails.length, emails });
+  } catch (e) {
+    console.error("Error emails-enviados:", e);
+    return res.status(500).json({ error: "No se pudieron obtener los mails enviados" });
   }
 });
 

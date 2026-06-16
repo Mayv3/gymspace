@@ -387,7 +387,7 @@ const LoginPage = () => {
             >
               Iniciaste sesión como
               <Box component="span" sx={{ display: 'block', color: '#fb923c', fontSize: { xs: '1.8rem', sm: '2.6rem' } }}>
-                "EL PELADO TOPU"
+                "EL DOPELA"
               </Box>
             </Typography>
           </Box>

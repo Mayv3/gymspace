@@ -3,8 +3,21 @@ import fetch from 'node-fetch'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import { getAlumnosFromSheet, getPlanesFromSheet } from '../services/googleSheets.js'
+import supabase from '../db/supabase.js'
 
 dayjs.extend(customParseFormat)
+
+export async function logEmailEnviado({ email, asunto, tipo }) {
+  try {
+    await supabase.from('emails_enviados').insert({
+      email: String(email || '').trim(),
+      asunto: asunto || null,
+      tipo: tipo || null,
+    })
+  } catch (err) {
+    console.error('❌ No se pudo loguear email enviado:', err?.message)
+  }
+}
 
 export const emailsRouter = express.Router()
 
@@ -58,6 +71,7 @@ async function sendBrevoEmail({ to, subject, text, html }) {
     }
 
     console.log(`✅ OK → ${to}`)
+    await logEmailEnviado({ email: to, asunto: subject, tipo: 'broadcast' })
   } catch (err) {
     console.error(`❌ FAIL → ${to} → ${err.message}`)
   }

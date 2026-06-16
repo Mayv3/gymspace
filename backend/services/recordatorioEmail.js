@@ -5,6 +5,7 @@ import timezone from 'dayjs/plugin/timezone.js'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import dotenv from 'dotenv'
 import { getAlumnosFromSheet } from './googleSheets.js'
+import { logEmailEnviado } from '../routes/emails.routes.js'
 
 dotenv.config()
 
@@ -58,6 +59,7 @@ async function sendBrevoEmail({ to, subject, text, html }) {
     }
 
     console.log(`📧 Email enviado correctamente a ${to}`)
+    await logEmailEnviado({ email: to, asunto: subject, tipo: 'recordatorio' })
   } catch (err) {
     console.error(`❌ Error al enviar email a ${to}:`, err.message)
   }
@@ -241,9 +243,10 @@ export const enviarPruebaBrevo = async (to, subject, fecha) => {
       textContent: `Prueba de envío: tu plan vencería el ${fecha}`,
     }),
   })
-    .then((res) => {
+    .then(async (res) => {
       if (!res.ok) throw new Error(`Brevo respondió ${res.status}`)
       console.log(`✅ Prueba enviada correctamente a ${to}`)
+      await logEmailEnviado({ email: to, asunto: subject, tipo: 'prueba' })
     })
     .catch((err) => {
       console.error('❌ Error al enviar prueba:', err.message)
@@ -352,6 +355,9 @@ export async function enviarRankingEmail() {
     }
 
     console.log("✅ Ranking enviado correctamente a nicopereyra855@gmail.com y anyopollastrini1@gmail.com")
+    for (const dest of payload.to) {
+      await logEmailEnviado({ email: dest.email, asunto: payload.subject, tipo: 'ranking' })
+    }
   } catch (err) {
     console.error("❌ Error en enviarRankingEmail:", err.message)
   }
