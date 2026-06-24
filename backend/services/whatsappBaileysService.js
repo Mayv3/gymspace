@@ -23,6 +23,24 @@ dotenv.config()
 const MI_NUMERO = '5493513274314@s.whatsapp.net'
 const logger = P({ level: 'silent' })
 
+// Números a los que NO se les envía recordatorio por WhatsApp.
+// Acepta cualquier formato (con/sin 0, 549, espacios o guiones): se compara solo por dígitos.
+const NUMEROS_EXCLUIDOS = [
+  '3516818073',
+]
+
+// Deja solo los dígitos y quita prefijos 0 / 54 / 9 para comparar de forma uniforme
+const normalizarNumero = (tel) =>
+  String(tel || '')
+    .replace(/[^0-9]/g, '')
+    .replace(/^0/, '')
+    .replace(/^54/, '')
+    .replace(/^9/, '')
+
+const EXCLUIDOS_SET = new Set(NUMEROS_EXCLUIDOS.map(normalizarNumero))
+
+const estaExcluido = (tel) => EXCLUIDOS_SET.has(normalizarNumero(tel))
+
 const _origLog = console.log
 console.log = (...args) => {
   if (typeof args[0] === 'string' && args[0].includes('Closing session')) return
@@ -135,7 +153,14 @@ async function procesarRecordatorios(enviar) {
     const fecha = String(a.Fecha_vencimiento).trim()
     const vencimiento = dayjs(fecha, 'D/M/YYYY').startOf('day')
     const hoyNormalizado = dayjs().startOf('day')
-    return vencimiento.diff(hoyNormalizado, 'day') === 4
+    const venceEn4Dias = vencimiento.diff(hoyNormalizado, 'day') === 4
+
+    if (venceEn4Dias && estaExcluido(a.Telefono)) {
+      console.log(`⛔ Excluido (lista negra): ${a.Nombre} | 📞 ${a.Telefono}`)
+      return false
+    }
+
+    return venceEn4Dias
   })
 
   console.log('📋 MENSAJES A PROCESAR')
