@@ -34,7 +34,8 @@ jobs:
         run: |
           STAMP=$(date -u +%Y-%m-%d_%H%M)
           echo "STAMP=$STAMP" >> "$GITHUB_ENV"
-          pg_dump "$DB_URL" --no-owner --no-acl -Fc -f "gymspace-$STAMP.dump"
+          /usr/lib/postgresql/17/bin/pg_dump --version
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --no-owner --no-acl -Fc -f "gymspace-$STAMP.dump"
           ls -lh "gymspace-$STAMP.dump"
 
       - name: Encrypt backup (AES-256)
