@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import dotenv from 'dotenv'
-import { getAlumnosFromSheet } from './googleSheets.js'
+import { listAlumnos } from './alumnos.service.js';
 import { logEmailEnviado } from '../routes/emails.routes.js'
 
 dotenv.config()
@@ -207,7 +207,7 @@ export const enviarRecordatoriosPorLotes = async (
 
 export const probarRecordatoriosEmail = async () => {
   console.log('🧪 Ejecutando prueba manual de recordatorio por email...')
-  const alumnos = await getAlumnosFromSheet()
+  const alumnos = await listAlumnos()
   await enviarRecordatoriosPorLotes(alumnos, 20, 30000, { previewOnly: true })
 }
 

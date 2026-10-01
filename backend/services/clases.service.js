@@ -1,6 +1,7 @@
 // Clases del Club
 import dayjs from 'dayjs';
 import supabase from '../db/supabase.js';
+import { findNombresByDNIs } from './alumnos.service.js';
 
 const DIA_NUM_A_TEXTO = {
     0: "Domingo",
@@ -35,33 +36,29 @@ function calcularProximaFecha(diaTexto) {
 }
 
 export async function getClasesElClubFromDB() {
-    const { data: clases, error } = await supabase
-        .from("clases")
-        .select("id, nombre_clase, dia, hora, cupo_maximo")
-        .order("dia", { ascending: true })
-        .order("hora", { ascending: true });
+    const hoy = dayjs().format("YYYY-MM-DD");
+    const maxFecha = dayjs().add(7, "day").format("YYYY-MM-DD");
+
+    const [{ data: clases, error }, { data: inscripciones }] = await Promise.all([
+        supabase
+            .from("clases")
+            .select("id, nombre_clase, dia, hora, cupo_maximo")
+            .order("dia", { ascending: true })
+            .order("hora", { ascending: true }),
+        supabase
+            .from("clases_inscripciones")
+            .select("clase_id, alumno_dni, fecha_clase")
+            .gte("fecha_clase", hoy)
+            .lte("fecha_clase", maxFecha),
+    ]);
 
     if (error) {
         console.error(error);
         throw error;
     }
 
-    const hoy = dayjs().format("YYYY-MM-DD");
-    const maxFecha = dayjs().add(7, "day").format("YYYY-MM-DD");
-
-    const { data: inscripciones } = await supabase
-        .from("clases_inscripciones")
-        .select("clase_id, alumno_dni, fecha_clase")
-        .gte("fecha_clase", hoy)
-        .lte("fecha_clase", maxFecha);
-
-    const { data: alumnos } = await supabase
-        .from("alumnos")
-        .select("dni, nombre");
-
-    const alumnosMap = Object.fromEntries(
-        alumnos.map(a => [a.dni, a.nombre])
-    );
+    const dnisInscriptos = [...new Set((inscripciones || []).map(i => i.alumno_dni))];
+    const alumnosMap = await findNombresByDNIs(dnisInscriptos);
 
     const inscPorClase = {};
     for (const i of inscripciones || []) {
@@ -99,85 +96,3 @@ export async function getClasesElClubFromDB() {
     });
 }
 
-
-export async function inscribirAlumno({ claseId, dni }) {
-    const clase = await getClaseById(claseId);
-    if (!clase) throw new Error("Clase no existe");
-
-    const fecha = calcularProximaFecha(clase.dia_semana);
-
-    const { count } = await supabase
-        .from("clases_inscripciones")
-        .select("*", { count: "exact", head: true })
-        .eq("clase_id", claseId)
-        .eq("fecha_clase", fecha);
-
-    if (count >= clase.cupo_maximo) {
-        throw new Error("Cupo completo");
-    }
-
-    const { data: existe } = await supabase
-        .from("clases_inscripciones")
-        .select("id")
-        .eq("clase_id", claseId)
-        .eq("alumno_dni", dni)
-        .eq("fecha_clase", fecha)
-        .maybeSingle();
-
-    if (existe) {
-        throw new Error("Ya inscripto");
-    }
-
-    return supabase.from("clases_inscripciones").insert({
-        clase_id: claseId,
-        alumno_dni: dni,
-        fecha_clase: fecha
-    });
-}
-
-export async function desuscribirAlumno({ claseId, dni }) {
-    const clase = await getClaseById(claseId);
-    const fecha = calcularProximaFecha(clase.dia_semana);
-
-    return supabase
-        .from("clases_inscripciones")
-        .delete()
-        .eq("clase_id", claseId)
-        .eq("alumno_dni", dni)
-        .eq("fecha_clase", fecha);
-}
-
-export async function obtenerClasesConEstado(dni) {
-    const { data: clases } = await supabase
-        .from("clases")
-        .select("*")
-        .eq("activa", true);
-
-    return Promise.all(
-        clases.map(async (clase) => {
-            const fecha = calcularProximaFechaClase(clase.dia_semana);
-
-            const { count } = await supabase
-                .from("clases_inscripciones")
-                .select("*", { count: "exact", head: true })
-                .eq("clase_id", clase.id)
-                .eq("fecha_clase", fecha);
-
-            const { data: inscripto } = await supabase
-                .from("clases_inscripciones")
-                .select("id")
-                .eq("clase_id", clase.id)
-                .eq("alumno_dni", dni)
-                .eq("fecha_clase", fecha)
-                .maybeSingle();
-
-            return {
-                ...clase,
-                fecha_clase: fecha,
-                inscriptos: count,
-                cupos_disponibles: clase.cupo_maximo - count,
-                esta_inscripto: Boolean(inscripto)
-            };
-        })
-    );
-}

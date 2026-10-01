@@ -1,9 +1,4 @@
-import {
-    appendClaseDiariaToSheet,
-    updateClaseDiariaByID,
-    deleteClaseDiariaByID,
-    getClasesDiariasFromSheet
-} from '../services/googleSheets.js';
+import { insertClaseDiaria, updateClaseDiariaByID, removeClaseDiariaByID, listClasesDiarias } from '../services/clasesDiarias.service.js';
 import dayjs from 'dayjs';
 
 export const registrarClaseDiaria = async (req, res) => {
@@ -21,7 +16,7 @@ export const registrarClaseDiaria = async (req, res) => {
             Responsable: responsable
         };
 
-        await appendClaseDiariaToSheet(clase);
+        await insertClaseDiaria(clase);
 
         res.status(201).json({ message: 'Clase diaria registrada con éxito' }, clase.ID );
     } catch (error) {
@@ -49,7 +44,7 @@ export const eliminarClaseDiaria = async (req, res) => {
     try {
         const id = req.params.id;
 
-        const eliminada = await deleteClaseDiariaByID(id);
+        const eliminada = await removeClaseDiariaByID(id);
         if (!eliminada) return res.status(404).json({ message: 'Clase no encontrada' });
 
         res.json({ message: 'Clase eliminada correctamente' });
@@ -62,7 +57,7 @@ export const eliminarClaseDiaria = async (req, res) => {
 export const filtrarClasesDiarias = async (req, res) => {
   try {
     const { fecha, tipo } = req.query;
-    const clases = await getClasesDiariasFromSheet();
+    const clases = await listClasesDiarias();
 
     const filtradas = clases.filter(clase => {
       const claseFecha = dayjs(clase.Fecha, 'D/M/YYYY');

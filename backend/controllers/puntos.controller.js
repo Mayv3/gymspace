@@ -1,4 +1,4 @@
-import { getHistorialPuntosByDNI } from "../services/googleSheets.js";
+import { listHistorialPuntosByDNI } from '../services/puntos.service.js';
 
 export const getHistorialPuntos = async (req, res) => {
     try {
@@ -7,7 +7,7 @@ export const getHistorialPuntos = async (req, res) => {
         return res.status(400).json({ ok: false, error: "DNI requerido" });
       }
   
-      const historial = await getHistorialPuntosByDNI(dni);
+      const historial = await listHistorialPuntosByDNI(dni);
   
       return res.json({
         ok: true,

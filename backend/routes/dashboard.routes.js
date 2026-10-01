@@ -1,6 +1,9 @@
 import express from 'express'
-import { getDashboardCompleto } from '../controllers/dashboard.controller.js'
-import { getAlumnosFromSheet, getClasesDiariasFromSheet, getEgresosByMesYAnio, getPlanesFromSheet, getTurnosFromSheet } from '../services/googleSheets.js';
+import { fetchAllRows } from '../services/helpers.js';
+import { listClasesDiarias } from '../services/clasesDiarias.service.js';
+import { listEgresosByMesYAnio } from '../services/egresos.service.js';
+import { listPlanes } from '../services/planes.service.js';
+import { listTurnos } from '../services/turnos.service.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
@@ -11,30 +14,26 @@ dayjs.extend(timezone);
 
 const router = express.Router()
 
-router.get('/', getDashboardCompleto)
-
 router.get('/datosBase', async (req, res) => {
   try {
     const fechaParam = req.query.fecha || dayjs().format("DD/MM/YYYY");
     const anio = dayjs(fechaParam, "DD/MM/YYYY").year();
     const mes = dayjs(fechaParam, "DD/MM/YYYY").month() + 1;
 
+    // Los socios ya no vienen acá: se piden paginados a /api/alumnos
     const [
-      alumnos,
       planes,
       turnos,
       asistencias,
       egresos
     ] = await Promise.all([
-      getAlumnosFromSheet(),
-      getPlanesFromSheet(),
-      getTurnosFromSheet(fechaParam),
-      getClasesDiariasFromSheet(),
-      getEgresosByMesYAnio(anio, mes)
+      listPlanes(),
+      listTurnos(fechaParam),
+      listClasesDiarias(),
+      listEgresosByMesYAnio(anio, mes)
     ]);
 
     res.json({
-      alumnos,
       planes,
       turnos,
       asistencias,
@@ -438,14 +437,13 @@ router.get("/activos-por-mes", async (req, res) => {
     const startDate = `${anio}-${paddedMonth}-01`;
     const endDate = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
 
-    const { data, error } = await supabase
+    const data = await fetchAllRows(() => supabase
       .from("pagos")
       .select("socio_dni, nombre, fecha_de_pago, tipo")
       .gte("fecha_de_pago", startDate)
       .lte("fecha_de_pago", endDate)
-      .in("tipo", ["GIMNASIO", "DEUDA GIMNASIO", "CLASE", "DEUDA CLASES"]);
-
-    if (error) throw error;
+      .in("tipo", ["GIMNASIO", "DEUDA GIMNASIO", "CLASE", "DEUDA CLASES"])
+      .order("id"));
 
     // Get plan tipo for each unique payer
     const vistos = new Map();

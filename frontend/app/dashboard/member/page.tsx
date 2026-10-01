@@ -3,7 +3,7 @@
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { motion, AnimatePresence } from "framer-motion"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useUser } from "@/context/UserContext";
@@ -111,6 +111,15 @@ dayjs.extend(customParseFormat)
 
 export default function MemberDashboard() {
   const [user, setUser] = useState<Member | null>(null);
+  // Ordenar una sola vez por carga (parsear fechas con dayjs en cada render es caro con muchos pagos)
+  const pagosOrdenados = useMemo(
+    () =>
+      (user?.Pagos ?? [])
+        .map(pago => ({ pago, ts: dayjs(pago.Fecha_de_Pago, "D/M/YYYY").unix() }))
+        .sort((a, b) => b.ts - a.ts)
+        .map(({ pago }) => pago),
+    [user?.Pagos]
+  );
   const [clases, setClases] = useState<Clase[]>([]);
   const [loadingClases, setLoadingClases] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -958,12 +967,7 @@ export default function MemberDashboard() {
                         },
                       }}
                     >
-                      {[...user.Pagos]
-                        .sort((a, b) =>
-                          dayjs(b.Fecha_de_Pago, "D/M/YYYY").unix() -
-                          dayjs(a.Fecha_de_Pago, "D/M/YYYY").unix()
-                        )
-                        .map((pago, index) => (
+                      {pagosOrdenados.map((pago, index) => (
                           <motion.div
                             key={index}
                             initial={{ opacity: 0, x: -20 }}
@@ -1160,8 +1164,10 @@ export default function MemberDashboard() {
                                 display: 'flex',
                                 gap: 2,
                                 overflowX: 'scroll',
+                                // overflowX también recorta en Y: espacio para el hover (translateY) y la sombra
+                                pt: 1.5,
                                 pb: 2,
-                                px: 0.5,
+                                px: 1,
                                 alignItems: 'stretch',
                                 scrollbarWidth: 'thin',
                                 scrollbarColor: isDarkMode ? '#52525b #27272a' : '#d4d4d4 #f5f5f5',

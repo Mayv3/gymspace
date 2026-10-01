@@ -20,7 +20,7 @@ import deudaRoutes from "./routes/deudas.routes.js"
 import puntosRoutes from "./routes/puntos.routes.js";
 import { emailsRouter } from './routes/emails.routes.js'
 
-import { getAlumnosFromSheet } from './services/googleSheets.js';
+import { listAlumnos } from './services/alumnos.service.js';
 import { enviarRankingEmail, enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
 import { iniciarWhatsapp, triggerRecordatorios, simularRecordatorios, simularError } from './services/whatsappBaileysService.js';
 
@@ -92,7 +92,7 @@ app.post('/api/enviar-ranking', async (req, res) => {
 
 app.post('/api/trigger-recordatorios', async (req, res) => {
   try {
-    const alumnos = await getAlumnosFromSheet();
+    const alumnos = await listAlumnos();
     await enviarRecordatoriosPorLotes(alumnos, 20, 30000, { previewOnly: false })
     return res.status(200).send('Envío ejecutado');
   } catch (err) {

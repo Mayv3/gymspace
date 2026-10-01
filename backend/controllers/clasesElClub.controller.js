@@ -1,8 +1,5 @@
 import {
   getClasesElClubFromDB,
-  inscribirAlumno,
-  desuscribirAlumno,
-  obtenerClasesConEstado
 } from "../services/clases.service.js";
 
 import dayjs from "dayjs"
@@ -88,19 +85,6 @@ export const getClases = async (req, res) => {
     return sendSuccess(res, clases);
   } catch (error) {
     console.error("getClases:", error);
-    return sendError(res, 500, "Error al obtener clases");
-  }
-};
-
-export const getClasesConEstado = async (req, res) => {
-  try {
-    const { dni } = req.params;
-    if (!dni) return sendError(res, 400, RESPONSES.dniRequired.message);
-
-    const clases = await obtenerClasesConEstado(dni);
-    return sendSuccess(res, clases);
-  } catch (error) {
-    console.error("getClasesConEstado:", error);
     return sendError(res, 500, "Error al obtener clases");
   }
 };

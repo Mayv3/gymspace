@@ -1,11 +1,28 @@
-import { getAlumnosFromSheet, getRolesFromSheet } from '../services/googleSheets.js';
+import { findAlumnoByDNI } from '../services/alumnos.service.js';
+import { listRoles } from '../services/roles.service.js';
+
+// La hoja de Roles casi no cambia y leerla de Google Sheets tarda ~0,5 s en cada login
+const ROLES_TTL_MS = 5 * 60 * 1000;
+let rolesCache = null;
+let rolesCacheAt = 0;
+
+async function getRolesCacheados() {
+  if (rolesCache && Date.now() - rolesCacheAt < ROLES_TTL_MS) return rolesCache;
+  rolesCache = await listRoles();
+  rolesCacheAt = Date.now();
+  return rolesCache;
+}
 
 export const getRolPorDNI = async (req, res) => {
   try {
     const dni = (req.params.dni || '').trim();
     if (!dni) return res.status(400).json({ message: 'DNI no proporcionado' });
 
-    const roles = await getRolesFromSheet();
+    const [roles, alumno] = await Promise.all([
+      getRolesCacheados(),
+      findAlumnoByDNI(dni),
+    ]);
+
     const userRol = roles.find(r => r.DNI?.trim() === dni);
 
     if (userRol) {
@@ -15,9 +32,6 @@ export const getRolPorDNI = async (req, res) => {
         rol: userRol.Rol?.trim() || "Miembro"
       });
     }
-
-    const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find(a => a.DNI?.trim() === dni);
 
     if (alumno) {
       return res.json({
@@ -34,5 +48,3 @@ export const getRolPorDNI = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener el rol del usuario' });
   }
 };
-
-

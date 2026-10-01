@@ -39,7 +39,6 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   const [planSeleccionado, setPlanSeleccionado] = useState<any>(null)
   const { planes } = useAppData()
   const { user } = useUser()
-  const { alumnos } = useAppData()
   const [formData, setFormData] = useState({
     dni: "",
     name: "",
@@ -69,8 +68,17 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
   const dniInputRef = useRef<HTMLInputElement>(null)
 
   const handleDniBlur = async () => {
-    const dni = dniInputRef.current?.value || ""
-    const alumno = alumnos.find(a => a.DNI === dni)
+    const dni = (dniInputRef.current?.value || "").trim()
+    // Los socios ya no están todos en memoria: buscar este DNI en el servidor
+    let alumno: { Nombre: string; Fecha_vencimiento: string } | null = null
+    if (dni) {
+      try {
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos/${encodeURIComponent(dni)}`)
+        alumno = data
+      } catch (error: any) {
+        if (error?.response?.status !== 404) console.error("Error al buscar el alumno:", error)
+      }
+    }
 
     if (alumno) {
       setFormData(prev => ({ ...prev, dni, name: alumno.Nombre }))

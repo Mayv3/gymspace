@@ -1,16 +1,11 @@
-import {
-    getAnotacionesFromSheet,
-    appendAnotacionToSheet,
-    updateAnotacionInSheet,
-    deleteAnotacionInSheet
-  } from '../services/googleSheets.js';
+import { listAnotaciones, insertAnotacion, updateAnotacion, removeAnotacion } from '../services/anotaciones.service.js';
   
   import dayjs from 'dayjs';
   
   export const getAnotaciones = async (req, res) => {
     try {
       const { fecha } = req.query;
-      const anotaciones = await getAnotacionesFromSheet();
+      const anotaciones = await listAnotaciones();
   
       const filtradas = fecha
         ? anotaciones.filter(a => a.Fecha === fecha)
@@ -39,7 +34,7 @@ import {
         ProfeaCargo
       };
   
-      await appendAnotacionToSheet(nueva);
+      await insertAnotacion(nueva);
       res.status(201).json({ message: 'Anotación registrada correctamente' });
     } catch (error) {
       console.error('Error al registrar anotación:', error);
@@ -52,7 +47,7 @@ import {
       const { id } = req.params;
       const nuevosDatos = req.body;
   
-      const actualizado = await updateAnotacionInSheet(id, nuevosDatos);
+      const actualizado = await updateAnotacion(id, nuevosDatos);
       if (!actualizado) return res.status(404).json({ message: 'Anotación no encontrada' });
   
       res.json({ message: 'Anotación actualizada correctamente' });
@@ -66,7 +61,7 @@ import {
     try {
       const { id } = req.params;
   
-      const eliminado = await deleteAnotacionInSheet(id);
+      const eliminado = await removeAnotacion(id);
       if (!eliminado) return res.status(404).json({ message: 'Anotación no encontrada' });
   
       res.json({ message: 'Anotación eliminada correctamente' });

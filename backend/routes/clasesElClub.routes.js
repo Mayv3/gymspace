@@ -1,7 +1,6 @@
 import express from "express";
 import {
     getClases,
-    getClasesConEstado,
     updateClaseElClubByID,
     createClase,
     updateClaseProperties,
@@ -12,7 +11,6 @@ import {
 
 const router = express.Router();
 router.get("/", getClases);
-router.get("/estado/:dni", getClasesConEstado);
 router.post("/", createClase);
 router.put("/:id", updateClaseElClubByID);
 router.patch("/:id", updateClaseProperties);

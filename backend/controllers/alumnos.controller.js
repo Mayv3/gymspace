@@ -1,33 +1,85 @@
-import {
-  getAlumnosFromSheet,
-  appendAlumnoToSheet,
-  updateAlumnoByDNI,
-  deleteAlumnoByDNI,
-  getPlanesFromSheet,
-  getPagosFromSheet,
-  reiniciarPuntosAlumnos,
-
-} from '../services/googleSheets.js';
+import { insertAlumno, updateAlumnoByDNI, removeAlumnoByDNI, reiniciarPuntosAlumnos, findAlumnoByDNI, listAlumnosParaRanking, mapAlumno } from '../services/alumnos.service.js';
+import { listPlanes } from '../services/planes.service.js';
+import { listPagosByDNI } from '../services/pagos.service.js';
+import supabase from '../db/supabase.js';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter.js'
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
 dayjs.extend(isSameOrAfter)
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
-let cachedAlumnos = null;
-let lastFetchTime = 0;
-const CACHE_DURATION_MS = 60 * 1000;
+const ARG_TZ = 'America/Argentina/Buenos_Aires';
+const PAGE_SIZE_MAX = 100;
 
+// Texto libre para .ilike / .or() de PostgREST: sacar lo que rompe la sintaxis
+const limpiarBusqueda = (texto) => (texto || '').replace(/[,()*%\\]/g, ' ').trim();
+// Comparación exacta sin distinguir mayúsculas (escapa los comodines de LIKE)
+const escaparLike = (texto) => texto.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+// GET /api/alumnos → una página de socios: { data, total, page, pageSize, totalGeneral? }
+// Filtros: q (nombre, email, DNI o plan), nombre, profe, sexo, plan, edadMin, edadMax
 export const getAlumnos = async (req, res) => {
-  const ahora = Date.now();
-  if (cachedAlumnos && ahora - lastFetchTime < CACHE_DURATION_MS) {
-    console.log("🧠 Alumnos desde caché");
-    return res.json(cachedAlumnos);
-  }
   try {
-    console.log("📥 Alumnos desde Google Sheets");
-    const alumnos = await getAlumnosFromSheet();
-    cachedAlumnos = alumnos;
-    lastFetchTime = ahora;
-    res.json(alumnos);
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize, 10) || 10, 1), PAGE_SIZE_MAX);
+    const q = limpiarBusqueda(req.query.q);
+    const nombre = limpiarBusqueda(req.query.nombre);
+    const profe = limpiarBusqueda(req.query.profe);
+    const sexo = req.query.sexo || null;
+    const plan = req.query.plan && req.query.plan !== 'todos' ? req.query.plan : null;
+    const edadMin = parseInt(req.query.edadMin, 10);
+    const edadMax = parseInt(req.query.edadMax, 10);
+    const hoy = dayjs().tz(ARG_TZ).startOf('day');
+
+    const gruposOr = [];
+    if (q) gruposOr.push(`nombre.ilike.%${q}%,email.ilike.%${q}%,dni.ilike.%${q}%,plan.ilike.%${q}%`);
+    // Sin fecha de nacimiento cuenta como edad 0 (igual que antes en el navegador): entra en "edad máxima"
+    if (!isNaN(edadMax)) {
+      const limite = hoy.subtract(edadMax + 1, 'year').format('YYYY-MM-DD');
+      gruposOr.push(`fecha_nacimiento.is.null,fecha_nacimiento.gt.${limite}`);
+    }
+
+    const consulta = (opciones) => {
+      let query = supabase.from('alumnos').select('*', opciones).is('deleted_at', null);
+      if (nombre) query = query.ilike('nombre', `%${nombre}%`);
+      if (profe) query = query.ilike('profesor_asignado', `%${profe}%`);
+      if (sexo) query = query.eq('sexo', sexo);
+      if (plan) query = query.ilike('plan', escaparLike(plan));
+      // ... y sin fecha de nacimiento no entra en "edad mínima" (> 0)
+      if (!isNaN(edadMin) && edadMin > 0) {
+        query = query.lte('fecha_nacimiento', hoy.subtract(edadMin, 'year').format('YYYY-MM-DD'));
+      }
+      if (gruposOr.length === 1) query = query.or(gruposOr[0]);
+      if (gruposOr.length > 1) query = query.or(`and(${gruposOr.map(g => `or(${g})`).join(',')})`);
+      return query;
+    };
+
+    const from = (page - 1) * pageSize;
+    const [pagina, general] = await Promise.all([
+      consulta({ count: 'exact' }).order('nombre').order('id').range(from, from + pageSize - 1),
+      req.query.conTotalGeneral
+        ? supabase.from('alumnos').select('id', { count: 'exact', head: true }).is('deleted_at', null)
+        : Promise.resolve(null),
+    ]);
+
+    let { data, count, error } = pagina;
+    // Página fuera de rango: devolver vacía con el total real
+    if (error?.code === 'PGRST103') {
+      ({ count, error } = await consulta({ count: 'exact', head: true }));
+      data = [];
+    }
+    if (error) throw error;
+    if (general?.error) throw general.error;
+
+    res.json({
+      data: data.map(mapAlumno),
+      total: count ?? 0,
+      page,
+      pageSize,
+      ...(general ? { totalGeneral: general.count ?? 0 } : {}),
+    });
   } catch (error) {
     console.error('Error al obtener alumnos:', error);
     res.status(500).json({ message: 'Error al obtener los alumnos' });
@@ -41,7 +93,7 @@ export const addAlumno = async (req, res) => {
       return res.status(400).json({ message: 'Faltan campos obligatorios' });
     }
 
-    await appendAlumnoToSheet(alumno);
+    await insertAlumno(alumno);
     res.status(201).json(alumno);
   } catch (error) {
     console.error('Error al agregar alumno:', error);
@@ -57,7 +109,6 @@ export const updateAlumno = async (req, res) => {
     const actualizado = await updateAlumnoByDNI(dni, alumnoData);
 
     if (actualizado) {
-      cachedAlumnos = null;
       res.json({ message: 'Alumno actualizado correctamente' });
     } else {
       res.status(404).json({ message: 'Alumno no encontrado' });
@@ -72,7 +123,7 @@ export const deleteAlumno = async (req, res) => {
   try {
     const dni = req.params.dni;
 
-    const eliminado = await deleteAlumnoByDNI(dni);
+    const eliminado = await removeAlumnoByDNI(dni);
 
     if (eliminado) {
       res.json({ message: 'Alumno eliminado correctamente' });
@@ -89,18 +140,17 @@ export const getAlumnoByDNI = async (req, res) => {
   try {
     const dni = req.params.dni;
 
-    const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find(a => String(a.DNI) === String(dni));
+    const [alumno, planes, pagosDelAlumno] = await Promise.all([
+      findAlumnoByDNI(dni),
+      listPlanes(),
+      listPagosByDNI(dni),
+    ]);
 
     if (!alumno) {
       return res.status(404).json({ message: 'Alumno no encontrado' });
     }
 
-    const planes = await getPlanesFromSheet();
     const plan = planes.find(p => p["Plan o Producto"].toUpperCase() === alumno.Plan.toUpperCase());
-
-    const pagos = await getPagosFromSheet();
-    const pagosDelAlumno = pagos.filter(pago => String(pago["Socio DNI"]) === String(dni));
 
     pagosDelAlumno.sort((a, b) => {
       return new Date(b["Fecha_de_Pago"].split('/').reverse().join('/')) -
@@ -125,196 +175,9 @@ export const getAlumnoByDNI = async (req, res) => {
 // estadisticas
 
 
-export const getEstadisticasAlumnos = async (req, res) => {
-  try {
-    const alumnos = await getAlumnosFromSheet();
-    const { sexo, profe, plan, edadMin, edadMax } = req.query;
-
-    const hoy = dayjs();
-
-    const filtrados = alumnos.filter(alumno => {
-      const cumpleSexo = !sexo || alumno.Sexo?.toLowerCase() === sexo.toLowerCase();
-      const cumpleProfe = !profe || alumno.Profesor_asignado?.toLowerCase() === profe.toLowerCase();
-      const cumplePlan = !plan || alumno.Plan?.toLowerCase() === plan.toLowerCase();
-
-      let cumpleEdad = true;
-      if (edadMin || edadMax) {
-        const fechaNac = dayjs(alumno.Fecha_nacimiento, ['D/M/YYYY', 'DD/MM/YYYY'], true);
-        if (fechaNac.isValid()) {
-          const edad = hoy.diff(fechaNac, 'year');
-          cumpleEdad = (!edadMin || edad >= parseInt(edadMin)) && (!edadMax || edad <= parseInt(edadMax));
-        } else {
-          cumpleEdad = false;
-        }
-      }
-
-      return cumpleSexo && cumpleProfe && cumplePlan && cumpleEdad;
-    });
-
-    res.json({
-      cantidad_total: alumnos.length,
-      cantidad_filtrada: filtrados.length,
-      alumnos: filtrados,
-    });
-  } catch (error) {
-    console.error('Error al obtener estadísticas de alumnos:', error);
-    res.status(500).json({ message: 'Error al obtener estadísticas' });
-  }
-};
-
-export const getAlumnosEstado = async (req, res) => {
-  try {
-    const alumnos = await getAlumnosFromSheet();
-    const hoy = dayjs();
-
-    let activos = 0;
-    let vencidos = 0;
-
-    for (const alumno of alumnos) {
-      const fechaStr = (alumno.Fecha_vencimiento || "").trim();
-      const fechaVenc = dayjs(fechaStr, ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'], true);
-
-      const clasesPagadas = Number(alumno.Clases_pagadas || 0);
-      const clasesRealizadas = Number(alumno.Clases_realizadas || 0);
-
-      const vencidoPorFecha = !fechaVenc.isValid() || fechaVenc.isSameOrBefore(hoy, 'day');
-      const vencidoPorClases = clasesPagadas > 0 && clasesRealizadas >= clasesPagadas;
-
-      if (vencidoPorFecha || vencidoPorClases) {
-        vencidos++;
-      } else {
-        activos++;
-      }
-    }
-
-    res.json({ activos, vencidos });
-  } catch (error) {
-    console.error('Error al calcular alumnos activos/vencidos:', error);
-    res.status(500).json({ message: 'Error al calcular alumnos activos/vencidos' });
-  }
-};
-
-export const getAlumnosPorEdad = async (req, res) => {
-  try {
-    const alumnos = await getAlumnosFromSheet();
-    const hoy = dayjs();
-    const edades = {};
-
-    for (const alumno of alumnos) {
-      const fechaNac = dayjs(alumno.Fecha_nacimiento, ['D/M/YYYY', 'DD/MM/YYYY'], true);
-      if (!fechaNac.isValid()) continue;
-
-      const edad = hoy.diff(fechaNac, 'year');
-
-      if (edades[edad]) {
-        edades[edad]++;
-      } else {
-        edades[edad] = 1;
-      }
-    }
-
-    res.json(edades);
-  } catch (error) {
-    console.error('Error al calcular distribución por edad:', error);
-    res.status(500).json({ message: 'Error al calcular distribución por edad' });
-  }
-};
-
-export const getDistribucionPlanes = async (req, res) => {
-  try {
-    const alumnos = await getAlumnosFromSheet();
-    const conteoPlanes = {};
-
-    for (const alumno of alumnos) {
-      const plan = alumno.Plan?.trim();
-      if (!plan) continue;
-
-      if (!conteoPlanes[plan]) {
-        conteoPlanes[plan] = 1;
-      } else {
-        conteoPlanes[plan]++;
-      }
-    }
-
-    res.json(conteoPlanes);
-  } catch (error) {
-    console.error("Error al obtener distribución de planes:", error);
-    res.status(500).json({ message: "Error al obtener distribución de planes" });
-  }
-};
-
-export const getDashboardAlumnos = async (req, res) => {
-  try {
-    const alumnos = await getAlumnosFromSheet()
-    const planesBD = await getPlanesFromSheet()
-    const hoy = dayjs()
-
-    let activos = 0
-    let vencidos = 0
-    let abandonos = 0
-    const edades = {}
-    const planesConteo = {}
-
-    const planesBDMap = {}
-    for (const p of planesBD) {
-      const nombre = (p["Plan o Producto"] || "").trim().toUpperCase()
-      planesBDMap[nombre] = p.Tipo?.trim().toUpperCase() || "OTRO"
-    }
-
-    for (const alumno of alumnos) {
-      const fechaStr = (alumno.Fecha_vencimiento || "").trim()
-      const fechaVenc = dayjs(fechaStr, ['D/M/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'], true)
-      const clasesPagadas = Number(alumno.Clases_pagadas || 0)
-      const clasesRealizadas = Number(alumno.Clases_realizadas || 0)
-
-      const tieneVencimiento = fechaVenc.isValid()
-      const vencidoPorFecha = tieneVencimiento && fechaVenc.isBefore(hoy, 'day')
-      const vencidoPorClases = clasesPagadas > 0 && clasesRealizadas >= clasesPagadas
-      const diasDesdeVencimiento = tieneVencimiento ? hoy.diff(fechaVenc, 'day') : 0
-
-      if (vencidoPorFecha || vencidoPorClases) {
-        if (diasDesdeVencimiento > 30) {
-          abandonos++
-        } else {
-          vencidos++
-        }
-      } else {
-        activos++
-      }
-
-      const fechaNac = dayjs(alumno.Fecha_nacimiento, ['D/M/YYYY', 'DD/MM/YYYY'], true)
-      if (fechaNac.isValid()) {
-        const edad = hoy.diff(fechaNac, 'year')
-        edades[edad] = (edades[edad] || 0) + 1
-      }
-
-      const planNombre = (alumno.Plan || "").trim().toUpperCase()
-      const tipo = planesBDMap[planNombre] || "OTRO"
-      const key = `${planNombre}__${tipo}`
-
-      planesConteo[key] = (planesConteo[key] || 0) + 1
-    }
-
-    const planes = Object.entries(planesConteo).map(([key, cantidad]) => {
-      const [plan, tipo] = key.split("__")
-      return { plan, tipo, cantidad }
-    })
-
-    res.json({
-      estado: { activos, vencidos, abandonos },
-      edades,
-      planes
-    })
-  } catch (error) {
-    console.error('Error en dashboard alumnos:', error)
-    res.status(500).json({ message: 'Error interno del servidor' })
-  }
-}
-
 export const getTopAlumnos = async (req, res) => {
   try {
-    const alumnos = await getAlumnosFromSheet();
-    const planes = await getPlanesFromSheet();
+    const [alumnos, planes] = await Promise.all([listAlumnosParaRanking(), listPlanes()]);
 
     const planesGimnasio = planes.filter(plan => plan.Tipo == "GIMNASIO");
     const planesClases = planes.filter(plan => plan.Tipo == "CLASE");
@@ -366,8 +229,7 @@ export const getTopAlumnos = async (req, res) => {
 
 export const getPosicionAlumno = async (req, res) => {
   const dni = req.params.dni;
-  const alumnos = await getAlumnosFromSheet();
-  const planes = await getPlanesFromSheet();
+  const [alumnos, planes] = await Promise.all([listAlumnosParaRanking(), listPlanes()]);
 
   const planesGimnasio = planes.filter(plan => plan.Tipo == "GIMNASIO");
   const planesClases = planes.filter(plan => plan.Tipo == "CLASE");

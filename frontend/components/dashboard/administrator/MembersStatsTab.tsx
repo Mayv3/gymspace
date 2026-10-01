@@ -17,6 +17,7 @@ import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add
 import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
 import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/delete-member-dialog"
 import { useAppData } from "@/context/AppDataContext"
+import { useMembersList } from "@/hooks/useMembersList"
 import { Member } from "@/models/dashboard"
 import { RankingDialog } from "../recepcionist/members/Ranking-dialog"
 import { PuntosModal } from "../recepcionist/members/details-member"
@@ -38,7 +39,6 @@ interface Alumno {
 }
 
 interface MembersStatsTabProps {
-  members: Member[];
   onMemberAdded: (newMember: Member) => void;
   topAlumnos: {
     top10Clases: any[];
@@ -47,8 +47,7 @@ interface MembersStatsTabProps {
 }
 
 export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabProps) {
-  const { alumnos, setAlumnos } = useAppData()
-  const total = alumnos.length;
+  const { refreshMembers } = useAppData()
 
   const [sexo, setSexo] = useState("")
   const [edadMin, setEdadMin] = useState("")
@@ -67,67 +66,15 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
 
   const { planes } = useAppData();
 
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
-
-  const filteredAlumnos = useMemo(() => {
-    return alumnos.filter((a) => {
-      const cumpleSexo = !sexo || a.Sexo === sexo
-      const cumpleEdadMin = !edadMin || calcularEdad(a.Fecha_nacimiento) >= parseInt(edadMin)
-      const cumpleEdadMax = !edadMax || calcularEdad(a.Fecha_nacimiento) <= parseInt(edadMax)
-      const cumpleProfe = !profe || a.Profesor_asignado?.toLowerCase().includes(profe.toLowerCase())
-      const cumplePlan = !plan || plan === "todos" || a.Plan?.toLowerCase() === plan.toLowerCase()
-      const cumpleNombre = !nombre || a.Nombre?.toLowerCase().includes(nombre.toLowerCase())
-
-      return (
-        cumpleSexo &&
-        cumpleEdadMin &&
-        cumpleEdadMax &&
-        cumpleProfe &&
-        cumplePlan &&
-        cumpleNombre
-      )
-    })
-  }, [alumnos, sexo, edadMin, edadMax, profe, plan, nombre])
-
-  const totalPages = Math.ceil(filteredAlumnos.length / itemsPerPage)
-
-  function calcularEdad(fecha: string | null | undefined): number {
-    if (!fecha) return 0; 
-    const partes = fecha.split("/");
-    if (partes.length !== 3) return 0; 
-
-    const [dia, mes, año] = partes;
-    const fechaNacimiento = new Date(`${año}-${mes}-${dia}`);
-
-    if (isNaN(fechaNacimiento.getTime())) return 0;
-
-    const hoy = new Date();
-    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
-
-    const mesActual = hoy.getMonth() + 1;
-    const mesNacimiento = parseInt(mes, 10);
-    const diaNacimiento = parseInt(dia, 10);
-
-    if (
-      mesActual < mesNacimiento ||
-      (mesActual === mesNacimiento && hoy.getDate() < diaNacimiento)
-    ) {
-      edad--;
-    }
-
-    return edad;
-  }
-
-
-  const paginatedAlumnos = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage
-    return filteredAlumnos.slice(start, start + itemsPerPage)
-  }, [filteredAlumnos, currentPage])
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [sexo, edadMin, edadMax, profe, plan, nombre])
+  // Filtros, edad y paginación los resuelve el servidor (de a 10)
+  const {
+    members: paginatedAlumnos,
+    total: totalFiltrados,
+    totalGeneral: total,
+    page: currentPage,
+    setPage: setCurrentPage,
+    totalPages,
+  } = useMembersList<Alumno>({ sexo, edadMin, edadMax, profe, plan, nombre }, { conTotalGeneral: true })
 
   return (
     <Card className="rounded-2xl border-border/60 shadow-soft overflow-hidden">
@@ -210,7 +157,7 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
       </CardHeader>
       <CardContent>
         <p className="mb-2 text-sm font-medium text-muted-foreground">
-          Total de alumnos: {total} | Filtrados: {filteredAlumnos.length}
+          Total de alumnos: {total} | Filtrados: {totalFiltrados}
         </p>
         <div className="overflow-auto hidden md:block rounded-2xl border border-border/60">
           <Table className="w-full">
@@ -409,9 +356,7 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
       <AddMemberDialog
         open={openAdd}
         onOpenChange={setOpenAdd}
-        onMemberAdded={(newAlumno) => {
-          setAlumnos((prev) => [...prev, newAlumno])
-        }}
+        onMemberAdded={() => refreshMembers()}
       />
 
       <RankingDialog
@@ -428,21 +373,13 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
             open={openEdit}
             onOpenChange={setOpenEdit}
             member={selectedAlumno}
-            onSave={(alumnoEditado: Alumno) => {
-              setAlumnos((prev) =>
-                prev.map((alumno) =>
-                  alumno.DNI === alumnoEditado.DNI ? alumnoEditado : alumno
-                )
-              )
-            }}
+            onSave={() => refreshMembers()}
           />
           <DeleteMemberDialog
             open={openDelete}
             onOpenChange={setOpenDelete}
             member={selectedAlumno}
-            onDelete={() => {
-              setAlumnos((prev) => prev.filter((a) => a.DNI !== selectedAlumno?.DNI))
-            }}
+            onDelete={() => refreshMembers()}
           />
         </>
       )}

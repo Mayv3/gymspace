@@ -1,14 +1,7 @@
-import {
-    getPagosFromSheet,
-    appendPagoToSheet,
-    updatePagoByID,
-    deletePagoByID,
-    getAlumnosFromSheet,
-    getAlumnoByDNI,
-    getPlanesFromSheet,
-    updateAlumnoByDNI,
-    appendRegistroPuntoToSheet
-} from '../services/googleSheets.js';
+import { insertPago, updatePagoByID, removePagoByID } from '../services/pagos.service.js';
+import { findAlumnoByDNI, updateAlumnoByDNI } from '../services/alumnos.service.js';
+import { listPlanes } from '../services/planes.service.js';
+import { insertRegistroPunto } from '../services/puntos.service.js';
 import supabase from '../db/supabase.js';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
@@ -29,190 +22,68 @@ function formatFechaDB(dateStr) {
     return dateStr;
 }
 
-export const getPagosPorDNI = async (req, res) => {
-    try {
-        const dni = req.params.dni;
-        const pagos = await getPagosFromSheet();
-        const pagosFiltrados = pagos.filter(pago => pago['Socio DNI'] === dni);
-        res.json(pagosFiltrados);
-    } catch (error) {
-        console.error('Error al obtener pagos:', error);
-        res.status(500).json({ message: 'Error al obtener los pagos' });
-    }
-};
+// Rango de fechas (YYYY-MM-DD) y turno a partir de los filtros dia/mes/anio/turno de la pantalla de pagos
+function filtrosDePagos({ dia, mes, anio, turno }) {
+    let desde = null;
+    let hasta = null;
 
-export const getTodosLosPagos = async (req, res) => {
-    try {
-        const pagos = await getPagosFromSheet();
-        res.json(pagos);
-    } catch (error) {
-        console.error('Error al obtener todos los pagos:', error);
-        res.status(500).json({ message: 'Error al obtener los pagos' });
-    }
-};
-
-export const getPagosPorMes = async (req, res) => {
-    try {
-        const numeroMes = parseInt(req.params.numeroMes); // 1 a 12
-
-        if (isNaN(numeroMes) || numeroMes < 1 || numeroMes > 12) {
-            return res.status(400).json({ message: 'Mes inválido (1 a 12)' });
-        }
-
-        const pagos = await getPagosFromSheet();
-
-        const pagosFiltrados = pagos.filter(pago => {
-            const fechaPago = dayjs(pago['Fecha de Pago']);
-            return fechaPago.isValid() && fechaPago.month() + 1 === numeroMes;
-        });
-
-        res.json(pagosFiltrados);
-    } catch (error) {
-        console.error('Error al obtener pagos por mes:', error);
-        res.status(500).json({ message: 'Error al obtener los pagos por mes' });
-    }
-};
-
-export const getFacturacionPorMes = async (req, res) => {
-    try {
-        const numeroMes = parseInt(req.params.numeroMes);
-        if (isNaN(numeroMes) || numeroMes < 1 || numeroMes > 12) {
-            return res.status(400).json({ message: 'Mes inválido (1 a 12)' });
-        }
-
-        const pagos = await getPagosFromSheet();
-
-        const total = pagos.reduce((acc, pago) => {
-            const fecha = dayjs(pago['Fecha de Pago']);
-            const monto = parseFloat(pago.Monto || '0');
-
-            if (fecha.isValid() && fecha.month() + 1 === numeroMes) {
-                return acc + monto;
+    if (anio) {
+        const year = parseInt(anio, 10);
+        if (mes) {
+            const month = parseInt(mes, 10);
+            const paddedMonth = String(month).padStart(2, '0');
+            if (dia) {
+                const day = parseInt(dia, 10);
+                desde = hasta = `${year}-${paddedMonth}-${String(day).padStart(2, '0')}`;
+            } else {
+                const daysInMonth = new Date(year, month, 0).getDate();
+                desde = `${year}-${paddedMonth}-01`;
+                hasta = `${year}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
             }
-
-            return acc;
-        }, 0);
-
-        res.json({ mes: numeroMes, totalFacturado: total });
-    } catch (error) {
-        console.error('Error en facturación mensual:', error);
-        res.status(500).json({ message: 'Error al calcular la facturación mensual' });
-    }
-};
-
-export const getFacturacionPorMetodo = async (req, res) => {
-    try {
-        const pagos = await getPagosFromSheet();
-
-        const agrupado = pagos.reduce((acc, pago) => {
-            const metodo = pago['Método de Pago'] || 'Desconocido';
-            const monto = parseFloat(pago.Monto || '0');
-
-            if (!acc[metodo]) acc[metodo] = 0;
-            acc[metodo] += monto;
-
-            return acc;
-        }, {});
-
-        res.json(agrupado);
-    } catch (error) {
-        console.error('Error en facturación por método:', error);
-        res.status(500).json({ message: 'Error al calcular la facturación por método de pago' });
-    }
-};
-
-export const getFacturacionPorMetodoYMes = async (req, res) => {
-    try {
-        const numeroMes = parseInt(req.params.numeroMes);
-        if (isNaN(numeroMes) || numeroMes < 1 || numeroMes > 12) {
-            return res.status(400).json({ message: 'Mes inválido (1 a 12)' });
+        } else {
+            desde = `${year}-01-01`;
+            hasta = `${year}-12-31`;
         }
-
-        const pagos = await getPagosFromSheet();
-
-        const agrupado = pagos.reduce((acc, pago) => {
-            const metodo = pago['Método de Pago'] || 'Desconocido';
-            const monto = parseFloat(pago.Monto || '0');
-            const fecha = dayjs(pago['Fecha de Pago']);
-
-            if (fecha.isValid() && fecha.month() + 1 === numeroMes) {
-                if (!acc[metodo]) acc[metodo] = 0;
-                acc[metodo] += monto;
-            }
-
-            return acc;
-        }, {});
-
-        res.json({
-            mes: numeroMes,
-            facturacion: agrupado
-        });
-    } catch (error) {
-        console.error('Error en facturación por método y mes:', error);
-        res.status(500).json({ message: 'Error al calcular la facturación por método y mes' });
     }
-};
 
-export const getPagosPorFechaYTurno = async (req, res) => {
-    try {
-        const { dia, mes, anio, turno } = req.params;
-        const fechaBuscada = `${parseInt(dia)}/${parseInt(mes)}/${anio}`;
-        const turnoBuscado = turno.toLowerCase();
+    const turnoParam = turno?.toLowerCase();
+    return { desde, hasta, turno: turnoParam && turnoParam !== 'todos' ? turnoParam : null };
+}
 
-        const pagos = await getPagosFromSheet();
+const PAGE_SIZE_MAX = 100;
 
-        const pagosFiltrados = pagos.filter(pago => {
-            const fechaPago = dayjs(pago['Fecha_de_Pago'], 'D/M/YYYY').format('D/M/YYYY');
-
-            return fechaPago === fechaBuscada &&
-                pago.Turno?.toLowerCase() === turnoBuscado;
-        });
-
-        res.json(pagosFiltrados);
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Error al filtrar pagos' });
-    }
-};
-
+// GET /api/pagos → una página de pagos: { data, total, page, pageSize }
 export const getPagos = async (req, res) => {
     try {
-        const { dia, mes, anio, turno } = req.query;
+        const { desde, hasta, turno } = filtrosDePagos(req.query);
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const pageSize = Math.min(Math.max(parseInt(req.query.pageSize, 10) || 10, 1), PAGE_SIZE_MAX);
+        // Sacar caracteres que rompen la sintaxis de .or() de PostgREST
+        const search = (req.query.search || '').replace(/[,()*%\\]/g, ' ').trim();
+        const tipo = req.query.tipo && req.query.tipo !== 'todos' ? req.query.tipo : null;
 
-        let query = supabase
-            .from("pagos")
-            .select("*")
+        const consulta = (opciones) => {
+            let query = supabase.from("pagos").select("*", opciones);
+            if (desde) query = query.gte("fecha_de_pago", desde);
+            if (hasta) query = query.lte("fecha_de_pago", hasta);
+            if (turno) query = query.eq("turno", turno);
+            if (tipo) query = query.eq("tipo", tipo);
+            if (search) query = query.or(`nombre.ilike.%${search}%,ultimo_plan.ilike.%${search}%`);
+            return query;
+        };
+
+        const from = (page - 1) * pageSize;
+        let { data, count, error } = await consulta({ count: "exact" })
             .order("fecha_de_pago", { ascending: false })
-            .order("hora", { ascending: false });
+            .order("hora", { ascending: false })
+            .order("id", { ascending: false })
+            .range(from, from + pageSize - 1);
 
-        if (anio) {
-            const year = parseInt(anio, 10);
-            if (mes) {
-                const month = parseInt(mes, 10);
-                const paddedMonth = String(month).padStart(2, '0');
-                if (dia) {
-                    const day = parseInt(dia, 10);
-                    const dateStr = `${year}-${paddedMonth}-${String(day).padStart(2, '0')}`;
-                    query = query.eq("fecha_de_pago", dateStr);
-                } else {
-                    const daysInMonth = new Date(year, month, 0).getDate();
-                    const startDate = `${year}-${paddedMonth}-01`;
-                    const endDate = `${year}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
-                    query = query.gte("fecha_de_pago", startDate).lte("fecha_de_pago", endDate);
-                }
-            } else {
-                query = query
-                    .gte("fecha_de_pago", `${year}-01-01`)
-                    .lte("fecha_de_pago", `${year}-12-31`);
-            }
+        // Página fuera de rango (ej. se borró el último pago de la última página): devolver vacía con el total real
+        if (error?.code === 'PGRST103') {
+            ({ count, error } = await consulta({ count: "exact", head: true }));
+            data = [];
         }
-
-        const turnoParam = turno?.toLowerCase();
-        if (turnoParam && turnoParam !== 'todos') {
-            query = query.eq("turno", turnoParam);
-        }
-
-        const { data, error } = await query;
         if (error) throw error;
 
         const pagosFiltrados = data.map((pago) => ({
@@ -230,144 +101,41 @@ export const getPagos = async (req, res) => {
             Ultimo_Plan: pago.ultimo_plan || "",
         }));
 
-        res.json(pagosFiltrados);
+        res.json({ data: pagosFiltrados, total: count ?? 0, page, pageSize });
     } catch (error) {
         console.error('Error al filtrar pagos:', error);
         res.status(500).json({ message: 'Error al filtrar pagos' });
     }
 }
 
-export const getPagosFiltrados = async (req, res) => {
+// GET /api/pagos/resumen → totales por tipo y método del mismo filtro (los suma Postgres)
+export const getResumenPagos = async (req, res) => {
     try {
-        const { fecha, tipo } = req.query;
+        const { desde, hasta, turno } = filtrosDePagos(req.query);
 
-        const pagos = await getPagosFromSheet();
-
-        const filtrados = pagos.filter(pago => {
-            const coincideFecha = fecha ? pago['Fecha de Pago'] === fecha : true;
-            const coincideTipo = tipo ? (pago.Tipo || '').toLowerCase() === tipo.toLowerCase() : true;
-            return coincideFecha && coincideTipo;
+        const { data, error } = await supabase.rpc('rpc_resumen_pagos', {
+            _desde: desde,
+            _hasta: hasta,
+            _turno: turno,
         });
+        if (error) throw error;
 
-        res.json(filtrados);
+        res.json(data.map(r => ({
+            tipo: r.tipo,
+            metodo: r.metodo_de_pago,
+            total: Number(r.total),
+            cantidad: Number(r.cantidad),
+        })));
     } catch (error) {
-        console.error('Error al filtrar pagos:', error);
-        res.status(500).json({ message: 'Error al filtrar pagos' });
-    }
-};
-
-export const getFacturacionPorTipoYMes = async (req, res) => {
-    try {
-        const { mes, anio } = req.params;
-        const pagos = await getPagosFromSheet();
-
-        const totalesPorTipo = {};
-        let totalGeneral = 0;
-
-        for (const pago of pagos) {
-            const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true);
-            if (!fecha.isValid()) continue;
-
-            if (fecha.month() + 1 !== parseInt(mes) || fecha.year() !== parseInt(anio)) continue;
-
-            const tipo = pago.Tipo?.trim().toUpperCase() || "OTRO";
-            const monto = parseFloat(pago.Monto) || 0;
-
-            if (!totalesPorTipo[tipo]) {
-                totalesPorTipo[tipo] = 0;
-            }
-
-            totalesPorTipo[tipo] += monto;
-            totalGeneral += monto;
-        }
-        const nombreMes = dayjs(`${anio}-${mes}-01`).format('MMMM');
-
-        res.json({
-            mes: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
-            anio: parseInt(anio),
-            totales: totalesPorTipo,
-            totalGeneral: +totalGeneral.toFixed(2)
-        });
-    } catch (error) {
-        console.error("Error al calcular facturación por tipo:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
-    }
-};
-
-export const getFacturacionAnual = async (req, res) => {
-    try {
-        const anio = parseInt(req.query.anio)
-
-        if (isNaN(anio)) {
-            return res.status(400).json({ message: 'Año inválido' })
-        }
-
-        const pagos = await getPagosFromSheet()
-
-        const meses = Array.from({ length: 12 }, (_, i) => ({
-            mes: dayjs(`${anio}-${i + 1}-01`).format('MMMM'),
-            gimnasio: 0,
-            clase: 0,
-        }))
-
-        for (const pago of pagos) {
-            const fecha = dayjs(pago.Fecha_de_Pago, ['D/M/YYYY', 'DD/MM/YYYY'], true)
-            if (!fecha.isValid()) continue
-
-            if (fecha.year() !== anio) continue
-
-            const mesIndex = fecha.month();
-            const tipo = (pago.Tipo || "").toUpperCase().trim()
-            const monto = parseFloat(pago.Monto) || 0
-
-            console.log(`Tipo leído: "${tipo}" | Monto: ${monto}`);
-
-            if (["GIMNASIO", "DEUDA GIMNASIO"].includes(tipo)) {
-                meses[mesIndex].gimnasio += monto;
-                console.log(`Monto gimnasio: ${monto}`)
-            }
-
-            if (["CLASE", "DEUDA CLASES"].includes(tipo)) {
-                meses[mesIndex].clase += monto;
-                console.log(`Monto clases: ${monto}`)
-            }
-        }
-
-        res.json(meses)
-    } catch (error) {
-        console.error('Error en facturación anual:', error)
-        res.status(500).json({ message: 'Error interno del servidor' })
+        console.error('Error al obtener resumen de pagos:', error);
+        res.status(500).json({ message: 'Error al obtener el resumen de pagos' });
     }
 }
-
-export const getPagosUltimaSemana = async (req, res) => {
-    try {
-        const { fecha } = req.query;
-        if (!fecha) return res.status(400).json({ message: "Fecha requerida" });
-
-        const fechaFin = dayjs(fecha);
-        const fechaInicio = fechaFin.subtract(7, "day");
-
-        const pagos = await getPagosFromSheet();
-
-        const filtrados = pagos.filter(pago => {
-            const fechaPago = dayjs(pago['Fecha_de_Pago'], ['D/M/YYYY', 'DD/MM/YYYY']);
-            return fechaPago.isValid() &&
-                fechaPago.isAfter(fechaInicio) &&
-                fechaPago.isBefore(fechaFin.add(1, "day"));
-        });
-
-        res.json(filtrados);
-    } catch (error) {
-        console.error("Error al obtener pagos de la última semana:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
-    }
-};
 
 // POST
 
 export async function obtenerCoinsPorPlan() {
-    const planes = await getPlanesFromSheet();
+    const planes = await listPlanes();
 
     const coinsPorPlan = {};
 
@@ -444,8 +212,8 @@ export const addPago = async (req, res) => {
 
     // A) Insertar pago + leer alumno (por DNI, no toda la tabla) + planes EN PARALELO
     const [nuevoPago, alumno, coinsPorPlan] = await Promise.all([
-      appendPagoToSheet(pago),
-      getAlumnoByDNI(pago["Socio DNI"]),
+      insertPago(pago),
+      findAlumnoByDNI(pago["Socio DNI"]),
       obtenerCoinsPorPlan(),
     ]);
 
@@ -501,7 +269,7 @@ export const addPago = async (req, res) => {
 
     // D) Registro de puntos en background (fire-and-forget). No bloquea la respuesta.
     if (coinsASumar > 0) {
-      appendRegistroPuntoToSheet({
+      insertRegistroPunto({
         DNI: pago["Socio DNI"],
         Nombre: pago.Nombre,
         Puntos: coinsASumar,
@@ -547,7 +315,7 @@ export const deletePago = async (req, res) => {
     try {
         const id = req.params.id;
 
-        const eliminado = await deletePagoByID(id);
+        const eliminado = await removePagoByID(id);
 
         if (!eliminado) {
             return res.status(404).json({ message: 'Pago no encontrado' });

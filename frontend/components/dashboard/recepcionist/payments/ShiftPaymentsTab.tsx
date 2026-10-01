@@ -1,6 +1,5 @@
 ﻿"use client"
 
-import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -9,10 +8,13 @@ import { PlusCircle, Trash, Dumbbell, GraduationCap, ShoppingBag, Wrench } from 
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
-import { PaymentsFilters } from "@/hooks/usePayments"
+import { PaymentsFilters, PaymentsPagination, PaymentsSummary } from "@/hooks/usePayments"
 
 interface ShiftPaymentsTabProps {
+  // Solo la página actual (la pagina el servidor)
   currentShiftPayments: any[]
+  summary: PaymentsSummary
+  pagination: PaymentsPagination
 
   selectedDay?: number
   setSelectedDay: (n?: number) => void
@@ -32,6 +34,8 @@ interface ShiftPaymentsTabProps {
 
 export function ShiftPaymentsTab({
   currentShiftPayments,
+  summary,
+  pagination,
   selectedDay,
   setSelectedDay,
   selectedMonth,
@@ -46,48 +50,11 @@ export function ShiftPaymentsTab({
   refreshPayments,
   cashOpen,
 }: ShiftPaymentsTabProps) {
-  const [resumenPorTipo, setResumenPorTipo] = useState<{ [tipo: string]: { [metodo: string]: number } }>({})
-  const [totalesPorMetodo, setTotalesPorMetodo] = useState({ efectivo: 0, tarjeta: 0 })
-  const [searchTerm, setSearchTerm] = useState("")
-  const [tipoFiltro, setTipoFiltro] = useState<string>("todos")
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
-
-  useEffect(() => {
-    const totales: Record<string, Record<string, number>> = {}
-    let totalEfectivo = 0
-    let totalTarjeta = 0
-
-    currentShiftPayments.forEach((pago: any) => {
-      const tipo = pago.Tipo || "Sin tipo"
-      const metodo = pago.Metodo_de_Pago || "Sin método"
-      const monto = parseFloat(pago.Monto || "0")
-
-      if (!totales[tipo]) totales[tipo] = {}
-      totales[tipo][metodo] = (totales[tipo][metodo] || 0) + monto
-
-      if (metodo.toLowerCase() === "efectivo") totalEfectivo += monto
-      else if (metodo.toLowerCase() === "tarjeta") totalTarjeta += monto
-    })
-
-    setResumenPorTipo(totales)
-    setTotalesPorMetodo({ efectivo: totalEfectivo, tarjeta: totalTarjeta })
-  }, [currentShiftPayments])
-
-  const filteredPayments = currentShiftPayments.filter(p => {
-    const nombreMatch = p.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.Ultimo_Plan?.toLowerCase().includes(searchTerm.toLowerCase())
-    const tipoMatch = tipoFiltro === "todos" || p.Tipo === tipoFiltro
-    return nombreMatch && tipoMatch
-  })
-
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedPayments = filteredPayments.slice(startIndex, endIndex)
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm, tipoFiltro])
+  // Búsqueda, tipo y paginación los resuelve el servidor; los totales vienen ya sumados
+  const resumenPorTipo = summary.porTipo
+  const totalesPorMetodo = { efectivo: summary.efectivo, tarjeta: summary.tarjeta }
+  const { search: searchTerm, setSearch: setSearchTerm, tipo: tipoFiltro, setTipo: setTipoFiltro, page: currentPage, setPage: setCurrentPage, totalPages } = pagination
+  const paginatedPayments = currentShiftPayments
 
   const resumenAgrupado: Record<
     string,
@@ -394,28 +361,24 @@ export function ShiftPaymentsTab({
 
           </div>
 
-          {filteredPayments.length > itemsPerPage && (
+          {totalPages > 1 && (
             <div className="flex justify-center gap-2 my-4">
               <Button
                 variant="outline"
                 className="bg-card border border-border rounded-xl font-bold hover:bg-muted"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                disabled={currentPage === 1 || pagination.loading}
               >
                 Anterior
               </Button>
               <span className="flex items-center px-2 text-sm font-medium">
-                Página {currentPage} de {Math.ceil(filteredPayments.length / itemsPerPage)}
+                Página {currentPage} de {totalPages}
               </span>
               <Button
                 variant="outline"
                 className="bg-card border border-border rounded-xl font-bold hover:bg-muted"
-                onClick={() =>
-                  setCurrentPage((prev) =>
-                    prev < Math.ceil(filteredPayments.length / itemsPerPage) ? prev + 1 : prev
-                  )
-                }
-                disabled={currentPage >= Math.ceil(filteredPayments.length / itemsPerPage)}
+                onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                disabled={currentPage >= totalPages || pagination.loading}
               >
                 Siguiente
               </Button>
@@ -506,9 +469,7 @@ export function ShiftPaymentsTab({
                   <div className="flex justify-between items-center gap-2 border-t-2 border-white/30 pt-3 mt-3">
                     <span className="text-xs lg:text-sm font-bold">Total General</span>
                     <span className="text-base lg:text-xl font-bold whitespace-nowrap">
-                      ${currentShiftPayments
-                        .reduce((sum, p) => sum + parseFloat(p.Monto || "0"), 0)
-                        .toLocaleString("es-AR")}
+                      ${summary.total.toLocaleString("es-AR")}
                     </span>
                   </div>
                 </div>

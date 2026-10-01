@@ -40,8 +40,7 @@ export default function ReceptionistDashboard() {
   const router = useRouter()
 
   const { updateAttendance } = useMembers()
-  const { alumnos, setAlumnos } = useAppData()
-  const [members, setMembers] = useState<Member[]>([])
+  const { refreshMembers } = useAppData()
   const [searchTerm, setSearchTerm] = useState("")
 
   const today = new Date()
@@ -53,7 +52,7 @@ export default function ReceptionistDashboard() {
 
   const [selectedSection, setSelectedSection] = useState("members")
 
-  const { payments, refreshPayments } = usePayments();
+  const { payments, summary, pagination, refreshPayments } = usePayments();
 
   const buildCurrentFilters = (): PaymentsFilters => {
     const dynamicToday = new Date()
@@ -74,78 +73,34 @@ export default function ReceptionistDashboard() {
     openCash,
     closeCash,
     setInitialAmount
-  } = useCashRegister({ selectedShift, payments, userName: user?.nombre })
+  } = useCashRegister({ selectedShift, summary, userName: user?.nombre })
 
   const { dialogs, selection, openDialog, closeDialog, onEditMember, onDeleteMember, onDeletePayment, onShowAddPayment } = useDialogManager(cashOpen)
 
+  // La lista de socios está paginada en el servidor: ante cualquier cambio se vuelve a pedir la página
   const handleMemberUpdated = (
-    dni: string,
-    nuevaFecha: string,
-    nuevoPlan: string,
-    clasesPagadas: number
+    _dni: string,
+    _nuevaFecha: string,
+    _nuevoPlan: string,
+    _clasesPagadas: number
   ) => {
-    setMembers(prev =>
-      prev.map(m =>
-        m.DNI === dni
-          ? {
-            ...m,
-            Fecha_vencimiento: nuevaFecha,
-            Plan: nuevoPlan,
-            Clases_pagadas: clasesPagadas,
-            Clases_realizadas: 0,
-          }
-          : m
-      )
-    )
-    setAlumnos(prev =>
-      prev.map(a =>
-        a.DNI === dni
-          ? {
-            ...a,
-            Fecha_vencimiento: nuevaFecha,
-            Plan: nuevoPlan,
-            Clases_pagadas: clasesPagadas.toString(),
-            Clases_realizadas: "0",
-          }
-          : a
-      )
-    )
+    refreshMembers()
   }
 
-  const onMemberAdded = (newMember: Member) => {
-    setAlumnos(prev => [...prev, newMember])
-    setMembers(prev => [...prev, newMember]);
+  const onMemberAdded = (_newMember: Member) => {
+    refreshMembers()
     closeDialog("addMember")
   }
 
-  const onMemberEdited = (edited: Member) => {
-    setMembers(prev => prev.map(m => m.DNI === edited.DNI ? edited : m))
+  const onMemberEdited = (_edited: Member) => {
+    refreshMembers()
     closeDialog("editMember")
   }
 
-  const onMemberDeleted = (dni: string) => {
-    setMembers(prev => prev.filter(m => m.DNI !== dni))
+  const onMemberDeleted = (_dni: string) => {
+    refreshMembers()
     closeDialog("deleteMember")
   }
-
-  useEffect(() => {
-    const formattedMembers: Member[] = alumnos.map(alumno => ({
-      id: alumno.ID,
-      Nombre: alumno.Nombre,
-      DNI: alumno.DNI,
-      Email: alumno.Email,
-      Telefono: alumno.Telefono,
-      Clases_pagadas: Number(alumno.Clases_pagadas),
-      Clases_realizadas: Number(alumno.Clases_realizadas),
-      Fecha_inicio: alumno.Fecha_inicio,
-      Fecha_vencimiento: alumno.Fecha_vencimiento,
-      Fecha_nacimiento: alumno.Fecha_nacimiento,
-      Plan: alumno.Plan,
-      Profesor_asignado: alumno.Profesor_asignado,
-      GymCoins: alumno.GymCoins
-    }))
-    setMembers(formattedMembers)
-  }, [alumnos])
 
   useEffect(() => {
     refreshPayments(buildCurrentFilters())
@@ -200,7 +155,7 @@ export default function ReceptionistDashboard() {
             cashRegisterOpen={cashOpen}
             initialAmount={initialAmount}
             selectedShift={selectedShift}
-            currentShiftPayments={payments}
+            totalPayments={summary.total}
             onOpenCashRegister={openCash}
             onCloseCashRegister={closeCash}
             setInitialAmount={setInitialAmount}
@@ -210,7 +165,6 @@ export default function ReceptionistDashboard() {
 
         {selectedSection === "members" && (
           <MembersSection
-            members={members}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             onAddMember={() => openDialog("addMember")}
@@ -222,6 +176,8 @@ export default function ReceptionistDashboard() {
         {selectedSection === "shift-payments" && (
           <PaymentsSection
             currentShiftPayments={payments}
+            summary={summary}
+            pagination={pagination}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             selectedShift={selectedShift}

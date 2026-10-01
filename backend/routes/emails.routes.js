@@ -2,7 +2,8 @@ import express from 'express'
 import fetch from 'node-fetch'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
-import { getAlumnosFromSheet, getPlanesFromSheet } from '../services/googleSheets.js'
+import { listAlumnos } from '../services/alumnos.service.js';
+import { listPlanes } from '../services/planes.service.js';
 import supabase from '../db/supabase.js'
 
 dayjs.extend(customParseFormat)
@@ -94,8 +95,8 @@ emailsRouter.post('/broadcast', async (req, res) => {
     }
 
     const [alumnosRaw, planesRaw] = await Promise.all([
-      getAlumnosFromSheet(),
-      getPlanesFromSheet()
+      listAlumnos(),
+      listPlanes()
     ])
 
     const gimnasioPlans = new Set()

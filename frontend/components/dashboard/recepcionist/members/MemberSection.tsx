@@ -1,10 +1,8 @@
 "use client"
-import React, { useState, useEffect } from "react"
-import { TabsContent } from "@radix-ui/react-tabs"
+import React from "react"
 import { MembersTab } from "./MembersTab"
 
 type MembersSectionProps = {
-  members: any[]
   searchTerm: string
   setSearchTerm: (value: string) => void
   onAddMember: () => void
@@ -12,23 +10,16 @@ type MembersSectionProps = {
   onDelete: (member: any) => void
 }
 
+// La lista de socios la pide MembersTab paginada al servidor
 export default function MembersSection({
-  members,
   searchTerm,
   setSearchTerm,
   onAddMember,
   onEdit,
   onDelete,
 }: MembersSectionProps) {
-  const [localMembers, setLocalMembers] = useState(members)
-
-  useEffect(() => {
-    setLocalMembers(members)
-  }, [members])
-
   return (
       <MembersTab
-        members={localMembers}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onAddMember={() => onAddMember()}

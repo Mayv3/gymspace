@@ -1,9 +1,4 @@
-import {
-    getTurnosFromSheet,
-    appendTurnoToSheet,
-    updateTurnoByID,
-    deleteTurnoByID
-} from '../services/googleSheets.js';
+import { listTurnos, insertTurno, updateTurnoByID, removeTurnoByID } from '../services/turnos.service.js';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 dayjs.extend(customParseFormat); // para parsear DD/MM/YYYY
@@ -11,7 +6,7 @@ dayjs.extend(customParseFormat); // para parsear DD/MM/YYYY
 export const getTurnos = async (req, res) => {
   try {
     const { fecha } = req.query;
-    const turnos = await getTurnosFromSheet();
+    const turnos = await listTurnos();
 
     let turnosFiltrados = turnos;
 
@@ -59,7 +54,7 @@ export const createTurno = async (req, res) => {
       Hora: hora
     };
 
-    const nuevoTurnoGeneradoEnSheet = await appendTurnoToSheet(nuevoTurno);
+    const nuevoTurnoGeneradoEnSheet = await insertTurno(nuevoTurno);
 
     res.status(201).json(nuevoTurnoGeneradoEnSheet);
   } catch (error) {
@@ -79,7 +74,7 @@ export const updateTurno = async (req, res) => {
         return res.status(404).json({ message: 'Turno no encontrado' });
       }
   
-      const turnos = await getTurnosFromSheet();
+      const turnos = await listTurnos();
       const turnoActualizado = turnos.find(t => t.ID === id);
       console.log(turnoActualizado)
       res.json(turnoActualizado);
@@ -93,7 +88,7 @@ export const deleteTurno = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const eliminado = await deleteTurnoByID(id);
+        const eliminado = await removeTurnoByID(id);
 
         if (!eliminado) {
             return res.status(404).json({ message: 'Turno no encontrado' });

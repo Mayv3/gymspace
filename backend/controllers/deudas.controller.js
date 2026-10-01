@@ -1,20 +1,5 @@
-import {
-  getDeudasFromSheet,
-  appendDeudaToSheet,
-  updateDeudaByID,
-  deleteDeudaByID,
-} from "../services/googleSheets.js"
+import { listDeudas, insertDeuda, updateDeudaByID, removeDeudaByID } from '../services/deudas.service.js';
 import dayjs from "dayjs"
-
-export const getDeudas = async (req, res) => {
-  try {
-    const deudas = await getDeudasFromSheet()
-    res.json(deudas)
-  } catch (error) {
-    console.error("Error al obtener deudas:", error)
-    res.status(500).json({ message: "Error al obtener deudas" })
-  }
-}
 
 export const createDeuda = async (req, res) => {
   try {
@@ -35,7 +20,7 @@ export const createDeuda = async (req, res) => {
       Responsable: responsable,
     }
 
-    const deudaCreada = await appendDeudaToSheet(nuevaDeuda)
+    const deudaCreada = await insertDeuda(nuevaDeuda)
     res.status(201).json(deudaCreada)
   } catch (error) {
     console.error("Error al crear deuda:", error)
@@ -49,7 +34,7 @@ export const updateDeuda = async (req, res) => {
     const actualizada = await updateDeudaByID(id, req.body)
     if (!actualizada) return res.status(404).json({ message: "No encontrada" })
 
-    const deudas = await getDeudasFromSheet()
+    const deudas = await listDeudas()
     const deuda = deudas.find((d) => d.ID === id)
     res.json(deuda)
   } catch (error) {
@@ -61,7 +46,7 @@ export const updateDeuda = async (req, res) => {
 export const deleteDeuda = async (req, res) => {
   try {
     const { id } = req.params
-    const eliminado = await deleteDeudaByID(id)
+    const eliminado = await removeDeudaByID(id)
     if (!eliminado) return res.status(404).json({ message: "No encontrada" })
     res.json({ message: "Deuda eliminada correctamente" })
   } catch (error) {
@@ -75,7 +60,7 @@ export const getDeudaAlumno = async (req, res) => {
     const { dni } = req.params
     if (!dni) return res.status(400).json({ message: "DNI requerido" })
 
-    const deudas = await getDeudasFromSheet()
+    const deudas = await listDeudas()
 
     const deudasAlumno = deudas.filter((d) => d.DNI === dni)
     const deudasPendientes = deudasAlumno.filter((d) => d.Estado === "No pagado")
@@ -107,7 +92,7 @@ export const getDeudasPorMes = async (req, res) => {
       return res.status(400).json({ message: "Mes y año requeridos" })
     }
 
-    const deudas = await getDeudasFromSheet()
+    const deudas = await listDeudas()
 
     const deudasFiltradas = deudas.filter((deuda) => {
       const fecha = dayjs(deuda.Fecha, "DD/MM/YYYY", true)
@@ -133,7 +118,7 @@ export const searchDeudas = async (req, res) => {
       return res.status(400).json({ message: "Término de búsqueda requerido" })
     }
 
-    const deudas = await getDeudasFromSheet()
+    const deudas = await listDeudas()
     const lowerTerm = term.toLowerCase()
 
     const deudasFiltradas = deudas.filter(

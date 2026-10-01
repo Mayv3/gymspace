@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
 import dayjs from "dayjs"
 import { usePathname } from "next/navigation";
 
@@ -10,22 +10,6 @@ interface Plan {
   ["Plan o Producto"]: string
   numero_Clases: number
   Coins: string
-}
-interface Alumno {
-  ID: string
-  DNI: string
-  Nombre: string
-  Email: string
-  Telefono: string
-  Sexo: string
-  Fecha_nacimiento: string
-  Plan: string
-  Clases_pagadas: string
-  Clases_realizadas: string
-  Fecha_inicio: string
-  Fecha_vencimiento: string
-  Profesor_asignado: string
-  GymCoins: string
 }
 interface Asistencia {
   ID: string
@@ -54,9 +38,9 @@ interface AppDataContextProps {
   setAssists: React.Dispatch<React.SetStateAction<Asistencia[]>>
   deleteAsistencia: (id: string) => Promise<void>
   editAsistencia: (id: string, nuevosDatos: Partial<Asistencia>) => Promise<void>
-  alumnos: Alumno[]
-  fetchAlumnos: () => Promise<void>
-  setAlumnos: React.Dispatch<React.SetStateAction<Alumno[]>>
+  // Los socios se piden paginados (useMembersList). Esto avisa a las listas que vuelvan a pedir su página
+  membersVersion: number
+  refreshMembers: () => void
   setPlanes: React.Dispatch<React.SetStateAction<Plan[]>>
   setTurnos: React.Dispatch<React.SetStateAction<Turno[]>>
   fetchTurnos: (selectedDate?: Date) => Promise<void>
@@ -65,16 +49,15 @@ interface AppDataContextProps {
 const AppDataContext = createContext<AppDataContextProps>({
   planes: [],
   assists: [],
-  alumnos: [],
   turnos: [],
   egresos: [],
+  membersVersion: 0,
+  refreshMembers: () => { },
   fetchPlanes: async () => { },
   fetchAssists: async () => { },
-  fetchAlumnos: async () => { },
   fetchTurnos: async () => { },
   setPlanes: () => { },
   setAssists: () => { },
-  setAlumnos: () => { },
   setTurnos: () => { },
   setEgresos: () => { },
   deleteAsistencia: async () => { },
@@ -84,24 +67,16 @@ const AppDataContext = createContext<AppDataContextProps>({
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [planes, setPlanes] = useState<Plan[]>([])
   const [assists, setAssists] = useState<Asistencia[]>([])
-  const [alumnos, setAlumnos] = useState<Alumno[]>([])
   const [turnos, setTurnos] = useState<Turno[]>([])
   const [egresos, setEgresos] = useState<any[]>([])
+  const [membersVersion, setMembersVersion] = useState(0)
+  const refreshMembers = useCallback(() => setMembersVersion(v => v + 1), [])
 
   const pathname = usePathname();
   const esLogin = pathname === "/login";
   const esAdmin = pathname === "/dashboard/administrator"
   const esUser = pathname === "/dashboard/member"
   const esAsistencia = pathname === "/asistencia"
-  const fetchAlumnos = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/alumnos`)
-      const data = await res.json()
-      setAlumnos(data)
-    } catch (error) {
-      console.error("Error al obtener alumnos:", error)
-    }
-  }
 
   const fetchPlanes = async () => {
     try {
@@ -196,7 +171,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const fetchDashboardCompleto = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/datosBase`)
     const data = await res.json()
-    setAlumnos(data.alumnos)
     setPlanes(data.planes)
     setTurnos(data.turnos)
     setAssists(data.asistencias)
@@ -214,16 +188,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       value={{
         planes,
         assists,
-        alumnos,
         turnos,
         egresos,
+        membersVersion,
+        refreshMembers,
         fetchPlanes,
         fetchAssists,
-        fetchAlumnos,
         fetchTurnos,
         setPlanes,
         setAssists,
-        setAlumnos,
         setTurnos,
         setEgresos,
         deleteAsistencia,

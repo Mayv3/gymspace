@@ -1,8 +1,10 @@
-import { PaymentsFilters } from "@/hooks/usePayments"
+import { PaymentsFilters, PaymentsPagination, PaymentsSummary } from "@/hooks/usePayments"
 import { Payment } from "./dashboard"
 
 export interface PaymentsSectionProps {
     currentShiftPayments: Payment[]
+    summary: PaymentsSummary
+    pagination: PaymentsPagination
     selectedDate?: Date
     setSelectedDate?: (date: Date) => void
     selectedShift: string
