@@ -5,7 +5,7 @@ import timezone from 'dayjs/plugin/timezone.js'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import dotenv from 'dotenv'
 import { listAlumnos } from './alumnos.service.js';
-import { logEmailEnviado } from '../routes/emails.routes.js'
+import { logEmailEnviado, logEmailError } from '../routes/emails.routes.js'
 
 dotenv.config()
 
@@ -62,6 +62,7 @@ async function sendBrevoEmail({ to, subject, text, html }) {
     await logEmailEnviado({ email: to, asunto: subject, tipo: 'recordatorio' })
   } catch (err) {
     console.error(`❌ Error al enviar email a ${to}:`, err.message)
+    await logEmailError({ email: to, asunto: subject, tipo: 'recordatorio', error: err })
   }
 }
 
@@ -360,5 +361,6 @@ export async function enviarRankingEmail() {
     }
   } catch (err) {
     console.error("❌ Error en enviarRankingEmail:", err.message)
+    await logEmailError({ email: 'ranking', asunto: 'Ranking de Alumnos - Gymspace', tipo: 'ranking', error: err })
   }
 }

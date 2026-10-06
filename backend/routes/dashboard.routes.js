@@ -495,6 +495,7 @@ router.get("/emails-enviados", async (req, res) => {
     const { data, error } = await supabase
       .from('emails_enviados')
       .select('id, email, asunto, tipo, enviado_at')
+      .not('tipo', 'like', 'error_%')
       .gte('enviado_at', inicioHoy)
       .lte('enviado_at', finHoy)
       .order('enviado_at', { ascending: false })

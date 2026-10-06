@@ -20,6 +20,16 @@ export async function logEmailEnviado({ email, asunto, tipo }) {
   }
 }
 
+// Los fallos se guardan con tipo "error_<tipo>" y el motivo en asunto (la tabla no tiene columna de error).
+export async function logEmailError({ email, asunto, tipo, error }) {
+  const motivo = String(error?.message ?? error ?? 'error desconocido')
+  await logEmailEnviado({
+    email,
+    asunto: `${asunto || '(sin asunto)'} | ${motivo}`.slice(0, 500),
+    tipo: `error_${tipo || 'desconocido'}`,
+  })
+}
+
 export const emailsRouter = express.Router()
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY
@@ -75,6 +85,7 @@ async function sendBrevoEmail({ to, subject, text, html }) {
     await logEmailEnviado({ email: to, asunto: subject, tipo: 'broadcast' })
   } catch (err) {
     console.error(`❌ FAIL → ${to} → ${err.message}`)
+    await logEmailError({ email: to, asunto: subject, tipo: 'broadcast', error: err })
   }
 }
 
