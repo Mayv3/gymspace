@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/dashboard/date-picker"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { PlusCircle, Edit, Trash, CalendarDays, User, ClipboardList } from "lucide-react"
+import { PlusCircle, Edit, Trash, CalendarDays, User, ClipboardList, ChevronLeft, ChevronRight } from "lucide-react"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
@@ -26,6 +26,9 @@ import { es } from 'date-fns/locale'
 
 dayjs.extend(isSameOrAfter)
 dayjs.extend(isSameOrBefore)
+
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
 
 interface TurnoForm {
     Tipo: string
@@ -55,24 +58,12 @@ export default function ShiftsSection() {
     const [selectedTurno, setSelectedTurno] = useState<any | null>(null)
     const [isSubmitting, setisSubmitting] = useState(false);
 
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [viewMonth, setViewMonth] = useState(dayjs().startOf("month"))
 
     const filteredTurnos = turnos.filter((turno) => {
         if (selectedType === "todas") return true;
         return turno.Tipo === selectedType;
     });
-
-    const sortedTurnos = [...filteredTurnos].sort((a, b) => {
-        const da = dayjs(a.Fecha_turno, "D/M/YYYY");
-        const db = dayjs(b.Fecha_turno, "D/M/YYYY");
-        return db.valueOf() - da.valueOf();
-    });
-
-    // paginar ya ordenados
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedShifts = sortedTurnos.slice(startIndex, endIndex);
 
     const parseDate = (str: string): Date | null => {
         try {
@@ -83,16 +74,31 @@ export default function ShiftsSection() {
         }
     }
 
+    // turnos agrupados por día (DD/MM/YYYY), ordenados por hora
+    const turnosPorDia: Record<string, any[]> = {}
+    for (const t of filteredTurnos) {
+        const d = parseDate(t.Fecha_turno)
+        if (!d) continue
+        const key = dayjs(d).format("DD/MM/YYYY")
+        ;(turnosPorDia[key] ??= []).push(t)
+    }
+    Object.values(turnosPorDia).forEach((arr) => arr.sort((a, b) => (a.Hora || "").localeCompare(b.Hora || "")))
+
+    const selectedDayTurnos = turnosPorDia[dayjs(selectedDate).format("DD/MM/YYYY")] ?? []
+
+    // grilla del mes, semanas de lunes a domingo
+    const gridStart = viewMonth.subtract((viewMonth.day() + 6) % 7, "day")
+    const gridEnd = viewMonth.endOf("month")
+    const weeks = Math.ceil((gridEnd.diff(gridStart, "day") + 1) / 7)
+    const calendarDays = Array.from({ length: weeks * 7 }, (_, i) => gridStart.add(i, "day"))
+
+    // el calendario necesita todos los turnos, no solo una ventana de 8 días
     const fetchTurnosPorFecha = async () => {
         try {
-            const fechaFormateada = dayjs(selectedDate).format("DD/MM/YYYY")
-            const { data } = await axios.get(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos?fecha=${fechaFormateada}`
-            )
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/turnos`)
             setTurnos(data)
-            console.log(turnos)
         } catch (error) {
-            console.error("Error al cargar turnos por fecha:", error)
+            console.error("Error al cargar turnos:", error)
         }
     }
 
@@ -203,48 +209,24 @@ export default function ShiftsSection() {
     }
 
     useEffect(() => {
-        if (isFirstLoad.current) {
-            isFirstLoad.current = false
-            return
-        }
         fetchTurnosPorFecha()
-    }, [selectedDate])
-
-
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [selectedDate, selectedType]);
+    }, [])
 
     return (
         <>
             <Card className="bg-card rounded-2xl border border-border/60 shadow-soft">
                 <CardHeader className="bg-brand-50/60 dark:bg-card rounded-t-2xl border-b border-border/60 mb-4">
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                         <div>
                             <CardTitle className="font-bold">Turnos</CardTitle>
                             <CardDescription className="hidden md:block text-xs text-muted-foreground font-medium">Gestiona los turnos agendados.</CardDescription>
                         </div>
-                        <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowCreateDialog(true)}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Agregar turno
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                        <div className="flex-1">
-                            <Label>Fecha</Label>
-                            <DatePicker
-                                date={selectedDate}
-                                setDate={setSelectedDate}
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <Label>Tipo</Label>
+                        <div className="flex items-center gap-2 min-w-0">
                             <Select
                                 value={selectedType}
                                 onValueChange={setSelectedType}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="flex-1 min-w-0 sm:flex-none sm:w-[160px] rounded-xl">
                                     <SelectValue placeholder="Seleccionar tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -255,185 +237,151 @@ export default function ShiftsSection() {
                                     <SelectItem value="Nutrición">Nutrición</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <Button variant="orange" className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press" onClick={() => setShowCreateDialog(true)}>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Agregar turno
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+
+                    {/* Calendario */}
+                    <div className="rounded-xl border border-border/60 overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 bg-muted/50 border-b border-border/60">
+                            <Button variant="ghost" size="icon" onClick={() => setViewMonth((m) => m.subtract(1, "month"))}>
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <p className="font-bold capitalize whitespace-nowrap">{MESES[viewMonth.month()]} {viewMonth.year()}</p>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setViewMonth(dayjs().startOf("month"))
+                                        setSelectedDate(new Date())
+                                    }}
+                                >
+                                    Hoy
+                                </Button>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => setViewMonth((m) => m.add(1, "month"))}>
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <div className="grid grid-cols-7 border-b border-border/60 bg-muted/30">
+                            {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => (
+                                <div key={d} className="py-2 text-center text-[11px] uppercase tracking-wider font-bold text-muted-foreground">
+                                    {d}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-7">
+                            {calendarDays.map((day) => {
+                                const key = day.format("DD/MM/YYYY")
+                                const dayTurnos = turnosPorDia[key] ?? []
+                                const esHoy = day.isSame(dayjs(), "day")
+                                const esSeleccionado = day.isSame(dayjs(selectedDate), "day")
+                                const fueraDeMes = !day.isSame(viewMonth, "month")
+
+                                return (
+                                    <button
+                                        type="button"
+                                        key={key}
+                                        onClick={() => setSelectedDate(day.toDate())}
+                                        onDoubleClick={() => {
+                                            setCreateForm((p) => ({ ...p, Fecha_turno: day.toDate() }))
+                                            setFechaError(false)
+                                            setShowCreateDialog(true)
+                                        }}
+                                        className={`min-h-[64px] md:min-h-[110px] border-b border-r border-border/60 p-1 md:p-2 text-left align-top transition-colors hover:bg-muted/40 flex flex-col gap-1
+                                            ${fueraDeMes ? "bg-muted/20 text-muted-foreground" : ""}
+                                            ${esHoy ? "bg-amber-50 dark:bg-amber-950/40" : ""}
+                                            ${esSeleccionado ? "ring-2 ring-inset ring-brand-500" : ""}`}
+                                    >
+                                        <span className={`text-xs font-semibold ${esHoy ? "text-brand-600" : ""}`}>{day.date()}</span>
+                                        <div className="hidden md:flex flex-col gap-1 w-full">
+                                            {dayTurnos.slice(0, 3).map((t) => (
+                                                <span
+                                                    key={t.ID}
+                                                    className={`truncate rounded px-1.5 py-0.5 text-[11px] font-medium ${t.Tipo === "Nutrición"
+                                                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                                                        : "bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-200"}`}
+                                                >
+                                                    {t.Hora} {t.Tipo}
+                                                </span>
+                                            ))}
+                                            {dayTurnos.length > 3 && (
+                                                <span className="text-[11px] text-muted-foreground">+{dayTurnos.length - 3} más</span>
+                                            )}
+                                        </div>
+                                        {dayTurnos.length > 0 && (
+                                            <span className="md:hidden self-start rounded-full bg-brand-500 text-white text-[10px] font-bold px-1.5">
+                                                {dayTurnos.length}
+                                            </span>
+                                        )}
+                                    </button>
+                                )
+                            })}
                         </div>
                     </div>
 
-                    <div className="overflow-auto md:border md:border-border/60 rounded-xl max-w-[calc(100vw-2rem)]">
-                        <div className="min-w-[900px] hidden md:block">
-                            <Table>
-                                <TableHeader className="bg-muted/50">
-                                    <TableRow className="border-b">
-                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Tipo</TableHead>
-                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Fecha</TableHead>
-                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Profesional</TableHead>
-                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Horario</TableHead>
-                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Responsable</TableHead>
-                                        <TableHead className="text-center px-4 py-3 text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Acciones</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody className="divide-y divide-border/60">
-                                    {paginatedShifts.length ? (
-                                        paginatedShifts.map((turno, i) => {
-                                            const esHoy = dayjs(turno.Fecha_turno, "D/M/YYYY").isSame(dayjs(), "day")
-
-                                            return (
-                                                <motion.tr
-                                                    key={i}
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: i * 0.05 }}
-                                                    className={`hover:bg-muted/40 transition-colors ${esHoy ? "bg-amber-50 dark:bg-amber-950/40" : ""
-                                                        }`}
-                                                >
-                                                    <TableCell className="text-center">{turno.Tipo}</TableCell>
-                                                    <TableCell className="text-center">{turno.Fecha_turno}</TableCell>
-                                                    <TableCell className="text-center">{turno.Profesional}</TableCell>
-                                                    <TableCell className="text-center">{turno.Hora}</TableCell>
-                                                    <TableCell className="text-center">{turno.Responsable}</TableCell>
-                                                    <TableCell className="text-center">
-                                                        <div className="flex justify-center gap-2">
-                                                            <Button
-                                                                size="icon"
-                                                                variant="ghost"
-                                                                onClick={() => {
-                                                                    setEditingTurno(turno)
-                                                                    setEditForm({
-                                                                        Tipo: turno.Tipo,
-                                                                        Fecha_turno: parse(
-                                                                            turno.Fecha_turno,
-                                                                            "dd/MM/yyyy",
-                                                                            new Date(),
-                                                                            { locale: es }
-                                                                        ),
-                                                                        Profesional: turno.Profesional,
-                                                                        Responsable: turno.Responsable,
-                                                                        Hora: turno.Hora,
-                                                                    })
-                                                                    setShowEditDialog(true)
-                                                                }}
-                                                            >
-                                                                <Edit className="h-4 w-4 text-primary" />
-                                                            </Button>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="ghost"
-                                                                onClick={() => {
-                                                                    setSelectedTurno(turno)
-                                                                    setShowDeleteDialog(true)
-                                                                }}
-                                                            >
-                                                                <Trash className="h-4 w-4 text-destructive" />
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </motion.tr>
-                                            )
-                                        })
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-4">
-                                                No hay turnos registrados
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        <div className="block md:hidden space-y-4">
-                            {paginatedShifts.length > 0 ? (
-                                paginatedShifts.map((turno, i) => (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        className="rounded-2xl border border-border/60 bg-card shadow-soft p-4 space-y-2"
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <p className="text-lg font-bold">{turno.Tipo}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-medium font-semibold">{turno.Hora} - {turno.Fecha_turno}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1 text-foreground">
-                                            <div>
-                                                <p>Profesional: {turno.Profesional}</p>
-                                            </div>
-                                            <div>
-                                                <p>Responsable: {turno.Responsable}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex justify-end gap-2 pt-2">
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="sm: w-full bg-brand-100 hover:bg-brand-200 rounded-xl dark:bg-brand-900/30"
-                                                onClick={() => {
-                                                    setEditingTurno(turno)
-                                                    setEditForm({
-                                                        Tipo: turno.Tipo,
-                                                        Fecha_turno: parse(turno.Fecha_turno, "dd/MM/yyyy", new Date(), { locale: es }),
-                                                        Profesional: turno.Profesional,
-                                                        Responsable: turno.Responsable,
-                                                        Hora: turno.Hora,
-                                                    })
-                                                    setShowEditDialog(true)
-                                                }}
-                                            >
-                                                <Edit className="h-4 w-4 text-primary" />
-                                            </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="sm: w-full bg-rose-100 hover:bg-rose-200 rounded-xl dark:bg-rose-950/40"
-                                                onClick={() => {
-                                                    setSelectedTurno(turno)
-                                                    setShowDeleteDialog(true)
-                                                }}
-                                            >
-                                                <Trash className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            ) : (
-                                <p className="text-center text-sm text-muted-foreground">
-                                    No hay turnos registrados.
-                                </p>
-                            )}
-                        </div>
-
-                        {filteredTurnos.length > itemsPerPage && (
-                            <div className="flex justify-center gap-2 my-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
+                    {/* Turnos del día seleccionado */}
+                    <div className="mt-6 space-y-3">
+                        <p className="font-bold">
+                            {DIAS[dayjs(selectedDate).day()]} {dayjs(selectedDate).date()} de {MESES[dayjs(selectedDate).month()]}
+                        </p>
+                        {selectedDayTurnos.length > 0 ? (
+                            selectedDayTurnos.map((turno, i) => (
+                                <motion.div
+                                    key={turno.ID ?? i}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="rounded-2xl border border-border/60 bg-card shadow-soft p-4 flex flex-col md:flex-row md:items-center justify-between gap-3"
                                 >
-                                    Anterior
-                                </Button>
-                                <span className="flex items-center px-2 text-sm">
-                                    Página {currentPage} de {Math.ceil(filteredTurnos.length / itemsPerPage)}
-                                </span>
-                                <Button
-                                    variant="outline"
-                                    onClick={() =>
-                                        setCurrentPage((prev) =>
-                                            prev < Math.ceil(filteredTurnos.length / itemsPerPage) ? prev + 1 : prev
-                                        )
-                                    }
-                                    disabled={currentPage >= Math.ceil(filteredTurnos.length / itemsPerPage)}
-                                >
-                                    Siguiente
-                                </Button>
-                            </div>
+                                    <div className="space-y-1">
+                                        <p className="text-lg font-bold">{turno.Tipo} · {turno.Hora}</p>
+                                        <p className="text-sm">Profesional: {turno.Profesional}</p>
+                                        <p className="text-sm">Responsable: {turno.Responsable}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="w-full md:w-10 bg-brand-100 hover:bg-brand-200 rounded-xl dark:bg-brand-900/30"
+                                            onClick={() => {
+                                                setEditingTurno(turno)
+                                                setEditForm({
+                                                    Tipo: turno.Tipo,
+                                                    Fecha_turno: parse(turno.Fecha_turno, "dd/MM/yyyy", new Date(), { locale: es }),
+                                                    Profesional: turno.Profesional,
+                                                    Responsable: turno.Responsable,
+                                                    Hora: turno.Hora,
+                                                })
+                                                setShowEditDialog(true)
+                                            }}
+                                        >
+                                            <Edit className="h-4 w-4 text-primary" />
+                                        </Button>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="w-full md:w-10 bg-rose-100 hover:bg-rose-200 rounded-xl dark:bg-rose-950/40"
+                                            onClick={() => {
+                                                setSelectedTurno(turno)
+                                                setShowDeleteDialog(true)
+                                            }}
+                                        >
+                                            <Trash className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-muted-foreground">No hay turnos registrados.</p>
                         )}
-
                     </div>
                 </CardContent>
             </Card>
