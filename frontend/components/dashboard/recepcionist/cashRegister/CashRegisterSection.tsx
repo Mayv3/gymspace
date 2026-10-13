@@ -108,8 +108,7 @@ type CashRegisterSectionProps = {
   cashRegisterOpen: boolean
   initialAmount: string
   selectedShift: string
-  // Total de todos los pagos del turno (ya sumado en el servidor)
-  totalPayments: number
+  currentShiftPayments: any[]
   onOpenCashRegister: () => void
   onCloseCashRegister: () => void
   setInitialAmount: (value: string) => void
@@ -120,7 +119,7 @@ export default function CashRegisterSection({
   cashRegisterOpen,
   initialAmount,
   selectedShift,
-  totalPayments,
+  currentShiftPayments,
   onOpenCashRegister,
   onCloseCashRegister,
   setInitialAmount,
@@ -170,7 +169,7 @@ export default function CashRegisterSection({
             selectedShift={selectedShift}
             initialAmount={initialAmount}
             setInitialAmount={setInitialAmount}
-            totalPayments={totalPayments}
+            currentShiftPayments={currentShiftPayments}
           />
         </>
       )}

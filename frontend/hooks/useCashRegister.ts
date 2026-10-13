@@ -1,18 +1,17 @@
 import { useState, useEffect, useCallback } from "react"
-import { PaymentsSummary } from "@/hooks/usePayments"
+import { Payment } from "@/models/dashboard"
 import dayjs from "dayjs"
 import { notify } from "@/lib/toast"
 
 interface UseCashRegisterProps {
   selectedShift: string
-  // Totales de todos los pagos del turno (no solo la página visible)
-  summary: PaymentsSummary
+  payments: Payment[]
   userName?: string
 }
 
 export function useCashRegister({
   selectedShift,
-  summary,
+  payments,
   userName,
 }: UseCashRegisterProps) {
   const [open, setOpen] = useState(false)
@@ -94,9 +93,13 @@ export function useCashRegister({
       if (!cashId) return
       const horaCierre = dayjs().format("HH:mm")
       const parsedInitial = parseFloat(initialAmount) || 0
-      const total = summary.total
-      const totalEfectivo = summary.efectivo
-      const totalTarjeta = summary.tarjeta
+      const total = payments.reduce((s, p) => s + Number(p.Monto || 0), 0)
+      const totalEfectivo = payments
+        .filter(p => p.Metodo_de_Pago === "Efectivo")
+        .reduce((s, p) => s + Number(p.Monto || 0), 0)
+      const totalTarjeta = payments
+        .filter(p => p.Metodo_de_Pago === "Tarjeta")
+        .reduce((s, p) => s + Number(p.Monto || 0), 0)
 
       const body = {
         cerrar: true,
@@ -131,7 +134,7 @@ export function useCashRegister({
     } catch (err) {
       console.error("Error al cerrar caja:", err)
     }
-  }, [cashId, initialAmount, summary])
+  }, [cashId, initialAmount, payments])
 
   return {
     open,

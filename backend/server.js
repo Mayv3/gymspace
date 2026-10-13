@@ -20,9 +20,8 @@ import deudaRoutes from "./routes/deudas.routes.js"
 import puntosRoutes from "./routes/puntos.routes.js";
 import { emailsRouter } from './routes/emails.routes.js'
 
-import { listAlumnos } from './services/alumnos.service.js';
+import { getAlumnosFromSheet } from './services/googleSheets.js';
 import { enviarRankingEmail, enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
-import { logEmailError } from './routes/emails.routes.js';
 import { iniciarWhatsapp, triggerRecordatorios, simularRecordatorios, simularError } from './services/whatsappBaileysService.js';
 
 dotenv.config();
@@ -91,27 +90,15 @@ app.post('/api/enviar-ranking', async (req, res) => {
   }
 });
 
-// Responde enseguida: el envío por lotes tarda minutos y el cron externo corta a los 30 s.
-let recordatoriosEnCurso = false
-
-app.post('/api/trigger-recordatorios', (req, res) => {
-  if (recordatoriosEnCurso) {
-    return res.status(202).send('Ya hay un envío en curso');
+app.post('/api/trigger-recordatorios', async (req, res) => {
+  try {
+    const alumnos = await getAlumnosFromSheet();
+    await enviarRecordatoriosPorLotes(alumnos, 20, 30000, { previewOnly: false })
+    return res.status(200).send('Envío ejecutado');
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send('Error interno');
   }
-  recordatoriosEnCurso = true
-  res.status(202).send('Envío iniciado');
-
-  (async () => {
-    try {
-      const alumnos = await listAlumnos();
-      await enviarRecordatoriosPorLotes(alumnos, 20, 30000, { previewOnly: false })
-    } catch (err) {
-      console.error('❌ Error en trigger-recordatorios:', err);
-      await logEmailError({ email: 'recordatorios', asunto: 'Falló el envío de recordatorios', tipo: 'recordatorio', error: err })
-    } finally {
-      recordatoriosEnCurso = false
-    }
-  })()
 });
 
 

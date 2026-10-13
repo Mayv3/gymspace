@@ -47,7 +47,8 @@ export default function AdministratorDashboard() {
   const router = useRouter()
 
   const { updateAttendance } = useMembers()
-  const { refreshMembers } = useAppData();
+  const { alumnos, setAlumnos } = useAppData();
+  const [members, setMembers] = useState<Member[]>([]);
   const [topAlumnosCoins, setTopAlumnosCoins] = useState<TopAlumnosCoins>({ top10Clases: [], top10Gimnasio: [] });
 
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -70,7 +71,7 @@ export default function AdministratorDashboard() {
     }
   }
 
-  const { payments, summary, pagination, refreshPayments } = usePayments()
+  const { payments, refreshPayments } = usePayments()
 
   const {
     open: cashOpen,
@@ -81,7 +82,7 @@ export default function AdministratorDashboard() {
     openCash,
     closeCash,
     setInitialAmount
-  } = useCashRegister({ selectedShift, summary, userName: user?.nombre })
+  } = useCashRegister({ selectedShift, payments, userName: user?.nombre })
 
   const { dialogs, selection, closeDialog, onDeletePayment, onShowAddPayment } = useDialogManager(cashOpen)
 
@@ -93,28 +94,56 @@ export default function AdministratorDashboard() {
     openCash()
   }
 
-  // La lista de socios está paginada en el servidor: ante cualquier cambio se vuelve a pedir la página
   const handleMemberUpdated = (
-    _dni: string,
-    _nuevaFecha: string,
-    _nuevoPlan: string,
-    _clasesPagadas: number
+    dni: string,
+    nuevaFecha: string,
+    nuevoPlan: string,
+    clasesPagadas: number
   ) => {
-    refreshMembers()
+    setMembers(prev =>
+      prev.map(m =>
+        m.DNI === dni
+          ? {
+            ...m,
+            Fecha_vencimiento: nuevaFecha,
+            Plan: nuevoPlan,
+            Clases_pagadas: clasesPagadas,
+            Clases_realizadas: 0,
+          }
+          : m
+      )
+    )
+    setAlumnos(prev =>
+      prev.map(a =>
+        a.DNI === dni
+          ? {
+            ...a,
+            Fecha_vencimiento: nuevaFecha,
+            Plan: nuevoPlan,
+            Clases_pagadas: clasesPagadas.toString(),
+            Clases_realizadas: "0",
+          }
+          : a
+      )
+    )
   }
 
-  const onMemberAdded = (_newMember: Member) => {
-    refreshMembers()
+  const onMemberAdded = (newMember: Member) => {
+    setMembers(prev => [...prev, newMember]);
     closeDialog("addMember");
   };
 
-  const onMemberEdited = (_edited: Member) => {
-    refreshMembers()
+  const onMemberEdited = (edited: Member) => {
+    setMembers(prev =>
+      prev.map(m => m.DNI === edited.DNI ? edited : m)
+    );
     closeDialog("editMember");
   };
 
-  const onMemberDeleted = (_dni: string) => {
-    refreshMembers()
+  const onMemberDeleted = (dni: string) => {
+    setMembers(prev =>
+      prev.filter(m => m.DNI !== dni)
+    );
     closeDialog("deleteMember");
   };
 
@@ -135,6 +164,25 @@ export default function AdministratorDashboard() {
       }
     }
   }, [user, loading, router])
+
+  useEffect(() => {
+    const formattedMembers: Member[] = alumnos.map(alumno => ({
+      id: alumno.ID,
+      Nombre: alumno.Nombre,
+      DNI: alumno.DNI,
+      Email: alumno.Email,
+      Telefono: alumno.Telefono,
+      Clases_pagadas: Number(alumno.Clases_pagadas),
+      Clases_realizadas: Number(alumno.Clases_realizadas),
+      Fecha_inicio: alumno.Fecha_inicio,
+      Fecha_vencimiento: alumno.Fecha_vencimiento,
+      Fecha_nacimiento: alumno.Fecha_nacimiento,
+      Plan: alumno.Plan,
+      Profesor_asignado: alumno.Profesor_asignado,
+    }));
+
+    setMembers(formattedMembers);
+  }, [alumnos]);
 
   useEffect(() => {
     if (loading || user?.rol !== "Administrador") return
@@ -206,7 +254,7 @@ export default function AdministratorDashboard() {
             cashRegisterOpen={cashOpen}
             initialAmount={initialAmount}
             selectedShift={selectedShift}
-            totalPayments={summary.total}
+            currentShiftPayments={payments}
             onOpenCashRegister={handleOpenCashRegister}
             onCloseCashRegister={closeCash}
             setInitialAmount={setInitialAmount}
@@ -221,6 +269,7 @@ export default function AdministratorDashboard() {
 
         {selectedSection === "members" && (
           <MembersStatsTab
+            members={members}
             topAlumnos={topAlumnosCoins}
             onMemberAdded={onMemberAdded}
           />
@@ -229,8 +278,6 @@ export default function AdministratorDashboard() {
         {selectedSection === "shift-payments" && (
           <PaymentsSection
             currentShiftPayments={payments}
-            summary={summary}
-            pagination={pagination}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             selectedShift={selectedShift}

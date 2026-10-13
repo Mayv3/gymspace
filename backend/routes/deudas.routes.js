@@ -1,5 +1,6 @@
 import express from "express"
 import {
+  getDeudas,
   createDeuda,
   updateDeuda,
   deleteDeuda,
@@ -10,6 +11,7 @@ import {
 
 const router = express.Router()
 
+router.get("/", getDeudas)
 router.post("/", createDeuda)
 router.put("/:id", updateDeuda)
 router.delete("/:id", deleteDeuda)

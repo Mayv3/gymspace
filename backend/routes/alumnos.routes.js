@@ -5,6 +5,11 @@ import {
     updateAlumno,
     deleteAlumno,
     getAlumnoByDNI,
+    getEstadisticasAlumnos,
+    getAlumnosEstado,
+    getAlumnosPorEdad,
+    getDistribucionPlanes,
+    getDashboardAlumnos,
     getTopAlumnos,
     getPosicionAlumno,
     resetPuntosController
@@ -12,6 +17,11 @@ import {
 
 const router = Router();
 
+router.get('/estado', getAlumnosEstado);
+router.get('/estadisticas/filtros', getEstadisticasAlumnos);
+router.get('/estadisticas/edades', getAlumnosPorEdad);
+router.get('/planes/distribucion', getDistribucionPlanes);
+router.get('/dashboard', getDashboardAlumnos);
 
 router.get('/', getAlumnos);
 router.post('/', addAlumno);

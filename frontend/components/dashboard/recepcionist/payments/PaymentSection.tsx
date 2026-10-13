@@ -3,8 +3,6 @@ import { ShiftPaymentsTab } from "./ShiftPaymentsTab"
 
 export default function PaymentsSection({
   currentShiftPayments,
-  summary,
-  pagination,
   selectedDay,
   setSelectedDay,
   selectedMonth,
@@ -24,8 +22,6 @@ export default function PaymentsSection({
     <ShiftPaymentsTab
       cashOpen={cashOpen}
       currentShiftPayments={currentShiftPayments}
-      summary={summary}
-      pagination={pagination}
       selectedDay={selectedDay}
       setSelectedDay={setSelectedDay}
       selectedMonth={selectedMonth}

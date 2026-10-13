@@ -1,4 +1,4 @@
-import { listAlumnos } from './alumnos.service.js';
+import { getAlumnosFromSheet } from './googleSheets.js'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import dotenv from 'dotenv'
@@ -147,7 +147,7 @@ async function procesarRecordatorios(enviar) {
 
   console.log(`\n📅 Buscando alumnos por vencer en 4 días... [${enviar ? 'ENVÍO REAL' : 'SIMULACIÓN'}]\n`)
 
-  const alumnos = await listAlumnos()
+  const alumnos = await getAlumnosFromSheet()
 
   const porVencer = alumnos.filter(a => {
     const fecha = String(a.Fecha_vencimiento).trim()

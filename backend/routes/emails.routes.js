@@ -2,8 +2,7 @@ import express from 'express'
 import fetch from 'node-fetch'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
-import { listAlumnos } from '../services/alumnos.service.js';
-import { listPlanes } from '../services/planes.service.js';
+import { getAlumnosFromSheet, getPlanesFromSheet } from '../services/googleSheets.js'
 import supabase from '../db/supabase.js'
 
 dayjs.extend(customParseFormat)
@@ -18,16 +17,6 @@ export async function logEmailEnviado({ email, asunto, tipo }) {
   } catch (err) {
     console.error('❌ No se pudo loguear email enviado:', err?.message)
   }
-}
-
-// Los fallos se guardan con tipo "error_<tipo>" y el motivo en asunto (la tabla no tiene columna de error).
-export async function logEmailError({ email, asunto, tipo, error }) {
-  const motivo = String(error?.message ?? error ?? 'error desconocido')
-  await logEmailEnviado({
-    email,
-    asunto: `${asunto || '(sin asunto)'} | ${motivo}`.slice(0, 500),
-    tipo: `error_${tipo || 'desconocido'}`,
-  })
 }
 
 export const emailsRouter = express.Router()
@@ -85,7 +74,6 @@ async function sendBrevoEmail({ to, subject, text, html }) {
     await logEmailEnviado({ email: to, asunto: subject, tipo: 'broadcast' })
   } catch (err) {
     console.error(`❌ FAIL → ${to} → ${err.message}`)
-    await logEmailError({ email: to, asunto: subject, tipo: 'broadcast', error: err })
   }
 }
 
@@ -106,8 +94,8 @@ emailsRouter.post('/broadcast', async (req, res) => {
     }
 
     const [alumnosRaw, planesRaw] = await Promise.all([
-      listAlumnos(),
-      listPlanes()
+      getAlumnosFromSheet(),
+      getPlanesFromSheet()
     ])
 
     const gimnasioPlans = new Set()

@@ -1,4 +1,9 @@
-import { updateCajaByID, removeCajaByID, listCajas } from '../services/caja.service.js';
+import {
+  updateCajaByID,
+  deleteCajaByID,
+  getCajasFromSheet,
+  getPagosFromSheet
+} from '../services/googleSheets.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
@@ -108,7 +113,7 @@ export const eliminarCaja = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const eliminada = await removeCajaByID(id);
+    const eliminada = await deleteCajaByID(id);
     if (!eliminada) return res.status(404).json({ message: 'Caja no encontrada' });
 
     res.json({ message: 'Caja eliminada correctamente' });
@@ -118,10 +123,26 @@ export const eliminarCaja = async (req, res) => {
   }
 };
 
+export const obtenerCajaPorID = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const cajas = await getCajasFromSheet();
+    const caja = cajas.find(c => c.ID === id);
+
+    if (!caja) return res.status(404).json({ message: 'Caja no encontrada' });
+
+    res.json(caja);
+  } catch (error) {
+    console.error('Error al obtener caja por ID:', error);
+    res.status(500).json({ message: 'Error al obtener caja' });
+  }
+};
+
 export const obtenerCaja = async (req, res) => {
   try {
     const { fecha, turno } = req.query;
-    const cajas = await listCajas();
+    const cajas = await getCajasFromSheet();
 
     const filtradas = cajas.filter(c => {
       const coincideFecha = fecha ? c.Fecha === fecha : true;
@@ -170,6 +191,63 @@ export const obtenerCajaAbiertaPorTurno = async (req, res) => {
   } catch (error) {
     console.error("Error al verificar caja abierta:", error);
     return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+export const getCajasPorMes = async (req, res) => {
+  try {
+    const { mes, anio } = req.query;
+
+    const cajas = await getCajasFromSheet();
+    const pagos = await getPagosFromSheet();
+
+    const cajasConTotales = cajas
+      .map(caja => {
+        const fechaCaja = dayjs(caja.Fecha, ["D/M/YYYY", "DD/MM/YYYY"]);
+        const horaApertura = dayjs(`${caja.Fecha} ${caja["Hora Apertura"]}`, "D/M/YYYY HH:mm");
+        const horaCierre = dayjs(`${caja.Fecha} ${caja["Hora Cierre"]}`, "D/M/YYYY HH:mm");
+
+        let totalGimnasio = 0;
+        let totalClases = 0;
+
+        pagos.forEach(pago => {
+          const fechaPago = dayjs(pago.Fecha_de_Pago, ["D/M/YYYY", "DD/MM/YYYY"]);
+          const horaPago = dayjs(`${pago.Fecha_de_Pago} ${pago.Hora}`, "D/M/YYYY HH:mm");
+          const tipo = pago.Tipo?.toUpperCase();
+          const monto = parseFloat(pago.Monto) || 0;
+
+          const mismaFecha = fechaCaja.isSame(fechaPago, 'day');
+          const enRango = horaPago.isSameOrAfter(horaApertura) && horaPago.isSameOrBefore(horaCierre);
+
+          if (mismaFecha && enRango) {
+            if (tipo === "GIMNASIO") totalGimnasio += monto;
+            if (tipo === "CLASE") totalClases += monto;
+          }
+        });
+
+        return {
+          ...caja,
+          TotalGimnasio: totalGimnasio,
+          TotalClases: totalClases,
+          _fechaCaja: fechaCaja
+        };
+      })
+      .filter(caja => {
+        if (!mes || !anio) return true;
+        return (
+          caja._fechaCaja.month() + 1 === Number(mes) &&
+          caja._fechaCaja.year() === Number(anio)
+        );
+      })
+      .map(caja => {
+        const { _fechaCaja, ...resto } = caja;
+        return resto;
+      });
+
+    res.json(cajasConTotales);
+  } catch (error) {
+    console.error("Error al calcular cajas detalladas:", error);
+    res.status(500).json({ message: "Error interno" });
   }
 };
 

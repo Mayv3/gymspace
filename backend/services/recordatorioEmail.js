@@ -4,8 +4,8 @@ import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import dotenv from 'dotenv'
-import { listAlumnos } from './alumnos.service.js';
-import { logEmailEnviado, logEmailError } from '../routes/emails.routes.js'
+import { getAlumnosFromSheet } from './googleSheets.js'
+import { logEmailEnviado } from '../routes/emails.routes.js'
 
 dotenv.config()
 
@@ -62,7 +62,6 @@ async function sendBrevoEmail({ to, subject, text, html }) {
     await logEmailEnviado({ email: to, asunto: subject, tipo: 'recordatorio' })
   } catch (err) {
     console.error(`❌ Error al enviar email a ${to}:`, err.message)
-    await logEmailError({ email: to, asunto: subject, tipo: 'recordatorio', error: err })
   }
 }
 
@@ -208,7 +207,7 @@ export const enviarRecordatoriosPorLotes = async (
 
 export const probarRecordatoriosEmail = async () => {
   console.log('🧪 Ejecutando prueba manual de recordatorio por email...')
-  const alumnos = await listAlumnos()
+  const alumnos = await getAlumnosFromSheet()
   await enviarRecordatoriosPorLotes(alumnos, 20, 30000, { previewOnly: true })
 }
 
@@ -361,6 +360,5 @@ export async function enviarRankingEmail() {
     }
   } catch (err) {
     console.error("❌ Error en enviarRankingEmail:", err.message)
-    await logEmailError({ email: 'ranking', asunto: 'Ranking de Alumnos - Gymspace', tipo: 'ranking', error: err })
   }
 }

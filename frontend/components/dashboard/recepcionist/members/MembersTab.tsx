@@ -12,7 +12,6 @@ import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { RankingDialog } from "./Ranking-dialog"
 import axios from "axios"
-import { useMembersList } from "@/hooks/useMembersList"
 dayjs.extend(customParseFormat)
 dayjs.extend(isSameOrBefore)
 
@@ -43,6 +42,7 @@ interface TopAlumnosResponse {
 }
 
 interface MembersTabProps {
+  members: Member[]
   searchTerm: string
   setSearchTerm: (value: string) => void
   onEdit: (member: Member) => void
@@ -50,18 +50,34 @@ interface MembersTabProps {
   onAddMember: () => void
 }
 
-export function MembersTab({ searchTerm, setSearchTerm, onEdit, onDelete, onAddMember }: MembersTabProps) {
+export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelete, onAddMember }: MembersTabProps) {
+  const [currentPage, setCurrentPage] = useState(1)
   const [searchProfe, setSearchProfe] = useState("")
 
+  const itemsPerPage = 10
   const [dniHistorial, setDniHistorial] = useState<string | null>(null)
   const [nombreHistorial, setNombreHistorial] = useState<string>("")
   const [openRanking, setOpenRanking] = useState(false)
   const [topAlumnosCoins, setTopAlumnosCoins] = useState<TopAlumnosResponse | null>(null)
+  const filteredMembers = members.filter((member) => {
+    const matchesSearch =
+      (member.Nombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (member.Email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (member.DNI || "").includes(searchTerm) ||
+      (member.Plan || "").toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Búsqueda y paginación las resuelve el servidor (de a 10)
-  const { members, total: totalMembers, page: currentPage, setPage: setCurrentPage, totalPages, loading } =
-    useMembersList<Omit<Member, "id"> & { ID: string }>({ q: searchTerm, profe: searchProfe })
-  const paginatedMembers: Member[] = members.map(m => ({ ...m, id: m.ID }))
+    const matchesProfe =
+      !searchProfe ||
+      (member.Profesor_asignado || "").toLowerCase().includes(searchProfe.toLowerCase());
+
+    return matchesSearch && matchesProfe;
+  });
+
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedMembers = filteredMembers.slice(startIndex, endIndex)
+
+  const totalMembers = filteredMembers.length
 
   const fetchTopAlumnos = async () => {
     try {
@@ -72,6 +88,10 @@ export function MembersTab({ searchTerm, setSearchTerm, onEdit, onDelete, onAddM
       console.error("Error fetching user:", err)
     }
   }
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm])
 
 
   useEffect(() => {
@@ -354,26 +374,30 @@ export function MembersTab({ searchTerm, setSearchTerm, onEdit, onDelete, onAddM
             onClose={() => setDniHistorial(null)}
           />
         )}
-        {totalPages > 1 && (
+        {filteredMembers.length > itemsPerPage && (
           <div className="flex justify-center mt-4 gap-2">
             <Button
               variant="outline"
               size="sm"
               className="bg-card border border-border rounded-xl font-bold hover:bg-muted"
-              onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-              disabled={currentPage === 1 || loading}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
             >
               Anterior
             </Button>
             <span className="flex items-center px-2 text-sm font-medium">
-              {currentPage} / {totalPages}
+              {currentPage} / {Math.ceil(filteredMembers.length / itemsPerPage)}
             </span>
             <Button
               variant="outline"
               size="sm"
               className="bg-card border border-border rounded-xl font-bold hover:bg-muted"
-              onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
-              disabled={currentPage >= totalPages || loading}
+              onClick={() =>
+                setCurrentPage((p) =>
+                  p < Math.ceil(filteredMembers.length / itemsPerPage) ? p + 1 : p
+                )
+              }
+              disabled={currentPage >= Math.ceil(filteredMembers.length / itemsPerPage)}
             >
               Siguiente
             </Button>

@@ -10,18 +10,18 @@ interface CashRegisterCardProps {
   selectedShift: string
   initialAmount: string
   setInitialAmount: (value: string) => void
-  totalPayments: number
+  currentShiftPayments: { Monto: number }[]
 }
 
 export function CashRegisterCard({
   selectedShift,
   initialAmount,
   setInitialAmount,
-  totalPayments,
+  currentShiftPayments,
 }: CashRegisterCardProps) {
   const parsedInitial = parseFloat(initialAmount)
   const initial = isNaN(parsedInitial) ? 0 : parsedInitial
-  const total = totalPayments
+  const total = currentShiftPayments.reduce((sum, payment) => sum + Number(payment.Monto || 0), 0)
   const balance = initial + total
   const { user } = useUser()
 
