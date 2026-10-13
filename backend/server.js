@@ -121,7 +121,17 @@ io.on('connection', (socket) => {
   });
 });
 
+// WhatsApp solo se conecta en Render (que define RENDER=true). En local comparte la sesión
+// con producción y las dos instancias se desconectan entre sí. WHATSAPP_ENABLED=true|false lo fuerza.
+const whatsappHabilitado = process.env.WHATSAPP_ENABLED
+  ? process.env.WHATSAPP_ENABLED === 'true'
+  : Boolean(process.env.RENDER);
+
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
-  iniciarWhatsapp().catch(err => console.error('❌ Error iniciando WhatsApp:', err.message))
+  if (whatsappHabilitado) {
+    iniciarWhatsapp().catch(err => console.error('❌ Error iniciando WhatsApp:', err.message))
+  } else {
+    console.log('WhatsApp deshabilitado en este entorno');
+  }
 });
