@@ -127,8 +127,21 @@ const whatsappHabilitado = process.env.WHATSAPP_ENABLED
   ? process.env.WHATSAPP_ENABLED === 'true'
   : Boolean(process.env.RENDER);
 
+// Render free duerme el servicio tras ~15 min sin tráfico entrante. Pegarle a la URL pública
+// (no a localhost) cuenta como tráfico y lo mantiene despierto. RENDER_EXTERNAL_URL lo define Render.
+const KEEP_ALIVE_MS = 10 * 60 * 1000;
+function iniciarKeepAlive() {
+  const url = process.env.RENDER_EXTERNAL_URL;
+  if (!url) return;
+  setInterval(() => {
+    fetch(`${url}/ping`, { signal: AbortSignal.timeout(30000) })
+      .catch(err => console.error('⚠️ Keep-alive falló:', err.message));
+  }, KEEP_ALIVE_MS);
+}
+
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  iniciarKeepAlive();
   if (whatsappHabilitado) {
     iniciarWhatsapp().catch(err => console.error('❌ Error iniciando WhatsApp:', err.message))
   } else {
