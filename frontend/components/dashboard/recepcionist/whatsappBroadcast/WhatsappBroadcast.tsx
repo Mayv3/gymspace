@@ -38,7 +38,6 @@ export default function WhatsappBroadcast() {
     const [planesDisponibles, setPlanesDisponibles] = useState<string[]>([])
     const [planes, setPlanes] = useState<string[]>([])
     const [message, setMessage] = useState('')
-    const [sinDeduplicar, setSinDeduplicar] = useState(false)
     const [loading, setLoading] = useState(false)
     const [resultado, setResultado] = useState<Resultado | null>(null)
     const [openPreview, setOpenPreview] = useState(false)
@@ -72,7 +71,7 @@ export default function WhatsappBroadcast() {
             const res = await fetch(`${BACKEND}/api/whatsapp/difusion`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ planes, mensaje: message, dryRun, sinDeduplicar })
+                body: JSON.stringify({ planes, mensaje: message, dryRun })
             })
             const data = await res.json()
 
@@ -91,7 +90,6 @@ export default function WhatsappBroadcast() {
                 notify.success(`Enviando a ${data.total} alumnos. Tarda unos minutos.`)
                 setPlanes([])
                 setMessage('')
-                setSinDeduplicar(false)
             }
         } catch (err) {
             console.error(err)
@@ -130,13 +128,6 @@ export default function WhatsappBroadcast() {
                                     </label>
                                 ))}
                             </div>
-                            <label className="flex items-center gap-2 text-sm cursor-pointer pt-1">
-                                <Checkbox
-                                    checked={sinDeduplicar}
-                                    onCheckedChange={v => setSinDeduplicar(v === true)}
-                                />
-                                Enviar a todos aunque compartan teléfono (solo pruebas)
-                            </label>
                         </div>
 
                         <div className="flex flex-col space-y-4">
