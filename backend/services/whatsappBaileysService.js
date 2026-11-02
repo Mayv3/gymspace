@@ -1,4 +1,4 @@
-import { getAlumnosFromSheet } from './googleSheets.js'
+import { getAlumnosFromSheet, getPlanesFromSheet } from './googleSheets.js'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import dotenv from 'dotenv'
@@ -220,6 +220,115 @@ export async function triggerRecordatorios() {
   }
 
   return procesarRecordatorios(true)
+}
+
+/* ================= DIFUSIÓN POR PLAN ================= */
+
+const normPlan = (s = '') =>
+  String(s)
+    .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+
+const aplicarPlantilla = (tpl = '', alumno = {}) =>
+  tpl.replace(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, (_, k) => String(alumno[k] ?? '').trim())
+
+const esperar = (ms) => new Promise(r => setTimeout(r, ms))
+
+// Alumnos activos (vencimiento desde el 1° del mes pasado) de los planes elegidos,
+// sin excluidos, sin teléfonos inválidos y sin teléfonos repetidos.
+export function calcularDestinatariosDifusion(alumnos, planes, { deduplicar = true } = {}) {
+  const planesSet = new Set(planes.map(normPlan))
+  const corte = dayjs().startOf('month').subtract(1, 'month')
+  const vistos = new Set()
+  const destinatarios = []
+
+  for (const a of alumnos || []) {
+    if (!planesSet.has(normPlan(a.Plan))) continue
+
+    const venc = dayjs(String(a.Fecha_vencimiento).trim(), 'D/M/YYYY')
+    if (!venc.isValid() || venc.isBefore(corte, 'day')) continue
+
+    const numero = normalizarNumero(a.Telefono)
+    if (numero.length !== 10 || estaExcluido(a.Telefono) || (deduplicar && vistos.has(numero))) continue
+
+    vistos.add(numero)
+    destinatarios.push({ alumno: a, jid: `549${numero}@s.whatsapp.net`, telefono: `549${numero}` })
+  }
+
+  return destinatarios
+}
+
+let difusionEnCurso = false
+
+// sinDeduplicar es solo para pruebas de carga (varios alumnos con el mismo teléfono); la pantalla no lo usa.
+export async function difusionWhatsapp({ planes, mensaje, dryRun = false, sinDeduplicar = false }) {
+  const [alumnos, planesSheet] = await Promise.all([getAlumnosFromSheet(), getPlanesFromSheet()])
+  const destinatarios = calcularDestinatariosDifusion(alumnos, planes, { deduplicar: !sinDeduplicar })
+
+  // {{Precio}}: valor actual del plan en la hoja de planes (solo Gimnasio/Clase, no productos homónimos)
+  const precios = new Map()
+  for (const p of planesSheet) {
+    const precio = Number(p.Precio)
+    if ((p.Tipo === 'GIMNASIO' || p.Tipo === 'CLASE') && precio > 0 && !precios.has(normPlan(p['Plan o Producto']))) {
+      precios.set(normPlan(p['Plan o Producto']), `$${precio.toLocaleString('es-AR')}`)
+    }
+  }
+  for (const d of destinatarios) {
+    d.alumno = { ...d.alumno, Precio: precios.get(normPlan(d.alumno.Plan)) ?? '' }
+  }
+
+  if (/\{\{\s*Precio\s*\}\}/.test(mensaje)) {
+    const sinPrecio = [...new Set(destinatarios.filter(d => !d.alumno.Precio).map(d => d.alumno.Plan.trim()))]
+    if (sinPrecio.length > 0) {
+      throw new Error(`Estos planes no tienen precio cargado: ${sinPrecio.join(', ')}`)
+    }
+  }
+
+  const lista = destinatarios.map(d => ({ nombre: d.alumno.Nombre, plan: d.alumno.Plan }))
+  const ejemplo = destinatarios[0] ? aplicarPlantilla(mensaje, destinatarios[0].alumno) : null
+
+  if (dryRun) return { status: 'ok', modo: 'simulacion', total: lista.length, lista, ejemplo }
+
+  if (!sock) throw new Error('WhatsApp no está conectado')
+  if (difusionEnCurso) throw new Error('Ya hay una difusión en curso')
+  if (destinatarios.length === 0) throw new Error('No hay alumnos activos para esos planes')
+
+  difusionEnCurso = true
+  enviarDifusion(destinatarios, mensaje).finally(() => { difusionEnCurso = false })
+
+  return { status: 'ok', modo: 'real', total: lista.length, lista, ejemplo }
+}
+
+async function enviarDifusion(destinatarios, mensaje) {
+  console.log(`📢 Difusión iniciada: ${destinatarios.length} destinatarios`)
+  const fallidos = []
+
+  for (const { alumno, jid, telefono } of destinatarios) {
+    const texto = aplicarPlantilla(mensaje, alumno)
+    try {
+      await sock.sendMessage(jid, { text: texto })
+      await supabase.from('whatsapp_mensajes').insert({
+        nombre: alumno.Nombre,
+        telefono,
+        plan: alumno.Plan,
+        vencimiento: alumno.Fecha_vencimiento,
+        mensaje: texto
+      })
+      console.log(`📤 Difusión → ${alumno.Nombre}`)
+    } catch (err) {
+      console.error(`❌ Difusión falló para ${alumno.Nombre}:`, err.message)
+      fallidos.push(`${alumno.Nombre} (${alumno.Telefono}): ${err.message}`)
+    }
+    // Pausa aleatoria de 5 a 10 s entre mensajes para no parecer spam
+    await esperar(5000 + Math.random() * 5000)
+  }
+
+  console.log(`📢 Difusión finalizada: ${destinatarios.length - fallidos.length} ok, ${fallidos.length} con error`)
+  if (fallidos.length > 0) {
+    await alertarError(`Difusión: fallaron ${fallidos.length} envío(s):<br>${fallidos.join('<br>')}`)
+  }
 }
 
 /* ================= ALERTA EMAIL ================= */

@@ -30,6 +30,7 @@ import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosS
 import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
+import WhatsappBroadcast from "@/components/dashboard/recepcionist/whatsappBroadcast/WhatsappBroadcast"
 import SideBar from "@/components/ui/sidebar-custom"
 import { recepcionistTabs } from "../../../const/tabs"
 import CircularProgress from "@mui/material/CircularProgress"
@@ -266,7 +267,10 @@ export default function ReceptionistDashboard() {
         )}
 
         {selectedSection === "difusion" && (
-          <EmailBroadcast />
+          <div className="space-y-6">
+            <WhatsappBroadcast />
+            <EmailBroadcast />
+          </div>
         )}
       </div>
 

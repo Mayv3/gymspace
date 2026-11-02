@@ -22,7 +22,7 @@ import { emailsRouter } from './routes/emails.routes.js'
 
 import { getAlumnosFromSheet } from './services/googleSheets.js';
 import { enviarRankingEmail, enviarRecordatoriosPorLotes } from './services/recordatorioEmail.js';
-import { iniciarWhatsapp, triggerRecordatorios, simularRecordatorios, simularError } from './services/whatsappBaileysService.js';
+import { iniciarWhatsapp, triggerRecordatorios, simularRecordatorios, simularError, difusionWhatsapp } from './services/whatsappBaileysService.js';
 
 dotenv.config();
 
@@ -69,6 +69,20 @@ app.post('/api/trigger-whatsapp', async (req, res) => {
     return res.status(200).json(resultado)
   } catch (err) {
     console.error('❌ Error en trigger-whatsapp:', err.message)
+    return res.status(500).json({ error: err.message })
+  }
+});
+
+app.post('/api/whatsapp/difusion', async (req, res) => {
+  const { planes, mensaje, dryRun, sinDeduplicar } = req.body || {}
+  if (!Array.isArray(planes) || planes.length === 0 || !String(mensaje || '').trim()) {
+    return res.status(400).json({ error: 'Faltan "planes" y "mensaje"' })
+  }
+  try {
+    const resultado = await difusionWhatsapp({ planes, mensaje, dryRun: Boolean(dryRun), sinDeduplicar: Boolean(sinDeduplicar) })
+    return res.status(200).json(resultado)
+  } catch (err) {
+    console.error('❌ Error en difusion whatsapp:', err.message)
     return res.status(500).json({ error: err.message })
   }
 });

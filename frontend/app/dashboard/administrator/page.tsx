@@ -36,6 +36,7 @@ import DebtsSection from "@/components/dashboard/recepcionist/deudas/Deudas"
 import { ElClub } from "@/components/dashboard/recepcionist/elclub/ElClub"
 import axios from "axios"
 import EmailBroadcast from "@/components/dashboard/recepcionist/emailBroadcast/EmailBroadcast"
+import WhatsappBroadcast from "@/components/dashboard/recepcionist/whatsappBroadcast/WhatsappBroadcast"
 import { useAdminNav } from "../administrator/context/AdminNavContext"
 
 import { TopAlumnosCoins } from "@/models/Rankings"
@@ -309,7 +310,12 @@ export default function AdministratorDashboard() {
 
         {selectedSection === "elclub" && <ElClub />}
 
-        {selectedSection === "difusion" && <EmailBroadcast />}
+        {selectedSection === "difusion" && (
+          <div className="space-y-6">
+            <WhatsappBroadcast />
+            <EmailBroadcast />
+          </div>
+        )}
 
       </div>
 
