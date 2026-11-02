@@ -17,6 +17,18 @@ import { FormEnterToTab } from "@/components/FormEnterToTab"
 import { parse } from 'date-fns'
 import { es } from 'date-fns/locale'
 
+// La hoja mezcla planes, servicios, productos y deudas; se separan por el campo Tipo.
+const CATEGORIAS: Record<string, { label: string; tipos: string[] }> = {
+    TODOS: { label: "Todos", tipos: [] },
+    PLANES: { label: "Planes", tipos: ["GIMNASIO", "CLASE"] },
+    SERVICIOS: { label: "Servicios", tipos: ["SERVICIO"] },
+    PRODUCTOS: { label: "Productos", tipos: ["PRODUCTO"] },
+    DEUDAS: { label: "Deudas", tipos: ["DEUDA GIMNASIO", "DEUDA CLASES"] },
+}
+
+const enCategoria = (categoria: string, tipo: string) =>
+    categoria === "TODOS" || CATEGORIAS[categoria].tipos.includes(tipo)
+
 export default function PlansSection() {
     const { planes, setPlanes } = useAppData();
 
@@ -40,11 +52,14 @@ export default function PlansSection() {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
 
+    const [categoria, setCategoria] = useState("TODOS")
+
     const filteredPlanes = planes.filter(plan => {
         const term = searchTerm.toLowerCase()
         return (
-            plan['Plan o Producto']?.toLowerCase().includes(term) ||
-            plan.Tipo?.toLowerCase().includes(term)
+            enCategoria(categoria, plan.Tipo) &&
+            (plan['Plan o Producto']?.toLowerCase().includes(term) ||
+                plan.Tipo?.toLowerCase().includes(term))
         )
     })
 
@@ -164,6 +179,24 @@ export default function PlansSection() {
                     </div>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {Object.entries(CATEGORIAS).map(([key, { label }]) => {
+                            const cantidad = planes.filter(p => enCategoria(key, p.Tipo)).length
+                            return (
+                                <Button
+                                    key={key}
+                                    type="button"
+                                    size="sm"
+                                    variant={categoria === key ? "default" : "outline"}
+                                    className="rounded-xl font-bold"
+                                    onClick={() => { setCategoria(key); setCurrentPage(1) }}
+                                >
+                                    {label} ({cantidad})
+                                </Button>
+                            )
+                        })}
+                    </div>
+
                     <div className="flex flex-col max-w-sm mb-4">
                         <Label htmlFor="search" className="font-bold">Buscar por nombre o tipo</Label>
                         <Input
