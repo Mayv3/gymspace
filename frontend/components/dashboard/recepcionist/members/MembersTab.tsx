@@ -1,8 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { listarProfesores, separarProfesores, tieneProfesor, SIN_PROFESOR } from "@/lib/profesores"
+import { FilterBar, FilterSearch, FilterSelect } from "../FilterBar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Edit, Trash, PlusCircle, History, CoinsIcon } from "lucide-react"
+import { Edit, Trash, PlusCircle, History, CoinsIcon } from "lucide-react"
 import { motion } from "framer-motion"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import { useState, useEffect } from "react"
@@ -59,6 +60,10 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
   const [nombreHistorial, setNombreHistorial] = useState<string>("")
   const [openRanking, setOpenRanking] = useState(false)
   const [topAlumnosCoins, setTopAlumnosCoins] = useState<TopAlumnosResponse | null>(null)
+  // Profesores individuales (unifica "Almen/Lu", "Almen-lu", etc.)
+  const profesores = listarProfesores(members.map((m) => m.Profesor_asignado))
+  const haySinProfesor = members.some((m) => separarProfesores(m.Profesor_asignado).length === 0)
+
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
       (member.Nombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -67,8 +72,7 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
       (member.Plan || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesProfe =
-      !searchProfe ||
-      (member.Profesor_asignado || "").toLowerCase().includes(searchProfe.toLowerCase());
+      !searchProfe || tieneProfesor(member.Profesor_asignado, searchProfe);
 
     return matchesSearch && matchesProfe;
   });
@@ -118,32 +122,24 @@ export function MembersTab({ members, searchTerm, setSearchTerm, onEdit, onDelet
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-row md:flex-row items-center gap-2 mb-4">
-          <div className="flex items-center  gap-2 w-full md:w-auto">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar miembros..."
-              className="max-w-sm rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <FilterBar>
+          <FilterSearch value={searchTerm} onChange={setSearchTerm} placeholder="Buscar miembros..." />
+          <FilterSelect
+            value={searchProfe || "todos"}
+            onChange={(v) => setSearchProfe(v === "todos" ? "" : v)}
+            placeholder="Profesor"
+            className="w-[200px]"
+            options={[
+              { value: "todos", label: "Todos los profesores" },
+              ...(haySinProfesor ? [{ value: SIN_PROFESOR, label: "Sin profesor" }] : []),
+              ...profesores.map((p) => ({ value: p, label: p })),
+            ]}
+          />
+          <div className="ml-auto flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm shadow-soft">
+            <span className="text-muted-foreground font-medium">Total:</span>
+            <span className="text-foreground font-bold tabular-nums">{totalMembers}</span>
           </div>
-
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <Input
-              placeholder="Filtrar por profesor..."
-              className="max-w-sm rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
-              value={searchProfe}
-              onChange={(e) => setSearchProfe(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center text-sm">
-            <div className="flex items-center gap-2 px-3 py-1.5 h-10 rounded-xl border border-border bg-card shadow-soft">
-              <span className="text-muted-foreground font-medium">Total:</span>
-              <span className="text-foreground font-bold">{totalMembers}</span>
-            </div>
-          </div>
-        </div>
+        </FilterBar>
         <div className="hidden md:block rounded-2xl border border-border/60 overflow-auto max-w-[calc(100vw-2rem)]">
           <div>
             <Table className="w-full">

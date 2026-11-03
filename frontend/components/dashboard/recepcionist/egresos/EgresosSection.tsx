@@ -6,6 +6,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { DatePicker } from "@/components/dashboard/date-picker"
+import { FilterBar, FilterDate, FilterSelect } from "../FilterBar"
 import dayjs from "dayjs"
 import axios from "axios"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
@@ -142,28 +143,24 @@ export default function EgresosSection() {
                 </Button>
             </CardHeader>
             <CardContent>
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="flex-1">
-                        <Label>Fecha</Label>
+                <FilterBar>
+                    <FilterDate>
                         <DatePicker
                             date={selectedDate}
                             setDate={setSelectedDate}
                         />
-                    </div>
-                    <div className="flex-1">
-                        <Label>Tipo</Label>
-                        <Select value={selectedType} onValueChange={setSelectedType}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="todos">Todos</SelectItem>
-                                <SelectItem value="GIMNASIO">Gimnasio</SelectItem>
-                                <SelectItem value="CLASE">Clase</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+                    </FilterDate>
+                    <FilterSelect
+                        value={selectedType}
+                        onChange={setSelectedType}
+                        placeholder="Tipo"
+                        options={[
+                            { value: "todos", label: "Todos los tipos" },
+                            { value: "GIMNASIO", label: "Gimnasio" },
+                            { value: "CLASE", label: "Clase" },
+                        ]}
+                    />
+                </FilterBar>
 
                 <div className="rounded-xl md:border md:border-border/60 overflow-auto max-w-[calc(100vw-2rem)]">
                     <div className="hidden md:block">

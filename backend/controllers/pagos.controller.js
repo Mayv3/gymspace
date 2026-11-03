@@ -237,6 +237,58 @@ export const getPagos = async (req, res) => {
     }
 }
 
+// Ventas de productos y servicios agrupadas por ítem (solo lectura).
+// GET /api/pagos/items?anio=2026[&mes=11][&tipo=PRODUCTO|SERVICIO]
+export const getVentasPorItem = async (req, res) => {
+    try {
+        const year = parseInt(req.query.anio, 10) || new Date().getFullYear();
+        const month = req.query.mes ? parseInt(req.query.mes, 10) : null;
+        const tipoParam = (req.query.tipo || '').toUpperCase();
+
+        const pad = (n) => String(n).padStart(2, '0');
+        const desde = month ? `${year}-${pad(month)}-01` : `${year}-01-01`;
+        const hasta = month
+            ? `${year}-${pad(month)}-${pad(new Date(year, month, 0).getDate())}`
+            : `${year}-12-31`;
+
+        const tipoFiltro = ['PRODUCTO', 'SERVICIO'].includes(tipoParam)
+            ? `tipo.ilike.${tipoParam}`
+            : 'tipo.ilike.producto,tipo.ilike.servicio';
+
+        // Supabase corta en 1000 filas por request: se pagina.
+        const filas = [];
+        const PAGE = 1000;
+        for (let from = 0; ; from += PAGE) {
+            const { data, error } = await supabase
+                .from('pagos')
+                .select('tipo, ultimo_plan, monto')
+                .or(tipoFiltro)
+                .gte('fecha_de_pago', desde)
+                .lte('fecha_de_pago', hasta)
+                .order('id', { ascending: true })
+                .range(from, from + PAGE - 1);
+            if (error) throw error;
+            filas.push(...data);
+            if (data.length < PAGE) break;
+        }
+
+        const agrupado = {};
+        for (const f of filas) {
+            const tipo = (f.tipo || '').trim().toUpperCase();
+            const item = (f.ultimo_plan || '').trim() || 'Sin nombre';
+            const key = `${tipo}__${item.toUpperCase()}`;
+            if (!agrupado[key]) agrupado[key] = { tipo, item, cantidad: 0, total: 0 };
+            agrupado[key].cantidad += 1;
+            agrupado[key].total += parseFloat(f.monto || '0') || 0;
+        }
+
+        res.json(Object.values(agrupado).sort((a, b) => b.total - a.total));
+    } catch (error) {
+        console.error('Error en getVentasPorItem:', error);
+        res.status(500).json({ message: 'Error al obtener ventas por ítem' });
+    }
+};
+
 export const getPagosFiltrados = async (req, res) => {
     try {
         const { fecha, tipo } = req.query;

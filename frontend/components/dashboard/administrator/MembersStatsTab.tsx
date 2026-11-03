@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import axios from "axios"
-import { Input } from "@/components/ui/input"
+import { listarProfesores, separarProfesores, tieneProfesor, SIN_PROFESOR } from "@/lib/profesores"
+import { FilterBar, FilterSearch, FilterSelect } from "../recepcionist/FilterBar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Edit, Trash, PlusCircle, CoinsIcon, MoreVertical } from "lucide-react"
+import { Edit, Trash, PlusCircle, CoinsIcon, MoreVertical, X } from "lucide-react"
 
 import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add-member-dialog"
 import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
@@ -70,12 +70,26 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // Profesores individuales (unifica "Almen/Lu", "Almen-lu", etc.)
+  const profesores = useMemo(() => listarProfesores(alumnos.map((a) => a.Profesor_asignado)), [alumnos])
+  const haySinProfesor = useMemo(() => alumnos.some((a) => separarProfesores(a.Profesor_asignado).length === 0), [alumnos])
+
+  const hayFiltros = Boolean(sexo || edadMin || edadMax || profe || plan || nombre)
+  const limpiarFiltros = () => {
+    setSexo("")
+    setEdadMin("")
+    setEdadMax("")
+    setProfe("")
+    setPlan("")
+    setNombre("")
+  }
+
   const filteredAlumnos = useMemo(() => {
     return alumnos.filter((a) => {
       const cumpleSexo = !sexo || a.Sexo === sexo
       const cumpleEdadMin = !edadMin || calcularEdad(a.Fecha_nacimiento) >= parseInt(edadMin)
       const cumpleEdadMax = !edadMax || calcularEdad(a.Fecha_nacimiento) <= parseInt(edadMax)
-      const cumpleProfe = !profe || a.Profesor_asignado?.toLowerCase().includes(profe.toLowerCase())
+      const cumpleProfe = !profe || tieneProfesor(a.Profesor_asignado, profe)
       const cumplePlan = !plan || plan === "todos" || a.Plan?.toLowerCase() === plan.toLowerCase()
       const cumpleNombre = !nombre || a.Nombre?.toLowerCase().includes(nombre.toLowerCase())
 
@@ -134,68 +148,75 @@ export function MembersStatsTab({ onMemberAdded, topAlumnos }: MembersStatsTabPr
       <CardHeader className="bg-brand-50 dark:bg-zinc-900 rounded-t-2xl mb-4 border-b border-border/60">
         <CardTitle className="pb-3 font-bold">Estadísticas de Alumnos</CardTitle>
         <div className="flex flex-wrap justify-between gap-4 mt-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:flex gap-2">
-            <Input
-              placeholder="Nombre"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="w-full md:w-[150px]"
-            />
-            <Input
+          <FilterBar className="mb-0 w-full md:w-auto md:flex-1">
+            <FilterSearch value={nombre} onChange={setNombre} placeholder="Buscar alumno" className="min-w-[180px] flex-1" />
+            <FilterSelect
+              value={profe || "todos"}
+              onChange={(v) => setProfe(v === "todos" ? "" : v)}
               placeholder="Profesor"
-              value={profe}
-              onChange={(e) => setProfe(e.target.value)}
-              className="w-full md:w-[150px]"
+              className="w-[170px]"
+              options={[
+                { value: "todos", label: "Todos los profesores" },
+                ...(haySinProfesor ? [{ value: SIN_PROFESOR, label: "Sin profesor" }] : []),
+                ...profesores.map((p) => ({ value: p, label: p })),
+              ]}
             />
-
-            <Select onValueChange={setSexo}>
-              <SelectTrigger className="w-full md:w-[150px]">
-                <SelectValue placeholder="Sexo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="M">Masculino</SelectItem>
-                <SelectItem value="F">Femenino</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select onValueChange={setPlan} value={plan}>
-              <SelectTrigger className="w-full md:w-[150px]">
-                <SelectValue placeholder="Seleccionar plan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                {planes.map((plan, index) => (
-                  <SelectItem key={index} value={plan["Plan o Producto"]}>
-                    {plan["Plan o Producto"]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex flex-col items-start mt-3 md:mt-0">
-              <label className="text-sm font-bold">Edad mínima: {edadMin || 0}</label>
+            <FilterSelect
+              value={sexo || "todos"}
+              onChange={(v) => setSexo(v === "todos" ? "" : v)}
+              placeholder="Sexo"
+              className="w-[140px]"
+              options={[
+                { value: "todos", label: "Todos" },
+                { value: "M", label: "Masculino" },
+                { value: "F", label: "Femenino" },
+              ]}
+            />
+            <FilterSelect
+              value={plan || "todos"}
+              onChange={(v) => setPlan(v === "todos" ? "" : v)}
+              placeholder="Plan"
+              className="w-[190px]"
+              options={[
+                { value: "todos", label: "Todos los planes" },
+                ...planes.map((p) => ({ value: p["Plan o Producto"], label: p["Plan o Producto"] })),
+              ]}
+            />
+            <div className="flex h-10 items-center gap-3 rounded-xl border border-input bg-card px-3 text-sm">
+              <span className="whitespace-nowrap font-bold tabular-nums">
+                Edad {edadMin || 0}–{edadMax || 100}
+              </span>
               <input
                 type="range"
                 min={0}
                 max={100}
-                value={edadMin}
+                value={edadMin || 0}
                 onChange={(e) => setEdadMin(e.target.value)}
-                className="w-full md:w-[150px] accent-brand-500"
+                aria-label="Edad mínima"
+                className="w-24 accent-brand-500"
               />
-            </div>
-
-            <div className="flex flex-col items-start mt-3 md:mt-0">
-              <label className="text-sm font-bold">Edad máxima: {edadMax || 100}</label>
               <input
                 type="range"
                 min={0}
                 max={100}
-                value={edadMax}
+                value={edadMax || 100}
                 onChange={(e) => setEdadMax(e.target.value)}
-                className="w-full md:w-[150px] accent-brand-500"
+                aria-label="Edad máxima"
+                className="w-24 accent-brand-500"
               />
             </div>
-          </div>
+            {hayFiltros && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={limpiarFiltros}
+                className="h-10 rounded-xl font-bold text-muted-foreground hover:text-foreground"
+              >
+                <X className="mr-1.5 h-4 w-4" />
+                Limpiar
+              </Button>
+            )}
+          </FilterBar>
           <div className="flex w-full md:w-[320px] md:mx-3 gap-2">
             <Button onClick={() => setOpenRanking(true)} variant="orange" className="w-[50%] justify-center text-center">
               <p>Rankings</p>

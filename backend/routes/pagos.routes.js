@@ -15,11 +15,13 @@ import {
     getFacturacionAnual,
     getPagosUltimaSemana,
     getPagos,
+    getVentasPorItem,
 } from '../controllers/pagos.controller.js';
 
 const router = Router();
 
 router.get('/', getPagos);
+router.get('/items', getVentasPorItem); // antes de '/:dni'
 router.get('/mes/:numeroMes', getPagosPorMes);
 router.get('/:dni', getPagosPorDNI); // 
 router.get('/facturacion/mes/:numeroMes', getFacturacionPorMes);

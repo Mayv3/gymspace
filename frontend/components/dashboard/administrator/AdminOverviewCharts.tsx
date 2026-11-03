@@ -12,6 +12,7 @@ import { DashboardData } from "@/models/stats/dashboardData";
 import dayjs from "dayjs";
 import 'dayjs/locale/es';
 import { MonthlyBilling } from "./stats/MonthlyBilling";
+import { SalesByItem } from "./stats/SalesByItem";
 import { MembersYearsOld } from "./stats/MembersYearsOld";
 import { MembersPlan } from "./stats/MembersPlan";
 import { Assits } from "./stats/Assits";
@@ -175,6 +176,8 @@ export default function AdminOverviewCharts({
         selectedYearFacturacion={selectedYearFacturacion}
         setSelectedYearFacturacion={setSelectedYearFacturacion}
       />
+
+      <SalesByItem anio={selectedYearFacturacion} />
 
       <PlansByTeacher
         selectedYearPersonalizados={selectedYearPersonalizados}

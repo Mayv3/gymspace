@@ -18,6 +18,7 @@ import { notify } from "@/lib/toast"
 import { motion } from "framer-motion"
 import dayjs from "dayjs"
 import { DatePicker } from "../../date-picker"
+import { FilterBar, FilterDate, FilterSearch } from "../FilterBar"
 
 interface DeudaForm {
     DNI: string
@@ -195,25 +196,18 @@ export default function DebtsSection() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 md:flex justify-between gap-2 items-start mb-3">
-                        <div className="gap-2 md:flex">
-                            <Input
-                                placeholder="Nombre o DNI..."
-                                value={searchTerm}
-                                onChange={(e) => handleSearch(e.target.value)}
-                                className="max-w-sm mb-2 rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
-                            />
+                    <FilterBar>
+                        <FilterSearch value={searchTerm} onChange={handleSearch} placeholder="Nombre o DNI..." />
+                        <FilterDate>
                             <DatePicker date={selectedDate} setDate={setSelectedDate} />
-                        </div>
-
-                        <div className="text-center text-sm font-medium h-full">
-                            <p className={`${totalMes === 0 ? 'bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900' : 'md:bg-rose-50 md:border md:border-rose-100 dark:bg-rose-950/40 dark:border-rose-900'} h-full rounded-xl p-2 text-lg`}>Total adeudado del mes:{' '}
-                                <span className={`font-bold ${totalMes === 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                                    ${totalMes}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
+                        </FilterDate>
+                        <p className={`${totalMes === 0 ? 'bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900' : 'bg-rose-50 border border-rose-100 dark:bg-rose-950/40 dark:border-rose-900'} ml-auto flex h-10 items-center rounded-xl px-3 text-sm font-medium`}>
+                            Total adeudado del mes:{' '}
+                            <span className={`ml-1.5 font-bold tabular-nums ${totalMes === 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+                                ${totalMes}
+                            </span>
+                        </p>
+                    </FilterBar>
 
                     <div className="hidden md:block overflow-auto border border-border/60 rounded-xl">
                         <Table className="w-full">

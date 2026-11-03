@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/dashboard/date-picker"
+import { FilterBar, FilterDate, FilterSelect } from "../FilterBar"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { PlusCircle, Trash, Edit } from "lucide-react"
@@ -90,34 +91,27 @@ export default function AssistsSection() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <Label>Fecha</Label>
+          <FilterBar>
+            <FilterDate>
               <DatePicker
                 date={selectedDate}
                 setDate={handleDateChange}
               />
-            </div>
-            <div className="flex-1">
-              <Label>Tipo de clase</Label>
-              <Select
-                value={selectedType}
-                onValueChange={handleTypeChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas</SelectItem>
-                  <SelectItem value="Tela">Tela</SelectItem>
-                  <SelectItem value="Acrobacia">Acrobacia</SelectItem>
-                  <SelectItem value="Funcional">Funcional</SelectItem>
-                  <SelectItem value="Cross">Cross</SelectItem>
-                  <SelectItem value="Yoga">Yoga</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+            </FilterDate>
+            <FilterSelect
+              value={selectedType}
+              onChange={handleTypeChange}
+              placeholder="Tipo de clase"
+              options={[
+                { value: "todas", label: "Todas las clases" },
+                { value: "Tela", label: "Tela" },
+                { value: "Acrobacia", label: "Acrobacia" },
+                { value: "Funcional", label: "Funcional" },
+                { value: "Cross", label: "Cross" },
+                { value: "Yoga", label: "Yoga" },
+              ]}
+            />
+          </FilterBar>
 
           <div className="rounded-xl border border-border/60 overflow-auto max-w-[calc(100vw-2rem)]">
             <div className="min-w-[800px]">

@@ -4,12 +4,11 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PlusCircle, Trash, Dumbbell, GraduationCap, ShoppingBag, Wrench } from "lucide-react"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
 import { PaymentsFilters } from "@/hooks/usePayments"
+import { PaymentFilters } from "./PaymentFilters"
+import { useAppData } from "@/context/AppDataContext"
 
 interface ShiftPaymentsTabProps {
   currentShiftPayments: any[]
@@ -50,6 +49,9 @@ export function ShiftPaymentsTab({
   const [totalesPorMetodo, setTotalesPorMetodo] = useState({ efectivo: 0, tarjeta: 0 })
   const [searchTerm, setSearchTerm] = useState("")
   const [tipoFiltro, setTipoFiltro] = useState<string>("todos")
+  const { planes } = useAppData()
+  const norm = (s?: string) => (s || "").trim().toLowerCase()
+  const [itemFiltro, setItemFiltro] = useState<string>("todos")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
@@ -77,9 +79,32 @@ export function ShiftPaymentsTab({
   const filteredPayments = currentShiftPayments.filter(p => {
     const nombreMatch = p.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.Ultimo_Plan?.toLowerCase().includes(searchTerm.toLowerCase())
-    const tipoMatch = tipoFiltro === "todos" || p.Tipo === tipoFiltro
-    return nombreMatch && tipoMatch
+    const tipoMatch = tipoFiltro === "todos" || (p.Tipo || "").toUpperCase() === tipoFiltro
+    const itemMatch = itemFiltro === "todos" || norm(p.Ultimo_Plan) === norm(itemFiltro)
+    return nombreMatch && tipoMatch && itemMatch
   })
+
+  // Productos y servicios: todo el catálogo de Planes, más los nombres que aparecen
+  // en los pagos cargados (por si alguno ya no está en el catálogo).
+  const esItem = (tipo?: string) => ["PRODUCTO", "SERVICIO"].includes((tipo || "").toUpperCase())
+  const coincideTipo = (tipo?: string) => tipoFiltro === "todos" || (tipo || "").toUpperCase() === tipoFiltro
+  const itemsPorClave = new Map<string, string>()
+  for (const plan of planes) {
+    if (esItem(plan.Tipo) && coincideTipo(plan.Tipo) && plan["Plan o Producto"]) {
+      itemsPorClave.set(norm(plan["Plan o Producto"]), plan["Plan o Producto"].trim())
+    }
+  }
+  for (const pago of currentShiftPayments) {
+    if (esItem(pago.Tipo) && coincideTipo(pago.Tipo) && pago.Ultimo_Plan && !itemsPorClave.has(norm(pago.Ultimo_Plan))) {
+      itemsPorClave.set(norm(pago.Ultimo_Plan), pago.Ultimo_Plan.trim())
+    }
+  }
+  const itemsDisponibles = Array.from(itemsPorClave.values()).sort((a, b) => a.localeCompare(b))
+
+  const resumenItem = itemFiltro === "todos" ? null : filteredPayments.reduce(
+    (acc, p) => ({ cantidad: acc.cantidad + 1, total: acc.total + parseFloat(p.Monto || "0") }),
+    { cantidad: 0, total: 0 }
+  )
 
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
@@ -87,7 +112,11 @@ export function ShiftPaymentsTab({
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, tipoFiltro])
+  }, [searchTerm, tipoFiltro, itemFiltro])
+
+  useEffect(() => {
+    setItemFiltro("todos")
+  }, [tipoFiltro])
 
   const resumenAgrupado: Record<
     string,
@@ -139,120 +168,43 @@ export function ShiftPaymentsTab({
         <CardContent>
           {/* FILTROS */}
           {!cashOpen && (
-            <div className="flex flex-wrap justify-between bg pb-4">
-              <div className="flex  w-full  flex-col md:flex-row md:w-[50%]">
-                <div className="grid grid-cols-2 gap-2 ">
-                  <div className="max-w-sm">
-                    <Label htmlFor="search">Buscar por nombre</Label>
-                    <Input
-                      id="search"
-                      type="text"
-                      placeholder="Alumno o plan"
-                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="w-full md:w-36">
-                    <Label>Tipo</Label>
-                    <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
-                      <SelectTrigger className="rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:ring-offset-0">
-                        <SelectValue placeholder="Todos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos</SelectItem>
-                        <SelectItem value="GIMNASIO">GIMNASIO</SelectItem>
-                        <SelectItem value="CLASE">CLASE</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+              <PaymentFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                tipoFiltro={tipoFiltro}
+                setTipoFiltro={setTipoFiltro}
+                itemFiltro={itemFiltro}
+                setItemFiltro={setItemFiltro}
+                itemsDisponibles={itemsDisponibles}
+                selectedDay={selectedDay}
+                setSelectedDay={setSelectedDay}
+                selectedMonth={selectedMonth}
+                setSelectedMonth={setSelectedMonth}
+                selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
+                selectedShift={selectedShift}
+                setSelectedShift={setSelectedShift}
+                onFiltrar={() =>
+                  refreshPayments({
+                    dia: selectedDay,
+                    mes: selectedMonth,
+                    anio: selectedYear,
+                    turno: selectedShift,
+                  })
+                }
+              />
+          )}
 
-                <div className="flex gap-2">
-                  <div className="w-24">
-                    <Label>Día</Label>
-                    <Input
-                      type="number"
-                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
-                      min={1}
-                      max={31}
-                      value={selectedDay ?? ""}
-                      onChange={e =>
-                        setSelectedDay(e.target.value ? Number(e.target.value) : undefined)
-                      }
-                      disabled={cashOpen}
-                    />
-                  </div>
-
-                  <div className="w-24">
-                    <Label>Mes</Label>
-                    <Input
-                      type="number"
-                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
-                      min={1}
-                      max={12}
-                      value={selectedMonth ?? ""}
-                      onChange={e =>
-                        setSelectedMonth(e.target.value ? Number(e.target.value) : undefined)
-                      }
-                      disabled={cashOpen}
-                    />
-                  </div>
-
-                  <div className="w-28">
-                    <Label>Año</Label>
-                    <Input
-                      type="number"
-                      className="rounded-xl border-input focus-visible:border-brand-500 focus-visible:ring-4 focus-visible:ring-brand-500/10 focus-visible:ring-offset-0"
-                      min={2000}
-                      max={2100}
-                      value={selectedYear ?? ""}
-                      onChange={e =>
-                        setSelectedYear(e.target.value ? Number(e.target.value) : undefined)
-                      }
-                      disabled={cashOpen}
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      className="bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-brand-btn btn-press"
-                      onClick={() => {
-                        const today = new Date()
-                        refreshPayments({
-                          dia: cashOpen ? today.getDate() : selectedDay,
-                          mes: selectedMonth,
-                          anio: selectedYear,
-                          turno: selectedShift,
-                        })
-                      }}
-                      disabled={cashOpen}
-                    >
-                      Filtrar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-
-              <div className="w-32">
-                <Label>Turno</Label>
-                <Select
-                  value={selectedShift}
-                  onValueChange={setSelectedShift}
-                  disabled={cashOpen}
-                >
-                  <SelectTrigger className={`rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:ring-offset-0 ${selectedShift === 'todos' ? 'animate-blink border-brand-500' : ''}`}>
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="mañana">Mañana</SelectItem>
-                    <SelectItem value="tarde">Tarde</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {resumenItem && (
+            <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-2xl border border-brand-500/30 bg-brand-500/5 px-4 py-3 text-sm">
+              <span className="font-bold">{itemFiltro}</span>
+              <span className="text-muted-foreground font-medium">
+                Vendidos: <span className="font-bold text-foreground">{resumenItem.cantidad}</span>
+              </span>
+              <span className="text-muted-foreground font-medium">
+                Ingreso: <span className="font-bold text-emerald-600 dark:text-emerald-400">${resumenItem.total.toLocaleString("es-AR")}</span>
+              </span>
             </div>
-
           )}
 
           <div className="hidden md:block rounded-2xl border border-border/60 overflow-auto max-w-[calc(100vw-2rem)] mb-6">

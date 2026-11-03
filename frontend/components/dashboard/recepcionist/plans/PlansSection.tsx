@@ -14,6 +14,7 @@ import { useAppData } from "@/context/AppDataContext"
 import { notify } from "@/lib/toast"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { FormEnterToTab } from "@/components/FormEnterToTab"
+import { FilterBar, FilterSearch } from "../FilterBar"
 import { parse } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -197,17 +198,14 @@ export default function PlansSection() {
                         })}
                     </div>
 
-                    <div className="flex flex-col max-w-sm mb-4">
-                        <Label htmlFor="search" className="font-bold">Buscar por nombre o tipo</Label>
-                        <Input
-                            id="search"
-                            type="text"
-                            placeholder="Ej: personalizado, gimnasio, clase..."
+                    <FilterBar>
+                        <FilterSearch
                             value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            className="rounded-xl border-input focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10"
+                            onChange={setSearchTerm}
+                            placeholder="Buscar por nombre o tipo (ej: personalizado, clase)"
+                            className="min-w-[240px] max-w-md flex-1"
                         />
-                    </div>
+                    </FilterBar>
 
                     <div className="hidden md:block rounded-xl border border-border/60 overflow-auto max-w-[calc(100vw-2rem)]">
                         <div className="min-w-[800px]">
