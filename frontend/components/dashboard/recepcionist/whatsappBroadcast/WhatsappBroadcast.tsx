@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, MessageCircle } from 'lucide-react'
+import { Info, Loader2, MessageCircle } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
     Dialog,
     DialogContent,
@@ -33,6 +34,12 @@ type Resultado = {
 }
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL
+
+// Mismo corte que calcularDestinatariosDifusion en el backend: 1° del mes pasado
+const corteActivos = () => {
+    const hoy = new Date()
+    return new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1).toLocaleDateString('es-AR')
+}
 
 export default function WhatsappBroadcast() {
     const [planesDisponibles, setPlanesDisponibles] = useState<string[]>([])
@@ -114,9 +121,35 @@ export default function WhatsappBroadcast() {
                 <CardContent className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold">
-                                Planes ({planes.length} seleccionados) — solo alumnos activos
-                            </label>
+                            <div className="flex items-center gap-1.5">
+                                <label className="text-sm font-bold">
+                                    Planes ({planes.length} seleccionados) — solo alumnos activos
+                                </label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            type="button"
+                                            aria-label="¿Quiénes son los alumnos activos?"
+                                            className="text-muted-foreground hover:text-foreground transition-colors"
+                                        >
+                                            <Info className="w-4 h-4" />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 text-sm space-y-2 p-4">
+                                        <p className="font-semibold">¿Quién cuenta como alumno activo?</p>
+                                        <p className="text-muted-foreground text-xs">
+                                            Alumnos de los planes elegidos cuya fecha de vencimiento es del 1° del mes pasado en adelante
+                                            (hoy: desde el {corteActivos()}).
+                                        </p>
+                                        <p className="font-semibold pt-1">Además, no se les envía si:</p>
+                                        <ul className="text-muted-foreground text-xs list-disc pl-4 space-y-1">
+                                            <li>El teléfono no tiene 10 dígitos (código de área + número).</li>
+                                            <li>El número está en la lista de excluidos.</li>
+                                            <li>El teléfono ya lo tiene otro alumno: se envía una sola vez por número.</li>
+                                        </ul>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                             <div className="max-h-72 overflow-y-auto rounded-xl border border-border/60 p-3 space-y-2">
                                 {planesDisponibles.map(plan => (
                                     <label key={plan} className="flex items-center gap-2 text-sm cursor-pointer">
