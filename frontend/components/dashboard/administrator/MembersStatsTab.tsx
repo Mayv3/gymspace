@@ -16,26 +16,10 @@ import { Edit, Trash, PlusCircle, CoinsIcon, MoreVertical, X } from "lucide-reac
 import { AddMemberDialog } from "@/components/dashboard/recepcionist/members/add-member-dialog"
 import { EditMemberDialog } from "@/components/dashboard/recepcionist/members/edit-member-dialog"
 import { DeleteMemberDialog } from "@/components/dashboard/recepcionist/members/delete-member-dialog"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData, type Alumno } from "@/context/AppDataContext"
 import { Member } from "@/models/dashboard"
 import { RankingDialog } from "../recepcionist/members/Ranking-dialog"
 import { PuntosModal } from "../recepcionist/members/details-member"
-
-interface Alumno {
-  ID: string
-  DNI: string
-  Nombre: string
-  Email: string
-  Telefono: string
-  Sexo: string
-  Fecha_nacimiento: string
-  Plan: string
-  Clases_pagadas: string
-  Clases_realizadas: string
-  Fecha_inicio: string
-  Fecha_vencimiento: string
-  Profesor_asignado: string
-}
 
 interface MembersStatsTabProps {
   members: Member[];

@@ -10,8 +10,9 @@ interface Plan {
   ["Plan o Producto"]: string
   numero_Clases: number
   Coins: string
+  Responsable?: string
 }
-interface Alumno {
+export interface Alumno {
   ID: string
   DNI: string
   Nombre: string

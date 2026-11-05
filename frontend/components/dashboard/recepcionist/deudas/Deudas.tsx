@@ -199,7 +199,7 @@ export default function DebtsSection() {
                     <FilterBar>
                         <FilterSearch value={searchTerm} onChange={handleSearch} placeholder="Nombre o DNI..." />
                         <FilterDate>
-                            <DatePicker date={selectedDate} setDate={setSelectedDate} />
+                            <DatePicker date={selectedDate ?? undefined} setDate={setSelectedDate} />
                         </FilterDate>
                         <p className={`${totalMes === 0 ? 'bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900' : 'bg-rose-50 border border-rose-100 dark:bg-rose-950/40 dark:border-rose-900'} ml-auto flex h-10 items-center rounded-xl px-3 text-sm font-medium`}>
                             Total adeudado del mes:{' '}

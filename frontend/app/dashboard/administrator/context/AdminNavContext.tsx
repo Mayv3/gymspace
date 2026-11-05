@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react"
 
-type AdminSection =
+export type AdminSection =
   | "overview"
   | "members"
   | "shift-payments"

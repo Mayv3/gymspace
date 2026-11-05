@@ -3,7 +3,7 @@
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import SideBar from "@/components/ui/sidebar-custom"
 import { adminTabs } from "@/const/tabs"
-import { AdminNavProvider, useAdminNav } from "../administrator/context/AdminNavContext"
+import { AdminNavProvider, useAdminNav, type AdminSection } from "../administrator/context/AdminNavContext"
 
 function AdminSideBar() {
   const { setSection } = useAdminNav()
@@ -11,7 +11,7 @@ function AdminSideBar() {
   return (
     <SideBar
       tabs={adminTabs}
-      onSelect={setSection}
+      onSelect={(value) => setSection(value as AdminSection)}
     />
   )
 }

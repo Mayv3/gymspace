@@ -23,7 +23,7 @@ import { useMembers } from "@/hooks/useMember"
 import { usePayments, PaymentsFilters } from "@/hooks/usePayments"
 import { useCashRegister } from "@/hooks/useCashRegister"
 import { useDialogManager } from "@/hooks/useDialogManager"
-import { useAppData } from "@/context/AppDataContext"
+import { useAppData, type Alumno } from "@/context/AppDataContext"
 
 import { Member } from "@/models/dashboard"
 import EgresosSection from "@/components/dashboard/recepcionist/egresos/EgresosSection"
@@ -114,7 +114,7 @@ export default function ReceptionistDashboard() {
   }
 
   const onMemberAdded = (newMember: Member) => {
-    setAlumnos(prev => [...prev, newMember])
+    setAlumnos(prev => [...prev, newMember as unknown as Alumno])
     setMembers(prev => [...prev, newMember]);
     closeDialog("addMember")
   }

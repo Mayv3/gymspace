@@ -136,7 +136,7 @@ export function AddPaymentDialog({ open, onOpenChange, onPaymentAdded, onMemberU
     }
 
     const fields = Object.values(formData)
-    if (fields.some(f => f.trim() === "")) {
+    if (fields.some(f => (f ?? "").trim() === "")) {
       alert("Todos los campos son obligatorios")
       return
     }
