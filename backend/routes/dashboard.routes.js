@@ -159,11 +159,12 @@ router.get("/altas-bajas", async (req, res) => {
     const monthEnd = `${anio}-${paddedMonth}-${String(daysInMonth).padStart(2, '0')}`;
     let endDate = monthEnd;
 
-    // Solo cuenta vencimientos cuyo día ya pasó. Si es el mes actual, excluye a
-    // quienes vencen más adelante este mes (su día de vencimiento aún no pasó).
-    const ayer = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+    // Solo cuenta como baja a quien lleva DIAS_GRACIA_BAJA días o más vencido
+    // sin renovar. Quienes vencieron hace menos todavía pueden renovar.
+    const DIAS_GRACIA_BAJA = 15;
+    const limiteBaja = dayjs().subtract(DIAS_GRACIA_BAJA, 'day').format('YYYY-MM-DD');
     const hoy = dayjs().format('YYYY-MM-DD');
-    if (endDate >= ayer) endDate = ayer;
+    if (endDate > limiteBaja) endDate = limiteBaja;
 
     const [{ data: alumnosVenc, error: alumnosError }, { data: planes, error: planesError }, { data: porVencerAlumnos, error: porVencerError }] = await Promise.all([
       supabase
