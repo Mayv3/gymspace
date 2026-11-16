@@ -24,25 +24,19 @@ dayjs.extend(customParseFormat);
 const PLANES_ILIMITADOS = ['Pase libre', 'Personalizado premium', 'Libre', 'Personalizado gold'];
 
 export const registrarAsistencia = async (req, res) => {
-  console.time("⏱️ registrarAsistencia - total");
   try {
     const { dni } = req.body;
     if (!dni) {
-      console.timeEnd("⏱️ registrarAsistencia - total");
       return res.status(400).json({ message: "DNI es requerido" });
     }
 
-    console.time("⏱️ registrarAsistencia - rpc"); // mide solo el RPC
     const { data, error } = await supabase
       .rpc("registrar_asistencia", { p_dni: dni });
-    console.timeEnd("⏱️ registrarAsistencia - rpc");
 
     if (error) throw error;
 
-    console.timeEnd("⏱️ registrarAsistencia - total");
     return res.status(data.status).json(data);
   } catch (err) {
-    console.timeEnd("⏱️ registrarAsistencia - total");
     console.error("Error RPC registrar_asistencia:", err);
     return res.status(500).json({ message: "Error al registrar asistencia" });
   }

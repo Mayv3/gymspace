@@ -458,23 +458,7 @@ const calcularCoinsPorPago = (alumno, pago, coinsPorPlan) => {
             coinsPagoAnticipado = 100;
             coins += coinsPagoAnticipado;
         }
-
-        console.log('Fecha inicio alumno:', fechaInicio.format('DD/MM/YYYY'));
-        console.log('Fecha pago:', fechaPago.format('DD/MM/YYYY'));
-        console.log('Fecha vencimiento:', fechaVencimiento.format('DD/MM/YYYY'));
-        console.log('Antigüedad (años):', antiguedad);
-        console.log('Pago antes de vencimiento:', pagoAntesVencimiento);
-        console.log('Coins por antigüedad:', coinsAntiguedad);
-        console.log('Coins por pago anticipado:', coinsPagoAnticipado);
     }
-
-    console.log('=== Cálculo de coins ===');
-    console.log('Alumno:', alumno.Nombre, 'DNI:', alumno.DNI);
-    console.log('Plan pagado:', pago['Ultimo_Plan']);
-    console.log('Coins base plan:', coinsPlan);
-
-    console.log('Total coins calculados:', coins);
-    console.log('========================');
 
     return coins;
 };

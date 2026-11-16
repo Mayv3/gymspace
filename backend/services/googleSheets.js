@@ -167,8 +167,6 @@ export async function appendAlumnoToSheet(alumno) {
     .select()
     .single();
 
-  console.log(data)
-
   if (error) throw error;
   return data;
 }
@@ -217,8 +215,6 @@ export async function updateAlumnoByDNI(dni, nuevosDatos) {
   if (Object.keys(patch).length === 0) {
     return true;
   }
-
-  console.log(patch)
 
   const { data, error } = await supabase
     .from('alumnos')
