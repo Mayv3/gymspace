@@ -30,6 +30,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Loguea las requests que tardan más de LENTA_MS, o que el cliente abandona antes de recibir respuesta.
+// Sirve para saber si las requests que el navegador ve "pending" llegan a la app y dónde se traban.
+const LENTA_MS = 3000;
+app.use((req, res, next) => {
+  const inicio = Date.now();
+  let registrado = false;
+  const registrar = (evento) => {
+    if (registrado) return;
+    registrado = true;
+    const ms = Date.now() - inicio;
+    if (evento === 'abandonada') console.warn(`🐢 Request abandonada por el cliente tras ${ms}ms: ${req.method} ${req.originalUrl}`);
+    else if (ms > LENTA_MS) console.warn(`🐢 Request lenta ${ms}ms (${res.statusCode}): ${req.method} ${req.originalUrl}`);
+  };
+  res.on('finish', () => registrar('terminada'));
+  res.on('close', () => registrar(res.writableFinished ? 'terminada' : 'abandonada'));
+  next();
+});
+
 app.use('/api/alumnos', alumnosRoutes);
 app.use('/api/pagos', pagosRoutes);
 app.use('/api/roles', rolesRoutes);
