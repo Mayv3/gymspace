@@ -27,18 +27,27 @@ import { iniciarWhatsapp, triggerRecordatorios, simularRecordatorios, simularErr
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
 // Loguea las requests que tardan más de LENTA_MS, o que el cliente abandona antes de recibir respuesta.
 // Sirve para saber si las requests que el navegador ve "pending" llegan a la app y dónde se traban.
 const LENTA_MS = 3000;
+// Una request colgada que el cliente nunca cancela no dispara 'finish' ni 'close', y si después se
+// redeploya no deja rastro. Este aviso la registra mientras sigue abierta (a los 10s y cada 30s).
+const AVISO_PENDIENTE_MS = 10000;
+const REPETIR_AVISO_MS = 30000;
 app.use((req, res, next) => {
   const inicio = Date.now();
   let registrado = false;
+  let aviso = setTimeout(function avisar() {
+    console.warn(`⏳ Request sin responder tras ${Date.now() - inicio}ms: ${req.method} ${req.originalUrl}`);
+    aviso = setTimeout(avisar, REPETIR_AVISO_MS);
+    aviso.unref();
+  }, AVISO_PENDIENTE_MS);
+  aviso.unref();
   const registrar = (evento) => {
     if (registrado) return;
     registrado = true;
+    clearTimeout(aviso);
     const ms = Date.now() - inicio;
     if (evento === 'abandonada') console.warn(`🐢 Request abandonada por el cliente tras ${ms}ms: ${req.method} ${req.originalUrl}`);
     else if (ms > LENTA_MS) console.warn(`🐢 Request lenta ${ms}ms (${res.statusCode}): ${req.method} ${req.originalUrl}`);
@@ -47,6 +56,10 @@ app.use((req, res, next) => {
   res.on('close', () => registrar(res.writableFinished ? 'terminada' : 'abandonada'));
   next();
 });
+
+// Va después del log: express.json() espera el cuerpo completo, y si se traba ahí también hay que verlo.
+app.use(cors());
+app.use(express.json());
 
 app.use('/api/alumnos', alumnosRoutes);
 app.use('/api/pagos', pagosRoutes);

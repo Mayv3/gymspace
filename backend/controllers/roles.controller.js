@@ -1,4 +1,4 @@
-import { getAlumnosFromSheet, getRolesFromSheet } from '../services/googleSheets.js';
+import { getAlumnoByDNI, getRolesFromSheet } from '../services/googleSheets.js';
 
 export const getRolPorDNI = async (req, res) => {
   try {
@@ -16,8 +16,7 @@ export const getRolPorDNI = async (req, res) => {
       });
     }
 
-    const alumnos = await getAlumnosFromSheet();
-    const alumno = alumnos.find(a => a.DNI?.trim() === dni);
+    const alumno = await getAlumnoByDNI(dni);
 
     if (alumno) {
       return res.json({

@@ -5,6 +5,9 @@ import {
     getClasesDiariasFromSheet
 } from '../services/googleSheets.js';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+
+dayjs.extend(customParseFormat);
 
 export const registrarClaseDiaria = async (req, res) => {
     try {
@@ -62,7 +65,8 @@ export const eliminarClaseDiaria = async (req, res) => {
 export const filtrarClasesDiarias = async (req, res) => {
   try {
     const { fecha, tipo } = req.query;
-    const clases = await getClasesDiariasFromSheet();
+    const fechaISO = fecha && dayjs(fecha, 'YYYY-MM-DD', true).isValid() ? fecha : undefined;
+    const clases = await getClasesDiariasFromSheet(fechaISO);
 
     const filtradas = clases.filter(clase => {
       const claseFecha = dayjs(clase.Fecha, 'D/M/YYYY');

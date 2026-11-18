@@ -29,7 +29,11 @@ router.get('/datosBase', async (req, res) => {
       getAlumnosFromSheet(),
       getPlanesFromSheet(),
       getTurnosFromSheet(fechaParam),
-      getClasesDiariasFromSheet(),
+      // Las clases diarias son secundarias: si fallan, el panel tiene que cargar igual.
+      getClasesDiariasFromSheet().catch((err) => {
+        console.error("⚠️ datosBase: no se pudieron cargar las clases diarias:", err.message);
+        return [];
+      }),
       getEgresosByMesYAnio(anio, mes)
     ]);
 

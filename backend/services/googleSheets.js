@@ -1,4 +1,3 @@
-import { google } from 'googleapis';
 import dotenv from 'dotenv';
 import dayjs from 'dayjs';
 import timezone from "dayjs/plugin/timezone.js";
@@ -9,34 +8,10 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dotenv.config();
 
-const auth = new google.auth.GoogleAuth({
-  credentials: {
-    type: 'service_account',
-    project_id: process.env.GOOGLE_PROJECT_ID,
-    private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-    private_key: process.env.GOOGLE_PRIVATE_KEY,
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    auth_uri: process.env.GOOGLE_AUTH_URI,
-    token_uri: process.env.GOOGLE_TOKEN_URI,
-    auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_CERT_URL,
-    client_x509_cert_url: process.env.GOOGLE_CLIENT_CERT_URL,
-  },
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
-
-const sheets = google.sheets({ version: 'v4', auth });
-
-async function getNextId(range) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range,
-  });
-  const existingIds = (res.data.values ?? [])
-    .flat()
-    .map(id => parseInt(id, 10))
-    .filter(n => !isNaN(n));
-  return (existingIds.length ? Math.max(...existingIds) : 0) + 1;
+// Estas funciones usaban hojas de Google (Pagos, Caja, Anotaciones) que ya no existen en la planilla,
+// así que fallaban siempre. Ninguna pantalla las usa: quedan deshabilitadas en vez de migradas.
+function noDisponible(que) {
+  throw new Error(`${que} no está disponible: usaba una hoja de Google Sheets que ya no existe`);
 }
 
 function toInt(n, def = 0) {
@@ -332,26 +307,7 @@ export async function appendPagoToSheet(pago) {
 }
 
 export async function updatePagoByID(id, nuevosDatos) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Pagos!A1:H',
-  });
-
-  const [headers, ...rows] = res.data.values;
-  const rowIndex = rows.findIndex(row => row[0] === id);
-
-  if (rowIndex === -1) return false;
-
-  const nuevaFila = headers.map((header, i) => nuevosDatos[header] || rows[rowIndex][i]);
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `Pagos!A${rowIndex + 2}:H${rowIndex + 2}`,
-    valueInputOption: 'USER_ENTERED',
-    resource: { values: [nuevaFila] },
-  });
-
-  return true;
+  noDisponible('Editar pagos');
 }
 
 export async function deletePagoByID(id) {
@@ -537,35 +493,7 @@ export async function updateCajaByID(id, nuevosDatos) {
 
 
 export async function deleteCajaByID(id) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Caja!A1:J',
-  });
-
-  const [headers, ...rows] = res.data.values;
-  const rowIndex = rows.findIndex(row => row[0] === id);
-
-  if (rowIndex === -1) return false;
-
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    requestBody: {
-      requests: [
-        {
-          deleteDimension: {
-            range: {
-              sheetId: 404044225,
-              dimension: 'ROWS',
-              startIndex: rowIndex + 1,
-              endIndex: rowIndex + 2
-            }
-          }
-        }
-      ]
-    }
-  });
-
-  return true;
+  noDisponible('Eliminar cajas');
 }
 
 export async function getCajasFromSheet() {
@@ -1061,215 +989,116 @@ export async function getAsistenciasHoyService() {
 
 
 
-///////// GOOGLE SHEETS //////////
-
-
-// Roles 
+// ================== ROLES ==================
+// Antes se leían de la hoja Roles de Google Sheets; ahora de la tabla roles de Supabase.
 
 export async function getRolesFromSheet() {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Roles!A1:C', // Asegurate que el nombre de la hoja sea correcto
-  });
+  const { data, error } = await supabase
+    .from('roles')
+    .select('dni, nombre, rol');
 
-  const [headers, ...rows] = res.data.values;
+  if (error) throw error;
 
-  const roles = rows.map((row) => {
-    const user = {};
-    headers.forEach((header, i) => {
-      user[header] = row[i] || '';
-    });
-    return user;
-  });
-
-  return roles;
+  return data.map((r) => ({
+    DNI: r.dni == null ? '' : String(r.dni),
+    Nombre: r.nombre || '',
+    Rol: r.rol || '',
+  }));
 }
 
-// Clases diarias 
+// ================== CLASES DIARIAS ==================
+// Antes vivían en la hoja ClasesDiarias de Google Sheets; ahora en la tabla clases_diarias
+// (ver db/clases_diarias.sql). Se devuelven con los mismos nombres de campo que tenía la hoja.
+
+function formatClaseDiaria(c) {
+  return {
+    ID: String(c.id),
+    Fecha: dayjs(c.fecha).format('D/M/YYYY'),
+    'Tipo de Clase': c.tipo_clase || '',
+    'Cantidad de presentes': c.cantidad == null ? '' : String(c.cantidad),
+    Responsable: c.responsable || '',
+  };
+}
 
 export async function appendClaseDiariaToSheet(clase) {
-  const nuevoID = await getNextId('ClasesDiarias!A2:A');
+  const { data, error } = await supabase
+    .from('clases_diarias')
+    .insert([
+      {
+        fecha: toISODate(clase.Fecha) || dayjs().format('YYYY-MM-DD'),
+        tipo_clase: clase.Tipo,
+        cantidad: Number(clase.Cantidad),
+        responsable: clase.Responsable,
+      },
+    ])
+    .select()
+    .single();
 
-  const values = [[
-    String(nuevoID),
-    clase.Fecha,
-    clase.Tipo,
-    String(clase.Cantidad),
-    clase.Responsable
-  ]];
-
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'ClasesDiarias!A1:E1',
-    valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
-    resource: { values },
-  });
+  if (error) throw error;
+  return formatClaseDiaria(data);
 }
 
 export async function updateClaseDiariaByID(id, nuevosDatos) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'ClasesDiarias!A1:E',
-  });
+  const cambios = {};
+  if (nuevosDatos.Fecha) cambios.fecha = toISODate(nuevosDatos.Fecha);
+  if (nuevosDatos['Tipo de Clase']) cambios.tipo_clase = nuevosDatos['Tipo de Clase'];
+  if (nuevosDatos['Cantidad de presentes'] != null && nuevosDatos['Cantidad de presentes'] !== '') {
+    cambios.cantidad = Number(nuevosDatos['Cantidad de presentes']);
+  }
+  if (nuevosDatos.Responsable) cambios.responsable = nuevosDatos.Responsable;
 
-  const [headers, ...rows] = res.data.values;
-  const rowIndex = rows.findIndex(row => row[0] === id);
+  const query = Object.keys(cambios).length
+    ? supabase.from('clases_diarias').update(cambios).eq('id', id).select('id')
+    : supabase.from('clases_diarias').select('id').eq('id', id);
 
-  if (rowIndex === -1) return false;
-
-  const nuevaFila = headers.map((header, i) => nuevosDatos[header] || rows[rowIndex][i]);
-
-  sheets.spreadsheets.values.update({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `ClasesDiarias!A${rowIndex + 2}:E${rowIndex + 2}`,
-    valueInputOption: 'USER_ENTERED',
-    resource: { values: [nuevaFila] },
-  });
-
-  return true;
+  const { data, error } = await query;
+  if (error) throw error;
+  return data.length > 0;
 }
 
 export async function deleteClaseDiariaByID(id) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'ClasesDiarias!A1:E',
-  });
+  const { data, error } = await supabase
+    .from('clases_diarias')
+    .delete()
+    .eq('id', id)
+    .select('id');
 
-  const [headers, ...rows] = res.data.values;
-  const rowIndex = rows.findIndex(row => row[0] === id);
-
-  if (rowIndex === -1) return false;
-
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    requestBody: {
-      requests: [
-        {
-          deleteDimension: {
-            range: {
-              sheetId: 801252478,
-              dimension: 'ROWS',
-              startIndex: rowIndex + 1,
-              endIndex: rowIndex + 2
-            }
-          }
-        }
-      ]
-    }
-  });
-
-  return true;
+  if (error) throw error;
+  return data.length > 0;
 }
 
-export async function getClasesDiariasFromSheet() {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'ClasesDiarias!A1:E',
-  });
+// fechaISO (YYYY-MM-DD) es opcional: filtra en la base en vez de traer toda la tabla.
+export async function getClasesDiariasFromSheet(fechaISO) {
+  let query = supabase
+    .from('clases_diarias')
+    .select('*')
+    .order('id', { ascending: true });
 
-  const [headers, ...rows] = res.data.values;
+  if (fechaISO) query = query.eq('fecha', fechaISO);
 
-  return rows.map(row => {
-    const obj = {};
-    headers.forEach((h, i) => {
-      obj[h] = row[i] || '';
-    });
-    return obj;
-  });
+  const { data, error } = await query;
+  if (error) throw error;
+  return data.map(formatClaseDiaria);
 }
 
-
-// Anotaciones
+// ================== ANOTACIONES ==================
 
 export async function getAnotacionesFromSheet() {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Anotaciones!A1:F1000',
-  });
-
-  const [headers, ...rows] = res.data.values;
-  return rows.map(row => {
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = row[i] || '');
-    return obj;
-  });
+  noDisponible('Anotaciones');
 }
 
 export async function appendAnotacionToSheet(data) {
-  const registros = await getAnotacionesFromSheet();
-  const nuevoID = String((registros.length || 0) + 1);
-
-  const values = [[
-    nuevoID,
-    data.Fecha,
-    data.Hora,
-    data['Alumno DNI'],
-    data.Nota,
-    data.ProfeaCargo
-  ]];
-
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Anotaciones!A1:F1',
-    valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
-    resource: { values }
-  });
+  noDisponible('Anotaciones');
 }
 
 export async function updateAnotacionInSheet(id, nuevosDatos) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Anotaciones!A1:F',
-  });
-
-  const [headers, ...rows] = res.data.values;
-  const rowIndex = rows.findIndex(row => row[0] === id);
-  if (rowIndex === -1) return false;
-
-  const nuevaFila = headers.map((h, i) => nuevosDatos[h] || rows[rowIndex][i]);
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `Anotaciones!A${rowIndex + 2}:F${rowIndex + 2}`,
-    valueInputOption: 'USER_ENTERED',
-    resource: { values: [nuevaFila] }
-  });
-
-  return true;
+  noDisponible('Anotaciones');
 }
 
 export async function deleteAnotacionInSheet(id) {
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Anotaciones!A1:F',
-  });
-
-  const rows = res.data.values;
-  const rowIndex = rows.findIndex(row => row[0] === id);
-  if (rowIndex === -1) return false;
-
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    requestBody: {
-      requests: [
-        {
-          deleteDimension: {
-            range: {
-              sheetId: 1095798724,
-              dimension: 'ROWS',
-              startIndex: rowIndex,
-              endIndex: rowIndex + 1
-            }
-          }
-        }
-      ]
-    }
-  });
-
-  return true;
+  noDisponible('Anotaciones');
 }
+
 
 
 // Puntos
