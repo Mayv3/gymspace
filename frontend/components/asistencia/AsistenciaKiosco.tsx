@@ -117,7 +117,7 @@ export default function AsistenciaKiosco({ onVolver }: { onVolver?: () => void }
               value={dni}
               onChange={(e) => setDni(e.target.value)}
               placeholder="Ej: 45082803"
-              className="w-full px-5 py-3 text-lg border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+              className="w-full px-5 py-3 text-lg bg-white text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
             />
             <button
               type="submit"
