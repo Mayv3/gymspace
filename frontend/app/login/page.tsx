@@ -5,6 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
+import { mensajeErrorLogin } from "@/lib/loginError";
 import {
   Box,
   Card,
@@ -96,7 +97,7 @@ const LoginPage = () => {
     }
     try {
       setLoading(true)
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${dni}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/roles/${dni}`, { timeout: 15000 });
       const data = res.data;
 
       Cookies.set("dni", data.dni);
@@ -116,7 +117,7 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.error("Error en login:", error);
-      setErrorMessage("No se pudo encontrar un usuario con ese DNI.");
+      setErrorMessage(mensajeErrorLogin(error));
       setLoading(false)
     }
   };

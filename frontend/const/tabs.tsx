@@ -8,10 +8,12 @@ import {
   Activity,
   Mail,
   BarChart3,
+  UserCheck,
 } from 'lucide-react'
 
 export const recepcionistTabs = [
     { label: "Miembros", icon: <Users />, value: "members" },
+    { label: "Asistencia", icon: <UserCheck />, value: "asistencia" },
     { label: "Pagos", icon: <DollarSign />, value: "shift-payments" },
     { label: "Deudas", icon: <ReceiptText />, value: "deudas" },
     { label: "Planes", icon: <Dumbbell />, value: "plans" },
@@ -24,6 +26,7 @@ export const recepcionistTabs = [
 export const adminTabs = [
   { label: "Resumen", icon: <BarChart3 />, value: "overview" },
   { label: "Miembros", icon: <Users />, value: "members" },
+  { label: "Asistencia", icon: <UserCheck />, value: "asistencia" },
   { label: "Pagos", icon: <DollarSign />, value: "shift-payments" },
   { label: "Deudas", icon: <ReceiptText />, value: "deudas" },
   { label: "Planes", icon: <Dumbbell />, value: "plans" },

@@ -5,6 +5,7 @@ import { createContext, useContext, useState } from "react"
 export type AdminSection =
   | "overview"
   | "members"
+  | "asistencia"
   | "shift-payments"
   | "assists"
   | "plans"

@@ -6,11 +6,12 @@ import { adminTabs } from "@/const/tabs"
 import { AdminNavProvider, useAdminNav, type AdminSection } from "../administrator/context/AdminNavContext"
 
 function AdminSideBar() {
-  const { setSection } = useAdminNav()
+  const { section, setSection } = useAdminNav()
 
   return (
     <SideBar
       tabs={adminTabs}
+      selectedValue={section}
       onSelect={(value) => setSection(value as AdminSection)}
     />
   )

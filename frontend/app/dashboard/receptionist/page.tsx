@@ -6,6 +6,7 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import MembersSection from "@/components/dashboard/recepcionist/members/MemberSection"
 import PaymentsSection from "@/components/dashboard/recepcionist/payments/PaymentSection"
 import AssistsSection from "@/components/dashboard/recepcionist/assists/AssistsClases"
+import AsistenciaKiosco from "@/components/asistencia/AsistenciaKiosco"
 import PlansSection from "@/components/dashboard/recepcionist/plans/PlansSection"
 import ShiftsSection from "@/components/dashboard/recepcionist/shifts/ShiftSection"
 import CashRegisterSection from "@/components/dashboard/recepcionist/cashRegister/CashRegisterSection"
@@ -184,6 +185,7 @@ export default function ReceptionistDashboard() {
 
       <SideBar
         tabs={recepcionistTabs}
+        selectedValue={selectedSection}
         onSelect={setSelectedSection}
       />
 
@@ -244,6 +246,10 @@ export default function ReceptionistDashboard() {
 
         {selectedSection === "assists" && (
           <AssistsSection />
+        )}
+
+        {selectedSection === "asistencia" && (
+          <AsistenciaKiosco onVolver={() => setSelectedSection("members")} />
         )}
 
         {selectedSection === "plans" && (

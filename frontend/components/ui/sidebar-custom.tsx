@@ -7,10 +7,14 @@ type TabItem = { label: string; icon: React.ReactNode; value: string }
 type SideBarProps = {
   tabs: TabItem[]
   onSelect: (value: string) => void
+  // Opcional: si la sección cambia desde afuera (p. ej. "Volver al panel"), la pestaña marcada la sigue.
+  selectedValue?: string
 }
 
-const SideBar = ({ tabs, onSelect }: SideBarProps) => {
-  const [selectedIndex, setSelectedIndex] = useState(0)
+const SideBar = ({ tabs, onSelect, selectedValue }: SideBarProps) => {
+  const [indexInterno, setSelectedIndex] = useState(0)
+  const indexExterno = selectedValue === undefined ? -1 : tabs.findIndex((t) => t.value === selectedValue)
+  const selectedIndex = indexExterno >= 0 ? indexExterno : indexInterno
   const [mounted, setMounted] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 

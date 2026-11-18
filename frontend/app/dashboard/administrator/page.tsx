@@ -10,6 +10,7 @@ import AdminOverviewCharts from "@/components/dashboard/administrator/AdminOverv
 
 import PaymentsSection from "@/components/dashboard/recepcionist/payments/PaymentSection"
 import AssistsSection from "@/components/dashboard/recepcionist/assists/AssistsClases"
+import AsistenciaKiosco from "@/components/asistencia/AsistenciaKiosco"
 import PlansSection from "@/components/dashboard/recepcionist/plans/PlansSection"
 import ShiftsSection from "@/components/dashboard/recepcionist/shifts/ShiftSection"
 import CashRegisterSection from "@/components/dashboard/recepcionist/cashRegister/CashRegisterSection"
@@ -54,7 +55,7 @@ export default function AdministratorDashboard() {
 
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedShift, setSelectedShift] = useState("todos")
-  const { section: selectedSection } = useAdminNav()
+  const { section: selectedSection, setSection } = useAdminNav()
 
   const today = new Date()
 
@@ -297,6 +298,8 @@ export default function AdministratorDashboard() {
             setSelectedYear={setSelectedYear}
           />
         )}
+
+        {selectedSection === "asistencia" && <AsistenciaKiosco onVolver={() => setSection("overview")} />}
 
         {selectedSection === "deudas" && <DebtsSection />}
 
